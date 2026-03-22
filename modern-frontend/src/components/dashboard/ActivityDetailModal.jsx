@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X, MapPin, Clock, Users, Signal, Tag, Calendar, Star, Info, Image as ImageIcon } from 'lucide-react';
-import Map, { Marker } from 'react-map-gl/mapbox';
+import Map, { Marker, Source } from 'react-map-gl/mapbox';
 import { motion, AnimatePresence } from 'framer-motion';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
@@ -8,10 +8,26 @@ const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
 const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
   const [activeImage, setActiveImage] = useState(null);
+  const [position, setPosition] = useState({ lat: -0.180653, lng: -78.467834 });
+  const [showTerrain, setShowTerrain] = useState(true);
+  const [viewState, setViewState] = useState({
+    latitude: -0.180653,
+    longitude: -78.467834,
+    zoom: 13,
+    pitch: 50
+  });
 
   useEffect(() => {
     if (activity) {
       setActiveImage(activity.image || activity.portada || "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80");
+      const newLat = parseFloat(activity.latitud) || -0.180653;
+      const newLng = parseFloat(activity.longitud) || -78.467834;
+      setPosition({ lat: newLat, lng: newLng });
+      setViewState(prev => ({
+        ...prev,
+        latitude: newLat,
+        longitude: newLng,
+      }));
     }
   }, [activity]);
 
@@ -22,10 +38,6 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
   const allImages = [activity.image || activity.portada, ...gallery].filter(Boolean);
 
   const isActive = activity.estado === 'ACTIVA';
-  const position = { 
-    lat: parseFloat(activity.latitud) || -0.180653, 
-    lng: parseFloat(activity.longitud) || -78.467834 
-  };
 
   return (
     <AnimatePresence>
@@ -139,20 +151,40 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
                   </h3>
                   <div className="h-64 rounded-[32px] overflow-hidden border-2 border-slate-50 shadow-inner z-0">
                     <Map
-                      initialViewState={{
-                        latitude: position.lat,
-                        longitude: position.lng,
-                        zoom: 13
-                      }}
-                      mapStyle="mapbox://styles/mapbox/streets-v12"
+                      {...viewState}
+                      onMove={evt => setViewState(evt.viewState)}
+                      mapStyle={showTerrain ? "mapbox://styles/mapbox/outdoors-v12" : "mapbox://styles/mapbox/streets-v12"}
                       mapboxAccessToken={MAPBOX_TOKEN}
                       style={{ width: '100%', height: '100%' }}
+                      terrain={showTerrain ? { source: 'mapbox-dem', exaggeration: 1.5 } : null}
                     >
+                      <Source
+                        id="mapbox-dem"
+                        type="raster-dem"
+                        url="mapbox://mapbox.mapbox-terrain-dem-v1"
+                        tileSize={512}
+                        maxzoom={14}
+                      />
                       <Marker latitude={position.lat} longitude={position.lng} anchor="bottom">
                          <div className="w-6 h-6 bg-primary rounded-full border-2 border-white shadow-lg flex items-center justify-center">
                             <MapPin className="w-3 h-3 text-white" />
                          </div>
                       </Marker>
+
+                      {/* Botón de cambio 2D/3D */}
+                      <div className="absolute top-4 right-4 z-10">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const nextVal = !showTerrain;
+                            setShowTerrain(nextVal);
+                            setViewState(prev => ({ ...prev, pitch: nextVal ? 50 : 0 }));
+                          }}
+                          className={`w-10 h-10 bg-white/90 backdrop-blur-md rounded-2xl shadow-xl flex items-center justify-center font-black text-[10px] transition-all hover:scale-110 active:scale-95 border border-white/50 ${showTerrain ? 'text-primary' : 'text-slate-500'}`}
+                        >
+                          {showTerrain ? '2D' : '3D'}
+                        </button>
+                      </div>
                     </Map>
                   </div>
                   <div className="flex items-center gap-4 text-slate-500 font-bold">

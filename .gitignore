@@ -1,0 +1,27 @@
+# Node/NPM
+node_modules/
+package-lock.json
+*.log
+npm-debug.log*
+
+# Environment
+.env
+.env.local
+.env.production
+modern-frontend/.env
+
+# Build
+dist/
+build/
+.temp/
+out/
+
+# IDE/OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Database (if any local sqlite or logs)
+*.sqlite
+*.db

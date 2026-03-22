@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import Map, { Marker, Popup, NavigationControl, FullscreenControl } from 'react-map-gl/mapbox';
+import Map, { Marker, Popup, NavigationControl, FullscreenControl, Source, Layer } from 'react-map-gl/mapbox';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
@@ -7,14 +7,25 @@ const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 const MapView = ({ activities, onOpenDetail }) => {
   const mapRef = useRef();
   const [popupInfo, setPopupInfo] = useState(null);
+  const [showTerrain, setShowTerrain] = useState(true);
   
   const [viewState, setViewState] = useState({
     latitude: -1.831239,
     longitude: -78.183406,
     zoom: 6,
-    pitch: 45, // Inclinación para efecto 3D
-    bearing: 0
+    pitch: 60,
+    bearing: -20
   });
+
+  const toggleTerrain = () => {
+    const nextShowTerrain = !showTerrain;
+    setShowTerrain(nextShowTerrain);
+    setViewState(prev => ({
+      ...prev,
+      pitch: nextShowTerrain ? 60 : 0,
+      bearing: nextShowTerrain ? -20 : 0
+    }));
+  };
 
   useEffect(() => {
     if (!activities || activities.length === 0 || !mapRef.current) return;
@@ -50,12 +61,31 @@ const MapView = ({ activities, onOpenDetail }) => {
         ref={mapRef}
         {...viewState}
         onMove={evt => setViewState(evt.viewState)}
-        mapStyle="mapbox://styles/mapbox/streets-v12"
+        mapStyle={showTerrain ? "mapbox://styles/mapbox/outdoors-v12" : "mapbox://styles/mapbox/streets-v12"}
         mapboxAccessToken={MAPBOX_TOKEN}
         style={{ width: '100%', height: '100%' }}
+        terrain={showTerrain ? { source: 'mapbox-dem', exaggeration: 1.5 } : null}
       >
+        <Source
+          id="mapbox-dem"
+          type="raster-dem"
+          url="mapbox://mapbox.mapbox-terrain-dem-v1"
+          tileSize={512}
+          maxzoom={14}
+        />
         <NavigationControl position="top-right" />
         <FullscreenControl position="top-right" />
+
+        {/* Botón de cambio 2D/3D */}
+        <div className="absolute top-[130px] right-2.5 z-10">
+          <button
+            onClick={toggleTerrain}
+            className={`w-[29px] h-[29px] bg-white rounded-md shadow-lg border border-slate-200 flex items-center justify-center font-black text-[10px] transition-all hover:bg-slate-50 active:scale-95 ${showTerrain ? 'text-primary' : 'text-slate-500'}`}
+            title={showTerrain ? "Cambiar a 2D" : "Cambiar a 3D"}
+          >
+            {showTerrain ? '2D' : '3D'}
+          </button>
+        </div>
 
         {activities.map(activity => {
           const lat = parseFloat(activity.latitud);

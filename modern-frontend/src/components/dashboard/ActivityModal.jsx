@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { X, MapPin, Camera, Info, Save, Layers, Clock, Users, Signal, Tag, Plus } from 'lucide-react';
-import Map, { Marker, NavigationControl } from 'react-map-gl/mapbox';
+import Map, { Marker, NavigationControl, Source } from 'react-map-gl/mapbox';
 import { motion, AnimatePresence } from 'framer-motion';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
@@ -8,11 +8,30 @@ const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
 const reverseGeocode = async (lat, lng) => {
   try {
-    const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
+    const response = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_TOKEN}&language=es`);
     const data = await response.json();
-    return data;
+    if (data.features && data.features.length > 0) {
+      const feature = data.features[0];
+      const context = feature.context || [];
+      
+      const city = feature.text || '';
+      const state = context.find(c => c.id.startsWith('region'))?.text || '';
+      const country = context.find(c => c.id.startsWith('country'))?.text || 'Ecuador';
+      const address = feature.place_name || '';
+
+      return {
+        address: {
+          city,
+          state,
+          country,
+          road: feature.text,
+          full: address
+        }
+      };
+    }
+    return null;
   } catch (error) {
-    console.error('Error reverse geocoding:', error);
+    console.error('Error reverse geocoding with Mapbox:', error);
     return null;
   }
 };
@@ -66,10 +85,12 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
   });
 
   const [position, setPosition] = useState({ lat: -0.180653, lng: -78.467834 });
+  const [showTerrain, setShowTerrain] = useState(true);
   const [viewState, setViewState] = useState({
     latitude: -0.180653,
     longitude: -78.467834,
-    zoom: 13
+    zoom: 13,
+    pitch: 60
   });
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState(null);
@@ -510,11 +531,34 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
                             const data = await reverseGeocode(lat, lng);
                             if (data) handleLocationFound(data);
                           }}
-                          mapStyle="mapbox://styles/mapbox/streets-v12"
+                          mapStyle={showTerrain ? "mapbox://styles/mapbox/outdoors-v12" : "mapbox://styles/mapbox/streets-v12"}
                           mapboxAccessToken={MAPBOX_TOKEN}
                           style={{ width: '100%', height: '100%' }}
+                          terrain={showTerrain ? { source: 'mapbox-dem', exaggeration: 1.5 } : null}
                         >
+                          <Source
+                            id="mapbox-dem"
+                            type="raster-dem"
+                            url="mapbox://mapbox.mapbox-terrain-dem-v1"
+                            tileSize={512}
+                            maxzoom={14}
+                          />
                           <NavigationControl position="top-right" />
+                          
+                          {/* Toggle 2D/3D Button */}
+                          <div className="absolute top-[130px] right-2.5 z-10">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const nextVal = !showTerrain;
+                                setShowTerrain(nextVal);
+                                setViewState(prev => ({ ...prev, pitch: nextVal ? 60 : 0 }));
+                              }}
+                              className={`w-[29px] h-[29px] bg-white rounded-md shadow-lg border border-slate-200 flex items-center justify-center font-black text-[10px] transition-all hover:bg-slate-50 active:scale-95 ${showTerrain ? 'text-primary' : 'text-slate-500'}`}
+                            >
+                              {showTerrain ? '2D' : '3D'}
+                            </button>
+                          </div>
                           {position && (
                             <Marker latitude={position.lat} longitude={position.lng} anchor="bottom">
                               <div className="w-8 h-8 bg-primary rounded-full border-4 border-white shadow-lg animate-bounce flex items-center justify-center">
