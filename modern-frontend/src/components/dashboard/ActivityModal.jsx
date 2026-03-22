@@ -1,0 +1,687 @@
+import { useState, useEffect, useRef } from 'react';
+import { X, MapPin, Camera, Info, Save, Layers, Clock, Users, Signal, Tag, Plus } from 'lucide-react';
+import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import { motion, AnimatePresence } from 'framer-motion';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+
+// Fix for default marker icon in leaflet
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-shadow.png',
+});
+
+const MapRecenter = ({ lat, lng }) => {
+  const map = useMapEvents({});
+  useEffect(() => {
+    map.setView([lat, lng]);
+  }, [lat, lng, map]);
+  return null;
+};
+
+const reverseGeocode = async (lat, lng) => {
+  try {
+    const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error reverse geocoding:', error);
+    return null;
+  }
+};
+
+const LocationPicker = ({ position, setPosition, onLocationFound }) => {
+  useMapEvents({
+    async click(e) {
+      const { lat, lng } = e.latlng;
+      setPosition(e.latlng);
+      const data = await reverseGeocode(lat, lng);
+      if (data && onLocationFound) {
+        onLocationFound(data);
+      }
+    },
+  });
+
+  return position ? <Marker position={position} /> : null;
+};
+
+const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = null, onSave }) => {
+  const [step, setStep] = useState(1); // 1: Details, 2: Location & Media
+  const [formData, setFormData] = useState({
+    titulo: '',
+    descripcion: '',
+    precio: '',
+    capacidad: '',
+    duracion_horas: '',
+    nivel_dificultad: 'MEDIO',
+    id_categoria: '1',
+    id_clasificacion: '1',
+    ciudad: '',
+    provincia: '',
+    pais: 'Ecuador',
+    direccion: '',
+    latitud: -0.180653,
+    longitud: -78.467834,
+    portada: null,
+    galeria: [],
+    id_ubicacion: null,
+    // Tourist fields
+    incluye_recorrido: true,
+    incluye_transporte: false,
+    requiere_equipo: false,
+    // Food fields
+    menu_vegano: false,
+    menu_vegetariano: false,
+    menu_sin_gluten: false,
+    permite_mascotas: false,
+    wifi: false,
+    servicio_local: true,
+    servicio_para_llevar: false,
+    servicio_delivery: false,
+    nivel_picante: 0,
+    accesibilidad_silla_ruedas: false,
+    accesibilidad_adultos_mayores: false,
+    estacionamiento: false,
+    musica_en_vivo: false,
+    zona_infantil: false,
+    eventos_privados: false,
+    metodos_pago: '',
+    descuentos_promociones: '',
+    // Common
+    porcentaje_ganancia: 10,
+    tipo_reserva: 'INSTANTANEA'
+  });
+
+  const [position, setPosition] = useState({ lat: -0.180653, lng: -78.467834 });
+  const [loading, setLoading] = useState(false);
+  const [preview, setPreview] = useState(null);
+
+  useEffect(() => {
+    if (initialData && isOpen) {
+      const normalizedData = {
+        ...formData,
+        ...initialData,
+        titulo: initialData.titulo || initialData.title || '',
+        descripcion: initialData.descripcion || initialData.description || '',
+        precio: initialData.precio || initialData.price || '',
+        capacidad: initialData.capacidad || initialData.capacity || '',
+        duracion_horas: initialData.duracion_horas || initialData.duration || '',
+        nivel_dificultad: initialData.nivel_dificultad || initialData.difficulty || 'MEDIO',
+        id_categoria: initialData.id_categoria || '1',
+        id_clasificacion: initialData.id_clasificacion || '1',
+        ciudad: initialData.ciudad || initialData.city || '',
+        provincia: initialData.provincia || initialData.state || '',
+        pais: initialData.pais || 'Ecuador',
+        direccion: initialData.direccion || initialData.address || initialData.location || '',
+        id_ubicacion: initialData.id_ubicacion || null,
+        galeria: initialData.galeria || [],
+        incluye_recorrido: initialData.incluye_recorrido ?? true,
+        incluye_transporte: initialData.incluye_transporte || false,
+        requiere_equipo: initialData.requiere_equipo || false,
+        porcentaje_ganancia: initialData.porcentaje_ganancia || 10,
+        tipo_reserva: initialData.tipo_reserva || 'INSTANTANEA'
+      };
+      
+      setFormData(normalizedData);
+      setPreview(normalizedData.portada || normalizedData.image || null);
+      
+      const lat = parseFloat(normalizedData.latitud);
+      const lng = parseFloat(normalizedData.longitud);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        setPosition({ lat, lng });
+      }
+    } else if (isOpen) {
+      setFormData({
+        titulo: '', descripcion: '', precio: '', capacidad: '',
+        duracion_horas: '', nivel_dificultad: 'MEDIO',
+        id_categoria: '1', id_clasificacion: '1',
+        ciudad: '', provincia: '', pais: 'Ecuador', direccion: '',
+        latitud: -0.180653, longitud: -78.467834, portada: null, galeria: [], id_ubicacion: null,
+        incluye_recorrido: true, incluye_transporte: false, requiere_equipo: false,
+        menu_vegano: false, menu_vegetariano: false, menu_sin_gluten: false,
+        permite_mascotas: false, wifi: false, servicio_local: true,
+        servicio_para_llevar: false, servicio_delivery: false, nivel_picante: 0,
+        accesibilidad_silla_ruedas: false, accesibilidad_adultos_mayores: false,
+        estacionamiento: false, musica_en_vivo: false, zona_infantil: false,
+        eventos_privados: false, metodos_pago: '', descuentos_promociones: '',
+        porcentaje_ganancia: 10, tipo_reserva: 'INSTANTANEA'
+      });
+      setPreview(null);
+      setStep(1);
+    }
+  }, [initialData, isOpen]);
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreview(reader.result);
+        setFormData(prev => ({ ...prev, portada: reader.result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleGalleryChange = (e) => {
+    const files = Array.from(e.target.files);
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(prev => ({
+          ...prev,
+          galeria: [...prev.galeria, reader.result]
+        }));
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleLocationFound = (data) => {
+    const { address } = data;
+    const city = address.city || address.town || address.village || address.suburb || '';
+    const state = address.state || address.county || '';
+    const country = address.country || 'Ecuador';
+    const road = address.road || '';
+    const houseNumber = address.house_number || '';
+    const fullAddress = `${road} ${houseNumber}`.trim();
+
+    setFormData(prev => ({
+      ...prev,
+      ciudad: city,
+      provincia: state,
+      pais: country,
+      direccion: fullAddress || prev.direccion
+    }));
+  };
+
+  const handleGetCurrentLocation = () => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        const newPos = { lat: latitude, lng: longitude };
+        setPosition(newPos);
+        const data = await reverseGeocode(latitude, longitude);
+        if (data) handleLocationFound(data);
+      });
+    } else {
+      alert("La geolocalización no está disponible en tu navegador.");
+    }
+  };
+
+  const removeGalleryImage = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      galeria: prev.galeria.filter((_, i) => i !== index)
+    }));
+  };
+
+  if (!isOpen) return null;
+
+  const handleSubmit = async (e) => {
+    if (e) e.preventDefault();
+    setLoading(true);
+    const finalData = { 
+      ...formData, 
+      latitud: position.lat, 
+      longitud: position.lng,
+      url_imagen: formData.portada, // Mapping for backend
+      galeria: formData.galeria
+    };
+    await onSave(finalData);
+    setLoading(false);
+  };
+
+  const steps = [
+    { id: 1, label: 'Detalles', icon: Info },
+    { id: 2, label: 'Ubicación', icon: MapPin },
+  ];
+
+  // Database Categories
+  const touristCategories = [
+    'Aventura', 'Cultural', 'Naturaleza', 'Relajación', 'Familiar',
+    'Deportiva', 'Nocturna', 'Educativa', 'Fotográfica', 'Exploración'
+  ];
+
+  const foodCategories = [
+    'Restaurante típico/local', 'Marisquería', 'Parrillada / Asados', 
+    'Cafetería', 'Comida rápida', 'Cocina internacional', 
+    'Panadería / Pastelería', 'Buffet', 'Comida saludable / Vegana', 
+    'Food Truck / Comida callejera'
+  ];
+
+  const classifications = [
+    'FRIENDLY', 'RELAX', 'MODERADA', 'AVENTURA', 'PELIGROSA', 
+    'EXTREMA', 'INFANTIL', 'PAREJAS', 'GRUPOS', 'EXCLUSIVA'
+  ];
+
+  return (
+    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-md animate-fade-in">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        className="bg-white w-full max-w-6xl max-h-[95vh] rounded-[48px] shadow-2xl relative flex flex-col overflow-hidden border border-white/20"
+      >
+        {/* Progress Header */}
+        <div className="bg-slate-50/50 border-b border-slate-100 p-8 sm:p-10 flex flex-col sm:flex-row justify-between items-center gap-6">
+          <div className="flex items-center gap-6">
+            <div className="flex -space-x-2">
+              {steps.map((s) => (
+                <div 
+                  key={s.id}
+                  className={`w-12 h-12 rounded-2xl flex items-center justify-center border-4 border-white shadow-xl transition-all ${
+                    step >= s.id ? 'bg-primary text-white scale-110 z-10' : 'bg-slate-200 text-slate-400'
+                  }`}
+                >
+                  <s.icon className="w-5 h-5" />
+                </div>
+              ))}
+            </div>
+            <div>
+              <h2 className="text-2xl font-display font-black text-slate-800">
+                {initialData ? 'Editar' : 'Nueva'} {type === 'EXPERIENCE' ? 'Experiencia' : 'Servicio'}
+              </h2>
+              <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Paso {step} de 2: {steps[step-1].label}</p>
+            </div>
+          </div>
+          
+          <button onClick={onClose} className="p-4 bg-white text-slate-400 rounded-2xl hover:bg-red-50 hover:text-red-500 transition-all shadow-sm border border-slate-100">
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+
+        {/* Form Content */}
+        <div className="flex-1 overflow-auto p-8 sm:p-12 text-slate-700">
+          <AnimatePresence mode="wait">
+            {step === 1 ? (
+              <motion.div 
+                key="step1"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                className="space-y-10"
+              >
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                  {/* Left Column: Basic Info */}
+                  <div className="lg:col-span-2 space-y-6">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Título de la propuesta</label>
+                      <div className="relative group">
+                        <Tag className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-primary transition-colors" />
+                        <input 
+                          type="text" required value={formData.titulo || ''}
+                          onChange={(e) => setFormData({...formData, titulo: e.target.value})}
+                          placeholder="Ej: Caminata por el bosque nublado"
+                          className="w-full pl-12 pr-4 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all outline-none font-bold placeholder:text-slate-300"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Descripción detallada</label>
+                      <textarea 
+                        rows="4" required value={formData.descripcion || ''}
+                        onChange={(e) => setFormData({...formData, descripcion: e.target.value})}
+                        placeholder="Explica qué harás, qué incluye y qué deben traer los viajeros..."
+                        className="w-full p-6 rounded-3xl bg-slate-50 border border-slate-100 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all outline-none resize-none leading-relaxed font-medium placeholder:text-slate-300"
+                      ></textarea>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Categoría</label>
+                        <select 
+                          value={formData.id_categoria || '1'}
+                          onChange={(e) => setFormData({...formData, id_categoria: e.target.value})}
+                          className="w-full p-4 rounded-2xl bg-slate-50 border border-slate-100 appearance-none outline-none font-bold text-sm cursor-pointer focus:border-primary"
+                        >
+                          {(type === 'EXPERIENCE' ? touristCategories : foodCategories).map((cat, idx) => (
+                            <option key={idx} value={idx + 1}>{cat}</option>
+                          ))}
+                        </select>
+                      </div>
+                      
+                      {type === 'EXPERIENCE' && (
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Clasificación</label>
+                          <select 
+                            value={formData.id_clasificacion || '1'}
+                            onChange={(e) => setFormData({...formData, id_clasificacion: e.target.value})}
+                            className="w-full p-4 rounded-2xl bg-slate-50 border border-slate-100 appearance-none outline-none font-bold text-sm cursor-pointer focus:border-primary"
+                          >
+                            {classifications.map((clas, idx) => (
+                              <option key={idx} value={idx + 1}>{clas}</option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Checkboxes Area */}
+                    <div className="p-8 bg-slate-50/50 rounded-[40px] border border-slate-100">
+                      <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Servicios Incluidos & Características</h3>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        {type === 'EXPERIENCE' ? (
+                          <>
+                            <label className="flex items-center gap-3 p-4 bg-white rounded-2xl shadow-sm border border-slate-100 cursor-pointer hover:border-primary transition-colors">
+                              <input type="checkbox" checked={formData.incluye_recorrido} onChange={(e) => setFormData({...formData, incluye_recorrido: e.target.checked})} className="w-5 h-5 accent-primary" />
+                              <span className="text-xs font-bold text-slate-600">Recorrido</span>
+                            </label>
+                            <label className="flex items-center gap-3 p-4 bg-white rounded-2xl shadow-sm border border-slate-100 cursor-pointer hover:border-primary transition-colors">
+                              <input type="checkbox" checked={formData.incluye_transporte} onChange={(e) => setFormData({...formData, incluye_transporte: e.target.checked})} className="w-5 h-5 accent-primary" />
+                              <span className="text-xs font-bold text-slate-600">Transporte</span>
+                            </label>
+                            <label className="flex items-center gap-3 p-4 bg-white rounded-2xl shadow-sm border border-slate-100 cursor-pointer hover:border-primary transition-colors">
+                              <input type="checkbox" checked={formData.requiere_equipo} onChange={(e) => setFormData({...formData, requiere_equipo: e.target.checked})} className="w-5 h-5 accent-primary" />
+                              <span className="text-xs font-bold text-slate-600">Equipo</span>
+                            </label>
+                          </>
+                        ) : (
+                          <>
+                            {[
+                              { label: 'Vegano', key: 'menu_vegano' },
+                              { label: 'Vegetariano', key: 'menu_vegetariano' },
+                              { label: 'Sin Gluten', key: 'menu_sin_gluten' },
+                              { label: 'Mascotas', key: 'permite_mascotas' },
+                              { label: 'WiFi', key: 'wifi' },
+                              { label: 'En Local', key: 'servicio_local' },
+                              { label: 'Para Llevar', key: 'servicio_para_llevar' },
+                              { label: 'Delivery', key: 'servicio_delivery' },
+                              { label: 'Silla Ruedas', key: 'accesibilidad_silla_ruedas' },
+                              { label: 'Estacionam.', key: 'estacionamiento' },
+                              { label: 'Música Vivo', key: 'musica_en_vivo' },
+                              { label: 'Zona Infantil', key: 'zona_infantil' }
+                            ].map((item) => (
+                              <label key={item.key} className="flex items-center gap-3 p-3 bg-white rounded-2xl shadow-sm border border-slate-100 cursor-pointer hover:border-primary transition-colors">
+                                <input type="checkbox" checked={formData[item.key]} onChange={(e) => setFormData({...formData, [item.key]: e.target.checked})} className="w-4 h-4 accent-primary" />
+                                <span className="text-[11px] font-bold text-slate-600">{item.label}</span>
+                              </label>
+                            ))}
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Column: Pricing & Specs */}
+                  <div className="space-y-8 bg-slate-50/50 p-8 rounded-[40px] border border-slate-100 flex flex-col justify-between">
+                    <div className="space-y-8">
+                       <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Resumen Comercial</h3>
+                      
+                      <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-2 text-center">
+                          <span className="p-3 bg-white rounded-2xl shadow-sm inline-block mb-2">
+                            <Tag className="w-5 h-5 text-primary" />
+                          </span>
+                          <label className="text-[10px] font-black text-slate-400 uppercase block tracking-widest">Precio (USD)</label>
+                          <input 
+                            type="number" required value={formData.precio || ''}
+                            onChange={(e) => setFormData({...formData, precio: e.target.value})}
+                            className="w-full bg-transparent text-center text-3xl font-display font-black text-primary outline-none"
+                          />
+                        </div>
+                        <div className="space-y-2 text-center border-l border-slate-100">
+                          <span className="p-3 bg-white rounded-2xl shadow-sm inline-block mb-2">
+                            <Users className="w-5 h-5 text-primary" />
+                          </span>
+                          <label className="text-[10px] font-black text-slate-400 uppercase block tracking-widest">Capacidad</label>
+                          <input 
+                            type="number" required value={formData.capacidad || ''}
+                            onChange={(e) => setFormData({...formData, capacidad: e.target.value})}
+                            className="w-full bg-transparent text-center text-3xl font-display font-black text-slate-800 outline-none"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-6 pt-6 border-t border-slate-100">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <Clock className="w-5 h-5 text-slate-400" />
+                            <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Duración (H)</span>
+                          </div>
+                          <input 
+                            type="number" value={formData.duracion_horas || ''}
+                            onChange={(e) => setFormData({...formData, duracion_horas: e.target.value})}
+                            className="w-16 bg-white p-2 rounded-xl text-center font-black border border-slate-100 focus:border-primary transition-all outline-none"
+                          />
+                        </div>
+
+                        {type === 'EXPERIENCE' ? (
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <Signal className="w-5 h-5 text-slate-400" />
+                              <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Dificultad</span>
+                            </div>
+                            <select 
+                              value={formData.nivel_dificultad || 'MEDIO'}
+                              onChange={(e) => setFormData({...formData, nivel_dificultad: e.target.value})}
+                              className="bg-white p-2 px-4 rounded-xl font-black border border-slate-100 focus:border-primary transition-all outline-none appearance-none cursor-pointer"
+                            >
+                              <option value="BAJO">Bajo</option>
+                              <option value="MEDIO">Medio</option>
+                              <option value="ALTO">Alto</option>
+                            </select>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="w-5 h-5 flex items-center justify-center text-orange-500 font-black">🔥</div>
+                              <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Picante (0-5)</span>
+                            </div>
+                            <input 
+                              type="number" min="0" max="5" value={formData.nivel_picante || 0}
+                              onChange={(e) => setFormData({...formData, nivel_picante: e.target.value})}
+                              className="w-16 bg-white p-2 rounded-xl text-center font-black border border-slate-100 focus:border-primary transition-all outline-none"
+                            />
+                          </div>
+                        )}
+
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-5 h-5 flex items-center justify-center text-primary font-black">⚡</div>
+                            <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Reserva</span>
+                          </div>
+                          <select 
+                            value={formData.tipo_reserva || 'INSTANTANEA'}
+                            onChange={(e) => setFormData({...formData, tipo_reserva: e.target.value})}
+                            className="bg-white p-2 px-4 rounded-xl font-black border border-slate-100 focus:border-primary transition-all outline-none appearance-none cursor-pointer"
+                          >
+                            <option value="INSTANTANEA">Auto</option>
+                            <option value="MANUAL">Manual</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-6 border-t border-slate-100">
+                       <label className="text-[10px] font-black text-slate-400 uppercase block tracking-widest mb-3">Comisión Plataforma (%)</label>
+                       <input 
+                          type="range" min="1" max="30" value={formData.porcentaje_ganancia || 10}
+                          onChange={(e) => setFormData({...formData, porcentaje_ganancia: e.target.value})}
+                          className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-primary"
+                        />
+                        <div className="text-right text-xs font-black text-primary mt-2">{formData.porcentaje_ganancia}%</div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div 
+                key="step2"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-10"
+              >
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                  <div className="space-y-8">
+                    <div className="space-y-4">
+                      <h3 className="text-sm font-black text-primary uppercase tracking-[0.2em] flex items-center gap-2">
+                        <MapPin className="w-4 h-4" /> Ubicación del Proyecto
+                      </h3>
+                      <div className="h-72 rounded-[40px] overflow-hidden border-4 border-slate-50 shadow-2xl z-0 relative group">
+                        <MapContainer center={position} zoom={13} scrollWheelZoom={false} style={{ height: '100%', width: '100%' }}>
+                          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                          <LocationPicker position={position} setPosition={setPosition} onLocationFound={handleLocationFound} />
+                          <MapRecenter lat={position.lat} lng={position.lng} />
+                        </MapContainer>
+                        <div className="absolute top-4 right-4 z-[50]">
+                          <button
+                            type="button"
+                            onClick={handleGetCurrentLocation}
+                            className="bg-white/90 backdrop-blur-md p-3 rounded-2xl flex items-center gap-2 text-[10px] font-black uppercase text-primary shadow-xl hover:scale-105 transition-all border border-primary/20"
+                          >
+                            <MapPin className="w-3 h-3" /> Mi Ubicación
+                          </button>
+                        </div>
+                        <div className="absolute bottom-4 left-4 right-4 bg-white/80 backdrop-blur-md p-3 rounded-2xl text-[10px] font-black uppercase text-center text-slate-500 shadow-lg pointer-events-none">
+                          Haz clic en el mapa para marcar el punto exacto
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-3 gap-4">
+                        <input 
+                          type="text" placeholder="Ciudad" required value={formData.ciudad || ''}
+                          onChange={(e) => setFormData({...formData, ciudad: e.target.value})}
+                          className="p-4 rounded-2xl bg-slate-50 border border-slate-100 outline-none font-bold text-sm focus:bg-white transition-all shadow-sm"
+                        />
+                        <input 
+                          type="text" placeholder="Provincia" required value={formData.provincia || ''}
+                          onChange={(e) => setFormData({...formData, provincia: e.target.value})}
+                          className="p-4 rounded-2xl bg-slate-50 border border-slate-100 outline-none font-bold text-sm focus:bg-white transition-all shadow-sm"
+                        />
+                        <input 
+                          type="text" placeholder="País" required value={formData.pais || 'Ecuador'}
+                          onChange={(e) => setFormData({...formData, pais: e.target.value})}
+                          className="p-4 rounded-2xl bg-slate-50 border border-slate-100 outline-none font-bold text-sm focus:bg-white transition-all shadow-sm"
+                        />
+                      </div>
+                      <input 
+                        type="text" placeholder="Dirección Exacta (Puntos de referencia)" required value={formData.direccion || ''}
+                        onChange={(e) => setFormData({...formData, direccion: e.target.value})}
+                        className="w-full p-4 rounded-2xl bg-slate-50 border border-slate-100 outline-none font-bold text-sm focus:bg-white transition-all shadow-sm"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-6">
+                    <h3 className="text-sm font-black text-primary uppercase tracking-[0.2em] flex items-center gap-2">
+                      <Camera className="w-4 h-4" /> Imagen de Portada
+                    </h3>
+                    
+                    <div 
+                      className="h-80 rounded-[40px] border-4 border-dashed border-slate-200 bg-slate-50 overflow-hidden relative group hover:border-primary/50 transition-all cursor-pointer shadow-inner"
+                      onClick={() => document.getElementById('portada-upload').click()}
+                    >
+                      {preview ? (
+                        <img src={preview} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Preview" />
+                      ) : (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-300 gap-4">
+                          <div className="w-20 h-20 bg-white rounded-3xl shadow-lg flex items-center justify-center text-slate-200 group-hover:text-primary transition-colors">
+                            <Camera className="w-10 h-10" />
+                          </div>
+                          <p className="font-black text-xs uppercase tracking-widest text-center">Subir foto de impacto</p>
+                        </div>
+                      )}
+                      {preview && (
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <p className="text-white font-black text-xs uppercase tracking-widest bg-white/20 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/20">Cambiar Imagen</p>
+                        </div>
+                      )}
+                      <input id="portada-upload" type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                       <div className="space-y-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Métodos de Pago</label>
+                        <input 
+                          type="text" value={formData.metodos_pago || ''}
+                          onChange={(e) => setFormData({...formData, metodos_pago: e.target.value})}
+                          placeholder="Efectivo, Tarjeta, etc..."
+                          className="w-full p-4 rounded-2xl bg-slate-50 border border-slate-100 outline-none font-bold text-xs"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Promociones/Descuentos</label>
+                        <input 
+                          type="text" value={formData.descuentos_promociones || ''}
+                          onChange={(e) => setFormData({...formData, descuentos_promociones: e.target.value})}
+                          placeholder="Ej: 2x1 los Martes"
+                          className="w-full p-4 rounded-2xl bg-slate-50 border border-slate-100 outline-none font-bold text-xs"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <h3 className="text-sm font-black text-primary uppercase tracking-[0.2em] flex items-center gap-2">
+                        <Layers className="w-4 h-4" /> Galería de Imágenes (Máx 10)
+                      </h3>
+                      <div className="flex flex-wrap gap-4">
+                        {formData.galeria.map((img, idx) => (
+                          <div key={idx} className="relative w-24 h-24 rounded-2xl overflow-hidden group border border-slate-100">
+                            <img src={img} className="w-full h-full object-cover" alt={`Gallery ${idx}`} />
+                            <button 
+                              onClick={() => removeGalleryImage(idx)}
+                              className="absolute inset-0 bg-red-500/80 text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                            >
+                              <X className="w-5 h-5" />
+                            </button>
+                          </div>
+                        ))}
+                        {formData.galeria.length < 10 && (
+                          <button 
+                            onClick={() => document.getElementById('gallery-upload').click()}
+                            className="w-24 h-24 rounded-2xl border-2 border-dashed border-slate-200 flex items-center justify-center text-slate-300 hover:border-primary hover:text-primary transition-all bg-slate-50"
+                          >
+                            <Plus className="w-6 h-6" />
+                          </button>
+                        )}
+                        <input id="gallery-upload" type="file" className="hidden" accept="image/*" multiple onChange={handleGalleryChange} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Footer Actions */}
+        <div className="p-10 sm:p-12 border-t border-slate-100 flex justify-between items-center bg-slate-50/30 backdrop-blur-md">
+          <button 
+            type="button"
+            onClick={() => step === 2 ? setStep(1) : onClose()}
+            className="px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-all flex items-center gap-2"
+          >
+            {step === 2 ? 'Anterior' : 'Salir'}
+          </button>
+          
+          <div className="flex gap-4">
+            {step === 1 ? (
+              <button 
+                type="button" 
+                onClick={() => setStep(2)}
+                className="bg-primary-dark text-white px-10 py-4 rounded-3xl font-black text-xs uppercase tracking-[0.2em] transition-all shadow-xl shadow-slate-900/10 hover:shadow-2xl hover:-translate-y-1 flex items-center gap-2"
+              >
+                Continuar <Layers className="w-4 h-4" />
+              </button>
+            ) : (
+              <button 
+                type="button" 
+                onClick={handleSubmit}
+                disabled={loading}
+                className="bg-primary hover:bg-primary-dark text-white px-12 py-4 rounded-3xl font-black text-xs uppercase tracking-[0.2em] transition-all shadow-xl shadow-primary/20 flex items-center gap-2 disabled:opacity-50"
+              >
+                {loading ? 'Guardando...' : <><Save className="w-4 h-4" /> Finalizar y Publicar</>}
+              </button>
+            )}
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
+export default ActivityModal;

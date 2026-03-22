@@ -1,0 +1,87 @@
+[
+  {
+    "table_name": "ubicaciones",
+    "column_name": "id_ubicacion",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "ubicaciones",
+    "column_name": "pais",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "ubicaciones",
+    "column_name": "provincia",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "ubicaciones",
+    "column_name": "ciudad",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "ubicaciones",
+    "column_name": "direccion",
+    "data_type": "text"
+  },
+  {
+    "table_name": "ubicaciones",
+    "column_name": "latitud",
+    "data_type": "numeric"
+  },
+  {
+    "table_name": "ubicaciones",
+    "column_name": "longitud",
+    "data_type": "numeric"
+  },
+  {
+    "table_name": "reservas",
+    "column_name": "id_reserva",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "reservas",
+    "column_name": "tipo_actividad",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "reservas",
+    "column_name": "id_actividad",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "reservas",
+    "column_name": "id_turista",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "reservas",
+    "column_name": "fecha_experiencia",
+    "data_type": "date"
+  },
+  {
+    "table_name": "reservas",
+    "column_name": "cantidad_personas",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "reservas",
+    "column_name": "total",
+    "data_type": "numeric"
+  },
+  {
+    "table_name": "reservas",
+    "column_name": "estado",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "reservas",
+    "column_name": "fecha_solicitud",
+    "data_type": "timestamp without time zone"
+  },
+  {
+    "table_name": "reservas",
+    "column_name": "fecha_respuesta",
+    "data_type": "timestamp without time zone"
+  }
+]

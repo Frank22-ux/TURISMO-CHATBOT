@@ -1,0 +1,105 @@
+import React, { useState, useMemo } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+
+const CustomCalendar = ({ selectedDate, onSelect }) => {
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  
+  const daysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
+  const firstDayOfMonth = (year, month) => new Date(year, month, 1).getDay();
+  
+  const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+  
+  const days = useMemo(() => {
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    const totalDays = daysInMonth(year, month);
+    const startDay = (firstDayOfMonth(year, month) + 6) % 7; // Adjust for Monday start
+    
+    const prevMonthTotalDays = daysInMonth(year, month - 1);
+    const prevMonthDays = Array.from({ length: startDay }, (_, i) => ({
+      day: prevMonthTotalDays - startDay + i + 1,
+      month: month - 1,
+      current: false
+    }));
+    
+    const currentMonthDays = Array.from({ length: totalDays }, (_, i) => ({
+      day: i + 1,
+      month: month,
+      current: true
+    }));
+    
+    return [...prevMonthDays, ...currentMonthDays];
+  }, [currentMonth]);
+
+  const handlePrevMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1));
+  const handleNextMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1));
+
+  const isSelected = (day, month) => {
+    if (!selectedDate) return false;
+    // Normalize selectedDate to local timezone YYYY-MM-DD to avoid timezone bugs
+    const dateParts = selectedDate.split('-');
+    if (dateParts.length !== 3) return false;
+    const d = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]));
+    
+    return d.getDate() === day && d.getMonth() === month && d.getFullYear() === currentMonth.getFullYear();
+  };
+
+  const isPast = (day, month) => {
+    const d = new Date(currentMonth.getFullYear(), month, day);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return d < today;
+  };
+
+  return (
+    <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-xl overflow-hidden min-w-[320px] w-full">
+      <div className="flex justify-between items-center mb-6">
+        <h4 className="font-display font-black text-slate-800 text-lg">
+          {monthNames[currentMonth.getMonth()]} <small className="font-normal opacity-40">{currentMonth.getFullYear()}</small>
+        </h4>
+        <div className="flex gap-2">
+          <button onClick={handlePrevMonth} type="button" className="p-2 rounded-xl hover:bg-slate-50 transition-colors">
+            <ChevronLeft className="w-4 h-4 text-slate-400" />
+          </button>
+          <button onClick={handleNextMonth} type="button" className="p-2 rounded-xl hover:bg-slate-50 transition-colors">
+            <ChevronRight className="w-4 h-4 text-slate-400" />
+          </button>
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-7 gap-1 mb-2">
+        {['L', 'M', 'M', 'J', 'v', 'S', 'D'].map(d => (
+          <div key={d} className="text-xs font-black text-slate-400 text-center uppercase py-2">{d}</div>
+        ))}
+      </div>
+      
+      <div className="grid grid-cols-7 gap-1">
+        {days.map((item, idx) => {
+          const past = isPast(item.day, item.month);
+          const active = isSelected(item.day, item.month);
+          return (
+            <button
+              key={idx}
+              type="button"
+              disabled={past || !item.current}
+              onClick={() => {
+                 const d = new Date(currentMonth.getFullYear(), item.month, item.day);
+                 d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+                 onSelect(d.toISOString().split('T')[0]);
+              }}
+              className={`
+                aspect-square w-full rounded-xl flex items-center justify-center text-base font-bold transition-all
+                ${!item.current ? 'text-slate-200' : past ? 'text-slate-300 cursor-not-allowed' : 'text-slate-700 hover:bg-primary-dark/5'}
+                ${active ? 'bg-primary text-white shadow-lg shadow-primary/30 transform scale-105 !text-white' : ''}
+              `}
+            >
+              {item.day}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+export default CustomCalendar;

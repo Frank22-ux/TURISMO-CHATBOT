@@ -1,0 +1,126 @@
+[
+  {
+    "column_name": "id_actividad",
+    "data_type": "integer"
+  },
+  {
+    "column_name": "titulo",
+    "data_type": "character varying"
+  },
+  {
+    "column_name": "descripcion",
+    "data_type": "text"
+  },
+  {
+    "column_name": "precio",
+    "data_type": "numeric"
+  },
+  {
+    "column_name": "duracion_horas",
+    "data_type": "integer"
+  },
+  {
+    "column_name": "capacidad",
+    "data_type": "integer"
+  },
+  {
+    "column_name": "menu_vegano",
+    "data_type": "boolean"
+  },
+  {
+    "column_name": "menu_vegetariano",
+    "data_type": "boolean"
+  },
+  {
+    "column_name": "menu_sin_gluten",
+    "data_type": "boolean"
+  },
+  {
+    "column_name": "permite_mascotas",
+    "data_type": "boolean"
+  },
+  {
+    "column_name": "wifi",
+    "data_type": "boolean"
+  },
+  {
+    "column_name": "servicio_local",
+    "data_type": "boolean"
+  },
+  {
+    "column_name": "servicio_para_llevar",
+    "data_type": "boolean"
+  },
+  {
+    "column_name": "servicio_delivery",
+    "data_type": "boolean"
+  },
+  {
+    "column_name": "nivel_picante",
+    "data_type": "integer"
+  },
+  {
+    "column_name": "accesibilidad_silla_ruedas",
+    "data_type": "boolean"
+  },
+  {
+    "column_name": "accesibilidad_adultos_mayores",
+    "data_type": "boolean"
+  },
+  {
+    "column_name": "estacionamiento",
+    "data_type": "boolean"
+  },
+  {
+    "column_name": "metodos_pago",
+    "data_type": "text"
+  },
+  {
+    "column_name": "descuentos_promociones",
+    "data_type": "text"
+  },
+  {
+    "column_name": "musica_en_vivo",
+    "data_type": "boolean"
+  },
+  {
+    "column_name": "zona_infantil",
+    "data_type": "boolean"
+  },
+  {
+    "column_name": "eventos_privados",
+    "data_type": "boolean"
+  },
+  {
+    "column_name": "porcentaje_ganancia",
+    "data_type": "integer"
+  },
+  {
+    "column_name": "tipo_reserva",
+    "data_type": "character varying"
+  },
+  {
+    "column_name": "estado",
+    "data_type": "character varying"
+  },
+  {
+    "column_name": "vistas",
+    "data_type": "integer"
+  },
+  {
+    "column_name": "fecha_creacion",
+    "data_type": "timestamp without time zone"
+  },
+  {
+    "column_name": "id_anfitrion",
+    "data_type": "integer"
+  },
+  {
+    "column_name": "id_categoria",
+    "data_type": "integer"
+  },
+  {
+    "column_name": "id_ubicacion",
+    "data_type": "integer"
+  }
+]

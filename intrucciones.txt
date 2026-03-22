@@ -1,0 +1,1 @@
+npx concurrently "node BACKEND/src/server.js" "cd modern-frontend && npm run dev"

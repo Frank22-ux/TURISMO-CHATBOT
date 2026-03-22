@@ -1,0 +1,22 @@
+Credenciales de Prueba - TURISMO ISTPET
+
+===========================================
+USUARIO ANFITRIÓN
+-------------------------------------------
+Email: host@test.com
+Password: Password123!
+Rol: ANFITRION
+Descripción: Juan Anfitrión, experto en rutas.
+===========================================
+
+===========================================
+USUARIO TURISTA
+-------------------------------------------
+Email: turist@test.com
+Password: Password123!
+Rol: TURISTA
+Descripción: Maria Turista, viajera apasionada.
+===========================================
+
+NOTA: Estas credenciales funcionan con el script SQL 'Datos_prueba.sql'.
+Si reinicias la base de datos, asegúrate de ejecutar primero 'semifinal.sql' y luego 'Datos_prueba.sql'.
