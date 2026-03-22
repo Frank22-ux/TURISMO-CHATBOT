@@ -1,91 +1,121 @@
-import React, { useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Tooltip, useMap } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
+import React, { useState, useEffect, useRef } from 'react';
+import Map, { Marker, Popup, NavigationControl, FullscreenControl } from 'react-map-gl/mapbox';
+import 'mapbox-gl/dist/mapbox-gl.css';
 
-// Fix for default marker icons in React-Leaflet
-import icon from 'leaflet/dist/images/marker-icon.png';
-import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
-let DefaultIcon = L.icon({
-  iconUrl: icon,
-  shadowUrl: iconShadow,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  tooltipAnchor: [16, -28],
-});
-L.Marker.prototype.options.icon = DefaultIcon;
-
-// Custom component to fit map to bounds
-const MapBounds = ({ activities }) => {
-  const map = useMap();
+const MapView = ({ activities, onOpenDetail }) => {
+  const mapRef = useRef();
+  const [popupInfo, setPopupInfo] = useState(null);
+  
+  const [viewState, setViewState] = useState({
+    latitude: -1.831239,
+    longitude: -78.183406,
+    zoom: 6,
+    pitch: 45, // Inclinación para efecto 3D
+    bearing: 0
+  });
 
   useEffect(() => {
-    if (!activities || activities.length === 0) return;
+    if (!activities || activities.length === 0 || !mapRef.current) return;
 
     const validActivities = activities.filter(a => parseFloat(a.latitud) && parseFloat(a.longitud));
     
     if (validActivities.length > 0) {
-      const bounds = L.latLngBounds(validActivities.map(a => [parseFloat(a.latitud), parseFloat(a.longitud)]));
+      const lats = validActivities.map(a => parseFloat(a.latitud));
+      const lngs = validActivities.map(a => parseFloat(a.longitud));
       
-      // If there's only one marker, center on it but don't zoom in too much
-      if (validActivities.length === 1) {
-         map.setView([parseFloat(validActivities[0].latitud), parseFloat(validActivities[0].longitud)], 13);
-      } else {
-         map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
-      }
-    } else {
-       map.setView([-1.831239, -78.183406], 7); // Center of Ecuador
+      const minLat = Math.min(...lats);
+      const maxLat = Math.max(...lats);
+      const minLng = Math.min(...lngs);
+      const maxLng = Math.max(...lngs);
+
+      // Usar timeout para asegurar que el mapa está cargado
+      const timeout = setTimeout(() => {
+        if (mapRef.current) {
+          mapRef.current.fitBounds(
+            [[minLng, minLat], [maxLng, maxLat]],
+            { padding: 100, duration: 2000 }
+          );
+        }
+      }, 500);
+      
+      return () => clearTimeout(timeout);
     }
-  }, [activities, map]);
+  }, [activities]);
 
-  return null;
-};
-
-const MapView = ({ activities, onOpenDetail }) => {
   return (
-    <div className="w-full h-[600px] rounded-[40px] overflow-hidden border border-slate-100 shadow-sm relative z-0 bg-[#e5e5f7]">
-      <MapContainer 
-        center={[-1.831239, -78.183406]} 
-        zoom={7} 
-        minZoom={3}
-        scrollWheelZoom={true} 
-        style={{ height: '100%', width: '100%', backgroundColor: '#e5e5f7' }}
+    <div className="w-full h-[600px] rounded-[40px] overflow-hidden border border-slate-100 shadow-sm relative z-0 bg-slate-50">
+      <Map
+        ref={mapRef}
+        {...viewState}
+        onMove={evt => setViewState(evt.viewState)}
+        mapStyle="mapbox://styles/mapbox/streets-v12"
+        mapboxAccessToken={MAPBOX_TOKEN}
+        style={{ width: '100%', height: '100%' }}
       >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-          noWrap={true}
-        />
-        <MapBounds activities={activities} />
-        
+        <NavigationControl position="top-right" />
+        <FullscreenControl position="top-right" />
+
         {activities.map(activity => {
           const lat = parseFloat(activity.latitud);
           const lng = parseFloat(activity.longitud);
           
-          if (!lat || !lng) return null;
+          if (isNaN(lat) || isNaN(lng)) return null;
 
           return (
             <Marker 
               key={activity.id} 
-              position={[lat, lng]}
-              eventHandlers={{
-                click: () => onOpenDetail(activity),
+              latitude={lat} 
+              longitude={lng} 
+              anchor="bottom"
+              onClick={e => {
+                e.originalEvent.stopPropagation();
+                setPopupInfo(activity);
               }}
             >
-              <Tooltip direction="top" offset={[0, -30]} opacity={1} className="custom-tooltip shadow-2xl border-0 !p-0 !bg-transparent">
-                <div className="flex flex-col items-center bg-white p-3 rounded-2xl border border-slate-100 shadow-xl">
-                  <span className="font-bold text-slate-800 text-sm mb-2">{activity.title || activity.titulo}</span>
-                  <span className="bg-primary hover:bg-primary-dark transition-colors text-white font-black text-xs px-3 py-1 rounded-full shadow-sm">
-                    ${activity.price || activity.precio}
-                  </span>
-                  <span className="text-[9px] text-primary/70 mt-2 uppercase tracking-wider font-bold">Clic para Detalles</span>
+              <div className="cursor-pointer group">
+                <div className="flex flex-col items-center bg-white p-2 rounded-2xl border-2 border-primary shadow-lg transform group-hover:scale-110 transition-all duration-300">
+                   <div className="bg-primary w-2 h-2 rounded-full animate-ping absolute -top-1"></div>
+                   <span className="bg-primary text-white font-black text-[10px] px-2 py-0.5 rounded-full shadow-sm">
+                      ${activity.price || activity.precio}
+                   </span>
+                   {/* Flecha pequeña hacia abajo */}
+                   <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-primary mt-0.5"></div>
                 </div>
-              </Tooltip>
+              </div>
             </Marker>
           );
         })}
-      </MapContainer>
+
+        {popupInfo && (
+          <Popup
+            anchor="top"
+            latitude={parseFloat(popupInfo.latitud)}
+            longitude={parseFloat(popupInfo.longitud)}
+            onClose={() => setPopupInfo(null)}
+            closeButton={false}
+            className="z-50"
+            offset={15}
+          >
+            <div 
+              className="flex flex-col items-center p-2 cursor-pointer bg-white rounded-lg"
+              onClick={() => onOpenDetail(popupInfo)}
+            >
+              <span className="font-bold text-slate-800 text-sm mb-1">{popupInfo.titulo || popupInfo.title}</span>
+              <span className="bg-primary/10 text-primary text-[10px] px-3 py-1 rounded-full font-bold uppercase tracking-wider">
+                Ver Detalles
+              </span>
+            </div>
+          </Popup>
+        )}
+      </Map>
+      
+      {/* Overlay de ayuda */}
+      <div className="absolute bottom-6 left-6 bg-white/90 backdrop-blur-sm p-3 rounded-2xl shadow-lg border border-slate-100 pointer-events-none z-10">
+         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Map Engine</p>
+         <p className="text-sm font-black text-primary italic">Mapbox Premium</p>
+      </div>
     </div>
   );
 };

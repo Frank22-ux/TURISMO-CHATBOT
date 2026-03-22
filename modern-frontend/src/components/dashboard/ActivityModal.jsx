@@ -1,25 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { X, MapPin, Camera, Info, Save, Layers, Clock, Users, Signal, Tag, Plus } from 'lucide-react';
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import Map, { Marker, NavigationControl } from 'react-map-gl/mapbox';
 import { motion, AnimatePresence } from 'framer-motion';
-import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
+import 'mapbox-gl/dist/mapbox-gl.css';
 
-// Fix for default marker icon in leaflet
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-shadow.png',
-});
-
-const MapRecenter = ({ lat, lng }) => {
-  const map = useMapEvents({});
-  useEffect(() => {
-    map.setView([lat, lng]);
-  }, [lat, lng, map]);
-  return null;
-};
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
 const reverseGeocode = async (lat, lng) => {
   try {
@@ -32,20 +17,6 @@ const reverseGeocode = async (lat, lng) => {
   }
 };
 
-const LocationPicker = ({ position, setPosition, onLocationFound }) => {
-  useMapEvents({
-    async click(e) {
-      const { lat, lng } = e.latlng;
-      setPosition(e.latlng);
-      const data = await reverseGeocode(lat, lng);
-      if (data && onLocationFound) {
-        onLocationFound(data);
-      }
-    },
-  });
-
-  return position ? <Marker position={position} /> : null;
-};
 
 const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = null, onSave }) => {
   const [step, setStep] = useState(1); // 1: Details, 2: Location & Media
@@ -95,6 +66,11 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
   });
 
   const [position, setPosition] = useState({ lat: -0.180653, lng: -78.467834 });
+  const [viewState, setViewState] = useState({
+    latitude: -0.180653,
+    longitude: -78.467834,
+    zoom: 13
+  });
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState(null);
 
@@ -131,6 +107,7 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
       const lng = parseFloat(normalizedData.longitud);
       if (!isNaN(lat) && !isNaN(lng)) {
         setPosition({ lat, lng });
+        setViewState(prev => ({ ...prev, latitude: lat, longitude: lng }));
       }
     } else if (isOpen) {
       setFormData({
@@ -203,6 +180,7 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
         const { latitude, longitude } = pos.coords;
         const newPos = { lat: latitude, lng: longitude };
         setPosition(newPos);
+        setViewState(prev => ({ ...prev, latitude, longitude, zoom: 15 }));
         const data = await reverseGeocode(latitude, longitude);
         if (data) handleLocationFound(data);
       });
@@ -522,12 +500,30 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
                         <MapPin className="w-4 h-4" /> Ubicación del Proyecto
                       </h3>
                       <div className="h-72 rounded-[40px] overflow-hidden border-4 border-slate-50 shadow-2xl z-0 relative group">
-                        <MapContainer center={position} zoom={13} scrollWheelZoom={false} style={{ height: '100%', width: '100%' }}>
-                          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                          <LocationPicker position={position} setPosition={setPosition} onLocationFound={handleLocationFound} />
-                          <MapRecenter lat={position.lat} lng={position.lng} />
-                        </MapContainer>
-                        <div className="absolute top-4 right-4 z-[50]">
+                        <Map
+                          {...viewState}
+                          onMove={evt => setViewState(evt.viewState)}
+                          onClick={async (e) => {
+                            const { lng, lat } = e.lngLat;
+                            const newPos = { lat, lng };
+                            setPosition(newPos);
+                            const data = await reverseGeocode(lat, lng);
+                            if (data) handleLocationFound(data);
+                          }}
+                          mapStyle="mapbox://styles/mapbox/streets-v12"
+                          mapboxAccessToken={MAPBOX_TOKEN}
+                          style={{ width: '100%', height: '100%' }}
+                        >
+                          <NavigationControl position="top-right" />
+                          {position && (
+                            <Marker latitude={position.lat} longitude={position.lng} anchor="bottom">
+                              <div className="w-8 h-8 bg-primary rounded-full border-4 border-white shadow-lg animate-bounce flex items-center justify-center">
+                                <MapPin className="w-4 h-4 text-white" />
+                              </div>
+                            </Marker>
+                          )}
+                        </Map>
+                        <div className="absolute top-4 right-14 z-[50]">
                           <button
                             type="button"
                             onClick={handleGetCurrentLocation}

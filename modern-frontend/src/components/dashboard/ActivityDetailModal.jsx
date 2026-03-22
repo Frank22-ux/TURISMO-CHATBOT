@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { X, MapPin, Clock, Users, Signal, Tag, Calendar, Star, Info, Image as ImageIcon } from 'lucide-react';
-import { MapContainer, TileLayer, Marker } from 'react-leaflet';
+import Map, { Marker } from 'react-map-gl/mapbox';
 import { motion, AnimatePresence } from 'framer-motion';
-import 'leaflet/dist/leaflet.css';
+import 'mapbox-gl/dist/mapbox-gl.css';
+
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
 const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
   const [activeImage, setActiveImage] = useState(null);
@@ -136,10 +138,22 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
                     <MapPin className="w-4 h-4" /> Ubicación Geográfica
                   </h3>
                   <div className="h-64 rounded-[32px] overflow-hidden border-2 border-slate-50 shadow-inner z-0">
-                    <MapContainer center={position} zoom={13} scrollWheelZoom={false} style={{ height: '100%', width: '100%' }}>
-                      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                      <Marker position={position} />
-                    </MapContainer>
+                    <Map
+                      initialViewState={{
+                        latitude: position.lat,
+                        longitude: position.lng,
+                        zoom: 13
+                      }}
+                      mapStyle="mapbox://styles/mapbox/streets-v12"
+                      mapboxAccessToken={MAPBOX_TOKEN}
+                      style={{ width: '100%', height: '100%' }}
+                    >
+                      <Marker latitude={position.lat} longitude={position.lng} anchor="bottom">
+                         <div className="w-6 h-6 bg-primary rounded-full border-2 border-white shadow-lg flex items-center justify-center">
+                            <MapPin className="w-3 h-3 text-white" />
+                         </div>
+                      </Marker>
+                    </Map>
                   </div>
                   <div className="flex items-center gap-4 text-slate-500 font-bold">
                     <div className="p-3 bg-primary/10 text-primary rounded-xl">
