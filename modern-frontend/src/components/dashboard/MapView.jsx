@@ -55,6 +55,13 @@ const MapView = ({ activities, onOpenDetail }) => {
     }
   }, [activities]);
 
+  const handleOpenDetail = (activity) => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(err => console.error(err));
+    }
+    onOpenDetail(activity);
+  };
+
   return (
     <div className="w-full h-[600px] rounded-[40px] overflow-hidden border border-slate-100 shadow-sm relative z-0 bg-slate-50">
       <Map
@@ -76,11 +83,11 @@ const MapView = ({ activities, onOpenDetail }) => {
         <NavigationControl position="top-right" />
         <FullscreenControl position="top-right" />
 
-        {/* Botón de cambio 2D/3D */}
-        <div className="absolute top-[130px] right-2.5 z-10">
+        {/* Botón de cambio 2D/3D - Movido a la izquierda para evitar overlap */}
+        <div className="absolute top-4 left-4 z-10">
           <button
             onClick={toggleTerrain}
-            className={`w-[29px] h-[29px] bg-white rounded-md shadow-lg border border-slate-200 flex items-center justify-center font-black text-[10px] transition-all hover:bg-slate-50 active:scale-95 ${showTerrain ? 'text-primary' : 'text-slate-500'}`}
+            className={`px-4 py-2 bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border border-slate-100 flex items-center justify-center font-black text-xs transition-all hover:scale-110 active:scale-95 ${showTerrain ? 'text-primary' : 'text-slate-500'}`}
             title={showTerrain ? "Cambiar a 2D" : "Cambiar a 3D"}
           >
             {showTerrain ? '2D' : '3D'}
@@ -130,7 +137,7 @@ const MapView = ({ activities, onOpenDetail }) => {
           >
             <div 
               className="flex flex-col items-center p-2 cursor-pointer bg-white rounded-lg"
-              onClick={() => onOpenDetail(popupInfo)}
+              onClick={() => handleOpenDetail(popupInfo)}
             >
               <span className="font-bold text-slate-800 text-sm mb-1">{popupInfo.titulo || popupInfo.title}</span>
               <span className="bg-primary/10 text-primary text-[10px] px-3 py-1 rounded-full font-bold uppercase tracking-wider">

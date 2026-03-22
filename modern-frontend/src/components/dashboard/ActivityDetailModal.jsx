@@ -171,8 +171,8 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
                          </div>
                       </Marker>
 
-                      {/* Botón de cambio 2D/3D */}
-                      <div className="absolute top-4 right-4 z-10">
+                      {/* Botón de cambio 2D/3D - Movido a la izquierda */}
+                      <div className="absolute top-4 left-4 z-10">
                         <button
                           type="button"
                           onClick={() => {
@@ -180,7 +180,7 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
                             setShowTerrain(nextVal);
                             setViewState(prev => ({ ...prev, pitch: nextVal ? 50 : 0 }));
                           }}
-                          className={`w-10 h-10 bg-white/90 backdrop-blur-md rounded-2xl shadow-xl flex items-center justify-center font-black text-[10px] transition-all hover:scale-110 active:scale-95 border border-white/50 ${showTerrain ? 'text-primary' : 'text-slate-500'}`}
+                          className={`px-4 py-2 bg-white/90 backdrop-blur-md rounded-2xl shadow-xl flex items-center justify-center font-black text-[10px] transition-all hover:scale-110 active:scale-95 border border-white/50 ${showTerrain ? 'text-primary' : 'text-slate-500'}`}
                         >
                           {showTerrain ? '2D' : '3D'}
                         </button>

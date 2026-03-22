@@ -545,8 +545,8 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
                           />
                           <NavigationControl position="top-right" />
                           
-                          {/* Toggle 2D/3D Button */}
-                          <div className="absolute top-[130px] right-2.5 z-10">
+                          {/* Toggle 2D/3D Button - Movido a la izquierda */}
+                          <div className="absolute top-4 left-4 z-10">
                             <button
                               type="button"
                               onClick={() => {
@@ -554,7 +554,7 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
                                 setShowTerrain(nextVal);
                                 setViewState(prev => ({ ...prev, pitch: nextVal ? 60 : 0 }));
                               }}
-                              className={`w-[29px] h-[29px] bg-white rounded-md shadow-lg border border-slate-200 flex items-center justify-center font-black text-[10px] transition-all hover:bg-slate-50 active:scale-95 ${showTerrain ? 'text-primary' : 'text-slate-500'}`}
+                              className={`px-3 py-1.5 bg-white/90 backdrop-blur-md rounded-xl shadow-lg border border-slate-100 flex items-center justify-center font-black text-[10px] transition-all hover:scale-105 active:scale-95 ${showTerrain ? 'text-primary' : 'text-slate-500'}`}
                             >
                               {showTerrain ? '2D' : '3D'}
                             </button>
