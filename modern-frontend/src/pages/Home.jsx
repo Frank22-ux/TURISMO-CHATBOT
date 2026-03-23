@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Search, MapPin, ArrowRight, Image as ImageIcon, Users, Calendar, Navigation, RefreshCw, LayoutGrid, Map } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -97,6 +97,46 @@ const Home = () => {
   const [viewMode, setViewMode] = useState('grid');
   const datePickerRef = useRef(null);
   const locationDropdownRef = useRef(null);
+  const navigate = useNavigate();
+
+  const handleOpenBookingRequest = async (act) => {
+    const userData = sessionStorage.getItem('user');
+    if (!userData) {
+      setInfoModal({
+        isOpen: true,
+        title: 'Inicia sesión para reservar',
+        content: (
+          <div className="flex flex-col gap-6 items-center justify-center py-4 text-center">
+            <p className="text-slate-600 px-4">Necesitas una cuenta para poder reservar esta actividad de forma <strong>segura</strong>.</p>
+            <button 
+              onClick={() => {
+                setInfoModal({ isOpen: false, title: '', content: '' });
+                navigate('/login');
+              }}
+              className="px-8 py-3 bg-primary text-white font-bold rounded-2xl hover:bg-primary-dark transition-all shadow-lg text-sm w-3/4"
+            >
+              Ingresar / Registrarse
+            </button>
+          </div>
+        )
+      });
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:3000/api/activities/${act.id}`);
+      if (response.ok) {
+        const fullData = await response.json();
+        setActivityToBook(fullData);
+      } else {
+        setActivityToBook(act);
+      }
+    } catch (error) {
+      console.error('Error fetching booking details:', error);
+      setActivityToBook(act);
+    }
+    setIsBookingOpen(true);
+  };
   
   const [nominatimLocations, setNominatimLocations] = useState([]);
   const [isSearchingAutocomplete, setIsSearchingAutocomplete] = useState(false);
@@ -658,21 +698,7 @@ const Home = () => {
                         setSelectedActivity(full);
                         setIsDetailOpen(true);
                       }} 
-                      onOpenBooking={async (act) => {
-                        try {
-                          const response = await fetch(`http://localhost:3000/api/activities/${act.id}`);
-                          if (response.ok) {
-                            const fullData = await response.json();
-                            setActivityToBook(fullData);
-                          } else {
-                            setActivityToBook(act);
-                          }
-                        } catch (error) {
-                          console.error('Error fetching booking details:', error);
-                          setActivityToBook(act);
-                        }
-                        setIsBookingOpen(true);
-                      }}
+                      onOpenBooking={handleOpenBookingRequest}
                     />
                   ))}
                   {activities.filter(a => a.tipo === 'TURISTICA').length === 0 && (
@@ -713,21 +739,7 @@ const Home = () => {
                         setSelectedActivity(full);
                         setIsDetailOpen(true);
                       }} 
-                      onOpenBooking={async (act) => {
-                        try {
-                          const response = await fetch(`http://localhost:3000/api/activities/${act.id}`);
-                          if (response.ok) {
-                            const fullData = await response.json();
-                            setActivityToBook(fullData);
-                          } else {
-                            setActivityToBook(act);
-                          }
-                        } catch (error) {
-                          console.error('Error fetching booking details:', error);
-                          setActivityToBook(act);
-                        }
-                        setIsBookingOpen(true);
-                      }}
+                      onOpenBooking={handleOpenBookingRequest}
                     />
                   ))}
                   {activities.filter(a => a.tipo === 'ALIMENTARIA').length === 0 && (

@@ -68,7 +68,7 @@ const CustomCalendar = ({ selectedDate, onSelect }) => {
       </div>
       
       <div className="grid grid-cols-7 gap-1 mb-2">
-        {['L', 'M', 'M', 'J', 'v', 'S', 'D'].map(d => (
+        {['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa', 'Do'].map(d => (
           <div key={d} className="text-xs font-black text-slate-400 text-center uppercase py-2">{d}</div>
         ))}
       </div>

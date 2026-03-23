@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Search, Check, X, Clock, Calendar, User, DollarSign } from 'lucide-react';
+import { Search, Check, X, Clock, Calendar, User, DollarSign, Eye, Shield, Users, Wallet } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const HostBookingsSection = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedBooking, setSelectedBooking] = useState(null);
 
   const fetchBookings = async () => {
     try {
@@ -76,7 +77,7 @@ const HostBookingsSection = () => {
               ) : (
                 bookings.map((res, i) => (
                   <motion.tr 
-                    key={res.id}
+                    key={res.id_reserva}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.05 }}
@@ -112,26 +113,44 @@ const HostBookingsSection = () => {
                       </span>
                     </td>
                     <td className="py-6 px-10 text-right">
-                      {res.estado === 'PENDIENTE' ? (
-                        <div className="flex justify-end gap-2">
+                      <div className="flex justify-end gap-2 items-center">
+                        <button 
+                          onClick={() => setSelectedBooking(res)}
+                          className="p-2.5 rounded-xl bg-slate-100 text-slate-500 hover:bg-primary hover:text-white transition-all shadow-sm"
+                          title="Ver Detalles"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                        
+                        {res.estado === 'PENDIENTE' && (
+                          <>
+                            <button 
+                              onClick={() => handleStatusUpdate(res.id_reserva, 'APROBADA')}
+                              className="p-2.5 rounded-xl bg-green-50 text-green-600 hover:bg-green-500 hover:text-white transition-all shadow-sm"
+                              title="Aprobar"
+                            >
+                              <Check className="w-4 h-4" />
+                            </button>
+                            <button 
+                              onClick={() => handleStatusUpdate(res.id_reserva, 'RECHAZADA')}
+                              className="p-2.5 rounded-xl bg-red-50 text-red-600 hover:bg-red-500 hover:text-white transition-all shadow-sm"
+                              title="Rechazar"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </>
+                        )}
+
+                        {res.estado === 'APROBADA' && (
                           <button 
-                            onClick={() => handleStatusUpdate(res.id, 'APROBADA')}
-                            className="p-2.5 rounded-xl bg-green-50 text-green-600 hover:bg-green-500 hover:text-white transition-all shadow-sm"
-                            title="Aprobar"
+                            onClick={() => handleStatusUpdate(res.id_reserva, 'COMPLETADA')}
+                            className="p-2.5 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-500 hover:text-white transition-all shadow-sm"
+                            title="Marcar como Completada"
                           >
                             <Check className="w-4 h-4" />
                           </button>
-                          <button 
-                            onClick={() => handleStatusUpdate(res.id, 'RECHAZADA')}
-                            className="p-2.5 rounded-xl bg-red-50 text-red-600 hover:bg-red-500 hover:text-white transition-all shadow-sm"
-                            title="Rechazar"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                      ) : (
-                        <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Sin acciones</span>
-                      )}
+                        )}
+                      </div>
                     </td>
                   </motion.tr>
                 ))
@@ -140,6 +159,98 @@ const HostBookingsSection = () => {
           </table>
         </div>
       </div>
+
+      {/* Booking Details Modal */}
+      {selectedBooking && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setSelectedBooking(null)}></div>
+          <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-2xl relative z-10 overflow-hidden flex flex-col md:flex-row animate-scale-up">
+            
+            {/* Left Side: Summary Visual */}
+            <div className="bg-primary-dark p-8 md:w-5/12 flex flex-col items-center justify-center text-center text-white relative">
+              <div className="w-20 h-20 rounded-[1.5rem] bg-white/10 flex items-center justify-center mb-6 shadow-lg">
+                <User className="w-10 h-10 text-white" />
+              </div>
+              <h3 className="font-display font-black text-xl mb-1">{selectedBooking.turista_nombre}</h3>
+              <p className="text-[10px] text-white/50 font-bold uppercase tracking-widest leading-relaxed mt-2 bg-white/10 px-3 py-1 rounded-full border border-white/5">
+                ID Reserva: #{selectedBooking.id_reserva.toString().padStart(6, '0')}
+              </p>
+            </div>
+            
+            {/* Right Side: Details */}
+            <div className="p-8 md:w-7/12 flex flex-col bg-white">
+              <div className="flex justify-between items-start mb-6">
+                <div className="pr-4">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-primary mb-1">Actividad Solicitada</p>
+                  <h2 className="text-xl font-black text-slate-800 leading-tight">{selectedBooking.actividad_titulo}</h2>
+                </div>
+                <button onClick={() => setSelectedBooking(null)} className="p-2 bg-slate-50 hover:bg-slate-100 rounded-xl text-slate-400 hover:text-red-500 transition-colors shrink-0">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4 mb-8 flex-1">
+                <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <Calendar className="w-5 h-5 text-slate-400" />
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Fecha Experiencia</p>
+                    <p className="text-sm font-black text-slate-700">
+                      {new Date(selectedBooking.fecha_experiencia).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                    </p>
+                    <p className="text-xs font-bold text-slate-500 mt-0.5">
+                      Hora: {new Date(selectedBooking.fecha_experiencia).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex gap-4 flex-col sm:flex-row">
+                  <div className="flex-1 flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                    <Users className="w-5 h-5 text-slate-400 shrink-0" />
+                    <div>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Pasajeros</p>
+                      <p className="text-sm font-black text-slate-700">{selectedBooking.cantidad_personas} Pax</p>
+                    </div>
+                  </div>
+                  <div className="flex-1 flex items-center gap-3 p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
+                    <Wallet className="w-5 h-5 text-emerald-500 shrink-0" />
+                    <div className="w-full">
+                      <div className="flex justify-between items-center w-full mb-1">
+                        <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Estado: {selectedBooking.estado}</p>
+                      </div>
+                      <p className="text-xl font-black text-emerald-700 font-display leading-none">${parseFloat(selectedBooking.total).toFixed(2)}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {selectedBooking.estado === 'PENDIENTE' && (
+                <div className="flex gap-3 mt-auto">
+                  <button onClick={() => { handleStatusUpdate(selectedBooking.id_reserva, 'RECHAZADA'); setSelectedBooking(null); }} className="flex-1 py-4 bg-red-50 text-red-600 rounded-2xl font-bold text-sm hover:bg-red-500 hover:text-white transition-all active:scale-95">
+                    Rechazar
+                  </button>
+                  <button onClick={() => { handleStatusUpdate(selectedBooking.id_reserva, 'APROBADA'); setSelectedBooking(null); }} className="flex-1 py-4 bg-green-500 text-white rounded-2xl font-bold text-sm hover:bg-green-600 transition-all active:scale-95 shadow-lg shadow-green-500/20">
+                    Aprobar
+                  </button>
+                </div>
+              )}
+              {selectedBooking.estado === 'APROBADA' && (
+                <div className="flex gap-3 mt-auto">
+                  <button onClick={() => { handleStatusUpdate(selectedBooking.id_reserva, 'COMPLETADA'); setSelectedBooking(null); }} className="w-full py-4 bg-blue-500 text-white rounded-2xl font-bold text-sm hover:bg-blue-600 transition-all active:scale-95 shadow-lg shadow-blue-500/20">
+                    Marcar como Finalizada
+                  </button>
+                </div>
+              )}
+              {['COMPLETADA', 'RECHAZADA', 'CANCELADA'].includes(selectedBooking.estado) && (
+                <div className="flex gap-3 mt-auto">
+                  <button onClick={() => setSelectedBooking(null)} className="w-full py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all active:scale-95">
+                    Cerrar Detalles
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

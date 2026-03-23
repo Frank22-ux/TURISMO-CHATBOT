@@ -1,10 +1,37 @@
-import { useState, useEffect } from 'react';
-import { Search, Filter, Calendar, MapPin, Eye, Star, Clock, CheckCircle, AlertCircle } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Search, Filter, Calendar, MapPin, Eye, Star, Clock, CheckCircle, AlertCircle, X, Shield, Users, Download } from 'lucide-react';
+import QRCode from 'react-qr-code';
+import { toPng } from 'html-to-image';
 
-const BookingsSection = () => {
+const BookingsSection = ({ status: initialStatusFilter }) => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('ALL');
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const ticketRef = useRef(null);
+
+  const handleDownloadTicket = async () => {
+    if (!ticketRef.current || !selectedBooking) return;
+    setIsDownloading(true);
+    try {
+      const dataUrl = await toPng(ticketRef.current, {
+        quality: 1.0,
+        pixelRatio: 2,
+        filter: (node) => {
+          return node.getAttribute ? node.getAttribute('data-html2canvas-ignore') !== 'true' : true;
+        }
+      });
+      const link = document.createElement('a');
+      link.href = dataUrl;
+      link.download = `Boleto_ISTPET_${selectedBooking.id_reserva.toString().padStart(6, '0')}.png`;
+      link.click();
+    } catch (error) {
+      console.error('Error al descargar el boleto:', error);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -33,24 +60,37 @@ const BookingsSection = () => {
     }
   };
 
-  const filteredBookings = bookings.filter(b => filter === 'ALL' || b.estado === filter);
+  const filterTabs = initialStatusFilter === 'COMPLETADA' 
+    ? ['ALL', 'COMPLETADA', 'RECHAZADA', 'CANCELADA']
+    : ['ALL', 'PENDIENTE', 'APROBADA'];
+
+  const filteredBookings = bookings.filter(b => {
+    if (initialStatusFilter === 'COMPLETADA') {
+      return b.estado === 'COMPLETADA' || b.estado === 'RECHAZADA' || b.estado === 'CANCELADA' || new Date(b.fecha_experiencia) < new Date();
+    }
+    return (b.estado === 'PENDIENTE' || b.estado === 'APROBADA') && new Date(b.fecha_experiencia) >= new Date();
+  }).filter(b => filter === 'ALL' || b.estado === filter);
 
   if (loading) return <div className="p-20 text-center animate-pulse text-primary font-bold">Cargando tus aventuras...</div>;
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-8 animate-fade-in relative">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-          <h2 className="text-3xl font-display font-black text-slate-800">Mis Reservas</h2>
-          <p className="text-slate-500 mt-1">Gestiona tus planes y revive tus mejores viajes.</p>
+          <h2 className="text-3xl font-display font-black text-slate-800">
+            {initialStatusFilter === 'COMPLETADA' ? 'Historial de Viajes' : 'Mis Reservas'}
+          </h2>
+          <p className="text-slate-500 mt-1">
+            {initialStatusFilter === 'COMPLETADA' ? 'Revive los recuerdos de tus mejores aventuras pasadas.' : 'Gestiona tus planes y prepárate para tu próxima aventura.'}
+          </p>
         </div>
         
-        <div className="flex bg-white p-1 rounded-2xl border border-slate-50 shadow-sm self-stretch md:self-auto">
-          {['ALL', 'PENDIENTE', 'APROBADA', 'RECHAZADA'].map((s) => (
+        <div className="flex bg-white p-1 rounded-2xl border border-slate-50 shadow-sm self-stretch md:self-auto overflow-x-auto">
+          {filterTabs.map((s) => (
             <button
               key={s}
               onClick={() => setFilter(s)}
-              className={`px-6 py-2.5 rounded-xl text-xs font-black transition-all ${
+              className={`px-6 py-2.5 rounded-xl text-xs font-black transition-all whitespace-nowrap ${
                 filter === s ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:text-primary hover:bg-primary/5'
               }`}
             >
@@ -99,7 +139,7 @@ const BookingsSection = () => {
                 </tr>
               ) : (
                 filteredBookings.map((res) => (
-                  <tr key={res.id} className="group hover:bg-slate-50/50 transition-colors">
+                  <tr key={res.id_reserva} className="group hover:bg-slate-50/50 transition-colors">
                     <td className="py-6 px-10">
                       <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-xl bg-slate-100 overflow-hidden shrink-0">
@@ -132,7 +172,11 @@ const BookingsSection = () => {
                     </td>
                     <td className="py-6 px-10 text-right">
                       <div className="flex justify-end gap-2">
-                        <button className="p-2.5 rounded-xl bg-slate-100 text-slate-500 hover:bg-primary hover:text-white transition-all shadow-sm" title="Ver detalles">
+                        <button 
+                          onClick={() => setSelectedBooking(res)}
+                          className="p-2.5 rounded-xl bg-slate-100 text-slate-500 hover:bg-primary hover:text-white transition-all shadow-sm" 
+                          title="Ver detalles"
+                        >
                           <Eye className="w-4 h-4" />
                         </button>
                         {res.estado === 'APROBADA' && new Date(res.fecha_experiencia) < new Date() && (
@@ -149,6 +193,105 @@ const BookingsSection = () => {
           </table>
         </div>
       </div>
+
+      {/* Booking Details / Digital Ticket Modal */}
+      {selectedBooking && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setSelectedBooking(null)}></div>
+          <div ref={ticketRef} className="bg-white rounded-[2rem] shadow-2xl w-full max-w-2xl relative z-10 overflow-hidden flex flex-col md:flex-row animate-scale-up">
+            {/* Left Side: Ticket Visual */}
+            <div className="bg-primary-dark p-8 md:w-5/12 flex flex-col items-center justify-center text-center text-white relative">
+              <div className="absolute top-0 right-0 p-4 opacity-10">
+                <Star className="w-24 h-24" />
+              </div>
+              <div className="bg-white p-4 rounded-[1.5rem] mb-6 shadow-xl w-fit">
+                <QRCode 
+                  value={JSON.stringify({ 
+                    id: selectedBooking.id_reserva, 
+                    tourist: selectedBooking.id_turista, 
+                    amount: selectedBooking.total, 
+                    activity: selectedBooking.id_actividad 
+                  })} 
+                  size={140} 
+                  level="H"
+                />
+              </div>
+              <h3 className="font-display font-black text-xl mb-1 flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-emerald-400"/> Boleto Digital
+              </h3>
+              <p className="text-[10px] text-white/50 font-bold uppercase tracking-widest leading-relaxed mt-2">
+                ID: #{selectedBooking.id_reserva.toString().padStart(6, '0')}
+              </p>
+            </div>
+            
+            {/* Right Side: Details */}
+            <div className="p-8 md:w-7/12 flex flex-col bg-white">
+              <div className="flex justify-between items-start mb-6">
+                <div className="pr-4">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-primary mb-1">Detalles de Reserva</p>
+                  <h2 className="text-xl font-black text-slate-800 leading-tight">{selectedBooking.actividad_titulo}</h2>
+                  <p className="text-sm font-bold text-slate-500 mt-1">Anfitrión: <span className="text-slate-700">{selectedBooking.anfitrion_nombre || 'No asignado'}</span></p>
+                </div>
+                <button onClick={() => setSelectedBooking(null)} data-html2canvas-ignore="true" className="p-2 bg-slate-50 hover:bg-slate-100 rounded-xl text-slate-400 hover:text-red-500 transition-colors shrink-0">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4 mb-8 flex-1">
+                <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <Calendar className="w-5 h-5 text-slate-400" />
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Fecha Experiencia</p>
+                    <p className="text-sm font-black text-slate-700">
+                      {new Date(selectedBooking.fecha_experiencia).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                    </p>
+                    <p className="text-xs font-bold text-slate-500 mt-0.5">
+                      Hora: {new Date(selectedBooking.fecha_experiencia).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex gap-4 flex-col sm:flex-row">
+                  <div className="flex-1 flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                    <Users className="w-5 h-5 text-slate-400 shrink-0" />
+                    <div>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Aforo</p>
+                      <p className="text-sm font-black text-slate-700">{selectedBooking.cantidad_personas} Pax</p>
+                    </div>
+                  </div>
+                  <div className="flex-1 flex items-center gap-3 p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
+                    <Shield className="w-5 h-5 text-emerald-500 shrink-0" />
+                    <div className="w-full">
+                      <div className="flex justify-between items-center w-full mb-1">
+                        <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Pago Seguro</p>
+                        <span className="text-[9px] font-black uppercase bg-emerald-200/50 text-emerald-700 px-1.5 py-0.5 rounded">{selectedBooking.estado}</span>
+                      </div>
+                      <p className="text-xl font-black text-emerald-700 font-display leading-none">${parseFloat(selectedBooking.total).toFixed(2)}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex gap-3 mt-auto pt-6" data-html2canvas-ignore="true">
+                <button 
+                  onClick={handleDownloadTicket}
+                  disabled={isDownloading}
+                  className="flex-1 py-4 bg-primary text-white rounded-2xl font-bold text-sm hover:bg-primary-dark transition-all shadow-lg hover:shadow-xl active:scale-95 flex items-center justify-center gap-2"
+                >
+                  {isDownloading ? <Clock className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
+                  {isDownloading ? 'Generando...' : 'Descargar Boleto'}
+                </button>
+                <button 
+                  onClick={() => setSelectedBooking(null)} 
+                  className="px-8 py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all active:scale-95"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

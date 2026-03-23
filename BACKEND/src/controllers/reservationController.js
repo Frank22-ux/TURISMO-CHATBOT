@@ -28,7 +28,32 @@ const updateStatus = async (req, res) => {
     }
 };
 
+const createReservation = async (req, res) => {
+    try {
+        const id_turista = req.user.id;
+        const { token, reservationData } = req.body;
+
+        if (!token || !reservationData) {
+            return res.status(400).json({ message: 'Token de pago y datos de reserva son obligatorios' });
+        }
+
+        const reservation = await reservationService.createReservation(
+            { ...reservationData, id_turista },
+            token
+        );
+
+        res.status(201).json({
+            message: 'Reserva creada y pago procesado con éxito',
+            reservation
+        });
+    } catch (error) {
+        console.error('Error in createReservation:', error.message);
+        res.status(500).json({ message: error.message || 'Error al procesar la reserva' });
+    }
+};
+
 module.exports = {
     getHostReservations,
-    updateStatus
+    updateStatus,
+    createReservation
 };

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Calendar, Users, Minus, Plus, CreditCard, ChevronRight, Clock, Shield, Star, CheckCircle2, ChevronLeft, MessageSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -9,12 +9,122 @@ const BookingSidebar = ({ isOpen, onClose, activity }) => {
   const [date, setDate] = useState('');
   const [adults, setAdults] = useState(1);
   const [children, setChildren] = useState(0);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(false);
+  const [cardName, setCardName] = useState('');
+  const [cardNumber, setCardNumber] = useState('');
+  const [expiry, setExpiry] = useState('');
+  const [cvv, setCvv] = useState('');
 
   const totalPrice = useMemo(() => {
     if (!activity) return 0;
     const price = parseFloat(activity.price) || 0;
     return (price * adults) + (price * 0.5 * children);
   }, [activity, adults, children]);
+
+  const handleBooking = async (token) => {
+    setIsProcessing(true);
+    setError(null);
+    try {
+      const tokenAuth = sessionStorage.getItem('token');
+      const response = await fetch('http://localhost:3000/api/reservations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${tokenAuth}`
+        },
+        body: JSON.stringify({
+          token,
+          reservationData: {
+            id_actividad: activity.id,
+            fecha_experiencia: date,
+            cantidad_personas: adults + children,
+            total: totalPrice
+          }
+        })
+      });
+
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message || 'Error al procesar la reserva');
+
+      setSuccess(true);
+      setTimeout(() => {
+        onClose();
+        navigate('/dashboard-tourist?section=bookings');
+      }, 2000);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handlePaymentSubmit = () => {
+    if (!date) {
+      setError('Por favor selecciona una fecha primero.');
+      return;
+    }
+    if (!cardName || !cardNumber || !expiry || !cvv) {
+      setError('Por favor completa todos los campos de la tarjeta.');
+      return;
+    }
+    const [expiryMonth, expiryYear] = expiry.split('/');
+    if (!expiryMonth || !expiryYear || expiryYear.length !== 2) {
+      setError('Formato de expiración inválido. Usa MM/YY (ej. 12/26).');
+      return;
+    }
+
+    const publicKey = import.meta.env.VITE_KUSHKI_PUBLIC_KEY;
+    if (!publicKey) {
+      setError('Error de configuración (Kushki Public Key no encontrada).');
+      return;
+    }
+
+    setIsProcessing(true);
+    setError(null);
+
+    try {
+      const kushki = new window.Kushki({
+        merchantId: publicKey,
+        inTestEnvironment: true
+      });
+
+      kushki.requestToken({
+        amount: totalPrice.toString(),
+        currency: "USD",
+        card: {
+          name: cardName,
+          number: cardNumber.replace(/\s/g, ''),
+          cvc: cvv,
+          expiryMonth: expiryMonth,
+          expiryYear: expiryYear
+        }
+      }, (response) => {
+        if (!response.code) {
+          handleBooking(response.token);
+        } else {
+          setIsProcessing(false);
+          setError(response.message || 'Error al procesar la tarjeta con el banco.');
+        }
+      });
+    } catch (err) {
+      console.error('Error inicializando tokenizador:', err);
+      setIsProcessing(false);
+      setError('Error al inicializar el procesador de pagos.');
+    }
+  };
+
+  useEffect(() => {
+    if (!isOpen) {
+      setError(null);
+      setCardName('');
+      setCardNumber('');
+      setExpiry('');
+      setCvv('');
+      setSuccess(false);
+    }
+  }, [isOpen]);
 
   const highlights = useMemo(() => {
     if (!activity) return [];
@@ -97,9 +207,9 @@ const BookingSidebar = ({ isOpen, onClose, activity }) => {
               </div>
 
               {/* Highlights */}
-              <div className="grid grid-cols-2 gap-4 mb-10">
-                {highlights.map((h, i) => (
-                  <div key={i} className={`flex items-center gap-3 p-4 rounded-2xl border border-slate-50 ${h.color} bg-opacity-40`}>
+               <div className="grid grid-cols-2 gap-4 mb-10">
+                {highlights.map((h) => (
+                  <div key={`${activity.id}-${h.label}`} className={`flex items-center gap-3 p-4 rounded-2xl border border-slate-50 ${h.color} bg-opacity-40`}>
                     <h.icon className="w-5 h-5 shrink-0" />
                     <span className="text-xs font-black uppercase tracking-tight">{h.label}</span>
                   </div>
@@ -132,8 +242,8 @@ const BookingSidebar = ({ isOpen, onClose, activity }) => {
                   <div className="bg-slate-50/50 p-6 rounded-[2rem] border border-slate-100">
                     <h5 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Qué incluye:</h5>
                     <div className="grid grid-cols-2 gap-y-3 gap-x-4">
-                      {inclusions.map((item, i) => (
-                        <div key={i} className="flex items-center gap-2 text-slate-500">
+                      {inclusions.map((item) => (
+                        <div key={`${activity.id}-${item.label}`} className="flex items-center gap-2 text-slate-500">
                           <item.icon className="w-4 h-4 text-emerald-500" />
                           <span className="text-xs font-bold">{item.label}</span>
                         </div>
@@ -233,22 +343,85 @@ const BookingSidebar = ({ isOpen, onClose, activity }) => {
                     </div>
                   </div>
                   
-                  <div className="flex justify-between items-center bg-white/5 p-6 rounded-3xl border border-white/5">
-                    <div>
+                  {error && (
+                    <div className="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-2xl text-red-200 text-xs font-bold">
+                      {error}
+                    </div>
+                  )}
+
+                  {success && (
+                    <div className="mb-6 p-4 bg-emerald-500/20 border border-emerald-500/50 rounded-2xl text-emerald-200 text-xs font-bold flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4" /> ¡Reserva confirmada con éxito! Redirigiendo...
+                    </div>
+                  )}
+                  
+                  {/* Native Payment Form Inputs */}
+                  <div className="space-y-4 mb-8">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Shield className="w-4 h-4 text-emerald-400" />
+                      <span className="text-xs font-black uppercase tracking-widest text-emerald-400">Pago Seguro Kushki</span>
+                    </div>
+                    <div className="space-y-3">
+                      <input 
+                        type="text"
+                        placeholder="Nombre en la Tarjeta"
+                        value={cardName}
+                        onChange={e => setCardName(e.target.value)}
+                        className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-secondary transition-colors"
+                      />
+                      <input 
+                        type="text"
+                        placeholder="Número de Tarjeta"
+                        value={cardNumber}
+                        onChange={e => setCardNumber(e.target.value.replace(/\D/g, '').replace(/(\d{4})(?=\d)/g, '$1 '))}
+                        maxLength={19}
+                        className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-secondary font-mono tracking-widest transition-colors"
+                      />
+                      <div className="flex gap-3">
+                        <input 
+                          type="text"
+                          placeholder="MM/YY"
+                          value={expiry}
+                          onChange={e => {
+                            let val = e.target.value.replace(/\D/g, '');
+                            if (val.length >= 2) val = val.substring(0,2) + '/' + val.substring(2,4);
+                            setExpiry(val);
+                          }}
+                          maxLength={5}
+                          className="w-1/2 bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-secondary text-center font-mono transition-colors"
+                        />
+                        <input 
+                          type="password"
+                          placeholder="CVV"
+                          value={cvv}
+                          onChange={e => setCvv(e.target.value.replace(/\D/g, ''))}
+                          maxLength={4}
+                          className="w-1/2 bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-secondary text-center tracking-[0.2em] font-mono transition-colors"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row justify-between items-center bg-white/5 p-6 rounded-3xl border border-white/5 gap-6">
+                    <div className="text-center sm:text-left">
                         <p className="text-[10px] uppercase font-black tracking-widest text-secondary mb-1">Inversión Total</p>
                         <p className="text-4xl font-display font-black">${totalPrice.toFixed(2)}</p>
                     </div>
+                    
                     <button 
-                      disabled={!date}
+                      type="button"
+                      onClick={handlePaymentSubmit}
+                      disabled={!date || isProcessing || success}
                       className={`
-                        px-10 py-5 rounded-[2rem] font-black text-sm transition-all shadow-2xl flex items-center gap-3
-                        ${date 
-                          ? 'bg-secondary text-primary-dark hover:scale-105 active:scale-95 shadow-secondary/20' 
-                          : 'bg-white/10 text-white/20 cursor-not-allowed'
+                        w-full sm:w-auto px-10 py-5 rounded-[2rem] font-black text-sm transition-all shadow-2xl flex justify-center items-center gap-3
+                        ${date && !isProcessing && !success
+                          ? 'bg-secondary text-primary-dark hover:scale-105 active:scale-95 shadow-secondary/20 hover:bg-white' 
+                          : 'bg-white/10 text-white/20 cursor-not-allowed border border-white/10'
                         }
                       `}
                     >
-                        Confirmar <ChevronRight className="w-5 h-5" />
+                        {isProcessing ? 'Procesando...' : success ? '¡Listo!' : 'Confirmar Pago'} 
+                        {!isProcessing && !success && <ChevronRight className="w-5 h-5" />}
                     </button>
                   </div>
                 </div>

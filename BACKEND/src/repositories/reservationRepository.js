@@ -23,7 +23,31 @@ const updateReservationStatus = async (id_reserva, estado) => {
     return rows[0];
 };
 
+const createReservation = async (reservationData) => {
+    const { tipo_actividad, id_actividad, id_turista, fecha_experiencia, cantidad_personas, total, estado = 'PENDIENTE' } = reservationData;
+    const { rows } = await db.query(
+        `INSERT INTO reservas (tipo_actividad, id_actividad, id_turista, fecha_experiencia, cantidad_personas, total, estado)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
+         RETURNING *`,
+        [tipo_actividad, id_actividad, id_turista, fecha_experiencia, cantidad_personas, total, estado]
+    );
+    return rows[0];
+};
+
+const createPayment = async (paymentData) => {
+    const { id_reserva, monto_total, monto_anfitrion, monto_plataforma, estado = 'CONFIRMADO' } = paymentData;
+    const { rows } = await db.query(
+        `INSERT INTO pagos (id_reserva, monto_total, monto_anfitrion, monto_plataforma, estado, fecha_pago)
+         VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)
+         RETURNING *`,
+        [id_reserva, monto_total, monto_anfitrion, monto_plataforma, estado]
+    );
+    return rows[0];
+};
+
 module.exports = {
     findReservationsByHostId,
-    updateReservationStatus
+    updateReservationStatus,
+    createReservation,
+    createPayment
 };
