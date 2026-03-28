@@ -206,14 +206,9 @@ const BookingsSection = ({ status: initialStatusFilter }) => {
               </div>
               <div className="bg-white p-4 rounded-[1.5rem] mb-6 shadow-xl w-fit">
                 <QRCode 
-                  value={JSON.stringify({ 
-                    id: selectedBooking.id_reserva, 
-                    tourist: selectedBooking.id_turista, 
-                    amount: selectedBooking.total, 
-                    activity: selectedBooking.id_actividad 
-                  })} 
+                  value={`BOLETO DIGITAL - ISTPET\n\nID: #${selectedBooking.id_reserva.toString().padStart(6, '0')}\nActividad: ${selectedBooking.actividad_titulo}\nAnfitrion: ${selectedBooking.anfitrion_nombre || 'No asignado'}\nFecha: ${new Date(selectedBooking.fecha_experiencia).toLocaleDateString('es-ES')} a las ${new Date(selectedBooking.fecha_experiencia).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}\nAforo: ${selectedBooking.cantidad_personas} Pax\nPago: $${parseFloat(selectedBooking.total).toFixed(2)} (${selectedBooking.estado})\n\nDisfruta tu aventura!`} 
                   size={140} 
-                  level="H"
+                  level="L"
                 />
               </div>
               <h3 className="font-display font-black text-xl mb-1 flex items-center gap-2">
