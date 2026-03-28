@@ -5,6 +5,7 @@ import SummarySection from '../components/dashboard/SummarySection';
 import BookingsSection from '../components/dashboard/BookingsSection';
 import MessagingSection from '../components/dashboard/MessagingSection';
 import ProfileSection from '../components/dashboard/ProfileSection';
+import MyReviewsSection from '../components/dashboard/MyReviewsSection';
 
 const DashboardTourist = () => {
   const [searchParams] = useSearchParams();
@@ -47,6 +48,7 @@ const DashboardTourist = () => {
           initialHostName={searchParams.get('hostName')} 
         />
       );
+      case 'reviews': return <MyReviewsSection />;
       case 'profile': return <ProfileSection onUpdateProfile={handleProfileUpdate} />;
       default: return <SummarySection user={user} />;
     }

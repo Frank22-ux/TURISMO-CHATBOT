@@ -1,12 +1,37 @@
-import { Eye, DollarSign, Star, ShoppingBag, Plus, ArrowRight } from 'lucide-react';
+import { Eye, DollarSign, Star, ShoppingBag, Plus, ArrowRight, Clock, User, Calendar } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ActivityModal from './ActivityModal';
 
 const HostSummarySection = ({ user }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState('EXPERIENCE');
   const [isLoading, setIsLoading] = useState(false);
+  const [dashboardData, setDashboardData] = useState({
+    totalViews: 0,
+    monthlyEarnings: 0,
+    avgRating: 0,
+    newBookings: 0,
+    recentReservations: []
+  });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const token = sessionStorage.getItem('token');
+        const response = await fetch('http://localhost:3000/api/host/dashboard-stats', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        if (response.ok) {
+          setDashboardData(data);
+        }
+      } catch (error) {
+        console.error('Error fetching dashboard stats:', error);
+      }
+    };
+    fetchStats();
+  }, []);
 
   const openModal = (type) => {
     setModalType(type);
@@ -43,10 +68,10 @@ const HostSummarySection = ({ user }) => {
   };
 
   const stats = [
-    { label: 'Vistas totales', value: '0', icon: Eye, color: 'text-blue-500', bg: 'bg-blue-50' },
-    { label: 'Ingresos del mes', value: '$0.00', icon: DollarSign, color: 'text-green-500', bg: 'bg-green-50' },
-    { label: 'Valoración media', value: '0.0', icon: Star, color: 'text-orange-500', bg: 'bg-orange-50' },
-    { label: 'Reservas nuevas', value: '0', icon: ShoppingBag, color: 'text-purple-500', bg: 'bg-purple-50' },
+    { label: 'Vistas totales', value: dashboardData.totalViews.toString(), icon: Eye, color: 'text-blue-500', bg: 'bg-blue-50' },
+    { label: 'Ingresos del mes', value: `$${dashboardData.monthlyEarnings.toFixed(2)}`, icon: DollarSign, color: 'text-green-500', bg: 'bg-green-50' },
+    { label: 'Valoración media', value: dashboardData.avgRating.toFixed(1), icon: Star, color: 'text-orange-500', bg: 'bg-orange-50' },
+    { label: 'Reservas nuevas', value: dashboardData.newBookings.toString(), icon: ShoppingBag, color: 'text-purple-500', bg: 'bg-purple-50' },
   ];
 
   return (
@@ -111,9 +136,41 @@ const HostSummarySection = ({ user }) => {
             </button>
           </div>
           <div className="space-y-4">
-            <div className="py-20 text-center text-slate-300">
-              <p className="font-bold">No hay reservas recientes para mostrar.</p>
-            </div>
+            {dashboardData.recentReservations.length === 0 ? (
+              <div className="py-20 text-center text-slate-300">
+                <p className="font-bold">No hay reservas recientes para mostrar.</p>
+              </div>
+            ) : (
+              dashboardData.recentReservations.map((res, i) => (
+                <motion.div 
+                  key={res.id_reserva}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.1 }}
+                  className="p-4 rounded-2xl border border-slate-100 flex justify-between items-center hover:bg-slate-50 transition-colors"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
+                      {res.turista_nombre[0].toUpperCase()}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-800 text-sm">{res.turista_nombre}</h4>
+                      <p className="text-xs text-slate-500">{res.actividad_titulo}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-black text-slate-800">${parseFloat(res.total).toFixed(2)}</p>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                      res.estado === 'APROBADA' ? 'bg-green-50 text-green-600' :
+                      res.estado === 'PENDIENTE' ? 'bg-amber-50 text-amber-600' :
+                      'bg-slate-100 text-slate-600'
+                    }`}>
+                      {res.estado}
+                    </span>
+                  </div>
+                </motion.div>
+              ))
+            )}
           </div>
         </div>
 

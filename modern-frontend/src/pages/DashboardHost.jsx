@@ -6,6 +6,7 @@ import ServicesSection from '../components/dashboard/ServicesSection';
 import HostBookingsSection from '../components/dashboard/HostBookingsSection';
 import MessagingSection from '../components/dashboard/MessagingSection';
 import ProfileSection from '../components/dashboard/ProfileSection';
+import MyReviewsSection from '../components/dashboard/MyReviewsSection';
 
 const DashboardHost = () => {
   const [activeSection, setActiveSection] = useState('summary');
@@ -29,6 +30,7 @@ const DashboardHost = () => {
       case 'services': return <ServicesSection />;
       case 'bookings': return <HostBookingsSection />;
       case 'messaging': return <MessagingSection />;
+      case 'reviews': return <MyReviewsSection />;
       case 'profile': return <ProfileSection isHost={true} onUpdateProfile={handleProfileUpdate} />;
       default: return <HostSummarySection user={user} />;
     }

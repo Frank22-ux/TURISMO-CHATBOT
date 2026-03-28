@@ -8,6 +8,7 @@ const hostRoutes = require('./routes/hostRoutes');
 const messageRoutes = require('./routes/messageRoutes');
 const reservationRoutes = require('./routes/reservationRoutes');
 const touristRoutes = require('./routes/touristRoutes');
+const reviewRoutes = require('./routes/reviewRoutes');
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.use('/api/host', hostRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/reservations', reservationRoutes);
 app.use('/api/tourist', touristRoutes);
+app.use('/api/reviews', reviewRoutes);
 
 // Catch-all to serve index.html for client-side routing (Using regex literal for Express 5 compatibility)
 app.get(/^(?!\/api).+/, (req, res) => {

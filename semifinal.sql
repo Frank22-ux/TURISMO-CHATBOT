@@ -16,6 +16,7 @@ DROP TABLE IF EXISTS categorias_alimentarias CASCADE;
 DROP TABLE IF EXISTS clasificaciones_turisticas CASCADE;
 DROP TABLE IF EXISTS ubicaciones CASCADE;
 DROP TABLE IF EXISTS mensajes CASCADE;
+DROP TABLE IF EXISTS resenas CASCADE;
 DROP TABLE IF EXISTS perfil_anfitrion CASCADE;
 DROP TABLE IF EXISTS perfil_turista CASCADE;
 DROP TABLE IF EXISTS usuarios CASCADE;
@@ -394,4 +395,24 @@ CREATE TABLE mensajes (
 
     FOREIGN KEY (id_emisor) REFERENCES usuarios(id_usuario) ON DELETE CASCADE,
     FOREIGN KEY (id_receptor) REFERENCES usuarios(id_usuario) ON DELETE CASCADE
+);
+
+-- =====================================================
+-- RESEÑAS / CALIFICACIONES MUTUAS (24H)
+-- =====================================================
+CREATE TABLE resenas (
+    id_resena SERIAL PRIMARY KEY,
+    id_reserva INTEGER NOT NULL,
+    autor_id INTEGER NOT NULL,
+    receptor_id INTEGER NOT NULL,
+    rol_autor VARCHAR(20) NOT NULL,
+    puntuacion INTEGER CHECK (puntuacion >= 1 AND puntuacion <= 5),
+    comentario TEXT,
+    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    UNIQUE(id_reserva, autor_id),
+
+    FOREIGN KEY (id_reserva) REFERENCES reservas(id_reserva) ON DELETE CASCADE,
+    FOREIGN KEY (autor_id) REFERENCES usuarios(id_usuario) ON DELETE CASCADE,
+    FOREIGN KEY (receptor_id) REFERENCES usuarios(id_usuario) ON DELETE CASCADE
 );

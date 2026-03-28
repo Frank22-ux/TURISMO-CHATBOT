@@ -1,11 +1,49 @@
 import { useState, useEffect } from 'react';
-import { Search, Check, X, Clock, Calendar, User, DollarSign, Eye, Shield, Users, Wallet } from 'lucide-react';
+import { Search, Check, X, Clock, Calendar, User, DollarSign, Eye, Shield, Users, Wallet, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const HostBookingsSection = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const [reviewBooking, setReviewBooking] = useState(null);
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState('');
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+
+  const handleSubmitReview = async () => {
+    if (rating === 0) return alert('Por favor selecciona una puntuación.');
+    setIsSubmittingReview(true);
+    try {
+        const token = sessionStorage.getItem('token');
+        const response = await fetch('http://localhost:3000/api/reviews', {
+          method: 'POST',
+          headers: { 
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+              id_reserva: reviewBooking.id_reserva,
+              puntuacion: rating,
+              comentario: comment
+          })
+        });
+        const data = await response.json();
+        if (response.ok) {
+            alert('¡Calificación enviada con éxito!');
+            setReviewBooking(null);
+            setRating(0);
+            setComment('');
+        } else {
+            alert(data.message || 'Error al enviar reseña');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error al enviar la reseña');
+    } finally {
+        setIsSubmittingReview(false);
+    }
+  };
 
   const fetchBookings = async () => {
     try {
@@ -121,6 +159,12 @@ const HostBookingsSection = () => {
                         >
                           <Eye className="w-4 h-4" />
                         </button>
+
+                        {['APROBADA', 'COMPLETADA'].includes(res.estado) && new Date(res.fecha_experiencia).getTime() + 24*60*60*1000 < new Date().getTime() && (
+                          <button onClick={() => setReviewBooking(res)} className="p-2.5 rounded-xl bg-orange-50 text-orange-500 hover:bg-orange-500 hover:text-white transition-all shadow-sm" title="Calificar Turista">
+                            <Star className="w-4 h-4" />
+                          </button>
+                        )}
                         
                         {res.estado === 'PENDIENTE' && (
                           <>
@@ -139,16 +183,6 @@ const HostBookingsSection = () => {
                               <X className="w-4 h-4" />
                             </button>
                           </>
-                        )}
-
-                        {res.estado === 'APROBADA' && (
-                          <button 
-                            onClick={() => handleStatusUpdate(res.id_reserva, 'COMPLETADA')}
-                            className="p-2.5 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-500 hover:text-white transition-all shadow-sm"
-                            title="Marcar como Completada"
-                          >
-                            <Check className="w-4 h-4" />
-                          </button>
                         )}
                       </div>
                     </td>
@@ -233,14 +267,7 @@ const HostBookingsSection = () => {
                   </button>
                 </div>
               )}
-              {selectedBooking.estado === 'APROBADA' && (
-                <div className="flex gap-3 mt-auto">
-                  <button onClick={() => { handleStatusUpdate(selectedBooking.id_reserva, 'COMPLETADA'); setSelectedBooking(null); }} className="w-full py-4 bg-blue-500 text-white rounded-2xl font-bold text-sm hover:bg-blue-600 transition-all active:scale-95 shadow-lg shadow-blue-500/20">
-                    Marcar como Finalizada
-                  </button>
-                </div>
-              )}
-              {['COMPLETADA', 'RECHAZADA', 'CANCELADA'].includes(selectedBooking.estado) && (
+              {['APROBADA', 'COMPLETADA', 'RECHAZADA', 'CANCELADA'].includes(selectedBooking.estado) && (
                 <div className="flex gap-3 mt-auto">
                   <button onClick={() => setSelectedBooking(null)} className="w-full py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all active:scale-95">
                     Cerrar Detalles
@@ -248,6 +275,49 @@ const HostBookingsSection = () => {
                 </div>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Review Modal for Host */}
+      {reviewBooking && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setReviewBooking(null)}></div>
+          <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-md relative z-10 overflow-hidden animate-scale-up p-8">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-black text-slate-800">Califica al Turista</h2>
+              <button onClick={() => setReviewBooking(null)} className="p-2 text-slate-400 hover:text-red-500 transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <p className="text-slate-500 mb-6 text-sm">¿Cómo fue tu experiencia guiando a <span className="font-bold text-slate-800">{reviewBooking.turista_nombre}</span> en {reviewBooking.actividad_titulo}?</p>
+            
+            <div className="flex justify-center gap-2 mb-8">
+              {[1, 2, 3, 4, 5].map((s) => (
+                <button 
+                  key={s} 
+                  onClick={() => setRating(s)}
+                  className={`transition-all ${rating >= s ? 'text-orange-400 scale-110' : 'text-slate-200 hover:text-orange-200'}`}
+                >
+                  <Star className="w-10 h-10" fill={rating >= s ? 'currentColor' : 'none'} />
+                </button>
+              ))}
+            </div>
+
+            <textarea 
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder="Escribe tu calificación sobre el viajero... (opcional)"
+              className="w-full h-32 p-4 rounded-2xl bg-slate-50 border border-slate-100 focus:ring-4 focus:ring-primary/10 transition-all outline-none resize-none text-sm mb-6"
+            ></textarea>
+
+            <button 
+              onClick={handleSubmitReview}
+              disabled={isSubmittingReview || rating === 0}
+              className={`w-full py-4 rounded-2xl font-bold text-sm shadow-lg transition-all flex items-center justify-center gap-2 ${rating === 0 ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-primary text-white hover:bg-primary-dark hover:shadow-xl active:scale-95'}`}
+            >
+              {isSubmittingReview ? <Clock className="w-5 h-5 animate-spin" /> : 'Enviar Calificación'}
+            </button>
           </div>
         </div>
       )}
