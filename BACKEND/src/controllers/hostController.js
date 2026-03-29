@@ -25,6 +25,17 @@ const updateProfile = async (req, res) => {
     }
 };
 
+const updateBankProfile = async (req, res) => {
+    try {
+        const id_anfitrion = req.user.id;
+        const { banco_nombre, tipo_cuenta, numero_cuenta, identificacion } = req.body;
+        const result = await hostService.updateBankProfile(id_anfitrion, { banco_nombre, tipo_cuenta, numero_cuenta, identificacion });
+        res.status(200).json(result);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 const getMyActivities = async (req, res) => {
     try {
         const id_anfitrion = req.user.id;
@@ -193,6 +204,7 @@ const getDashboardStats = async (req, res) => {
 module.exports = {
     getProfile,
     updateProfile,
+    updateBankProfile,
     getMyActivities,
     createActivity,
     deleteActivity,

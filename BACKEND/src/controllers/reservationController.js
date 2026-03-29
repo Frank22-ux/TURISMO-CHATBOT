@@ -52,8 +52,45 @@ const createReservation = async (req, res) => {
     }
 };
 
+const validateQR = async (req, res) => {
+    try {
+        const id_anfitrion = req.user.id;
+        const { codigo_qr_turista } = req.body;
+
+        if (!codigo_qr_turista) {
+            return res.status(400).json({ message: 'El código QR es obligatorio' });
+        }
+
+        const result = await reservationService.validateQR(id_anfitrion, codigo_qr_turista);
+        res.json(result);
+    } catch (error) {
+        console.error('Error in validateQR:', error.message);
+        res.status(400).json({ message: error.message || 'Error al validar el código QR' });
+    }
+};
+
+const cancelReservation = async (req, res) => {
+    try {
+        const id_turista = req.user.id;
+        const { id } = req.params;
+        const { codigo_qr_turista } = req.body;
+
+        if (!codigo_qr_turista) {
+            return res.status(400).json({ message: 'El código QR generado es obligatorio para cancelar' });
+        }
+
+        const result = await reservationService.cancelReservationByTourist(id_turista, id, codigo_qr_turista);
+        res.json(result);
+    } catch (error) {
+        console.error('Error in cancelReservation:', error.message);
+        res.status(400).json({ message: error.message || 'Error al cancelar la reserva' });
+    }
+};
+
 module.exports = {
     getHostReservations,
     updateStatus,
-    createReservation
+    createReservation,
+    validateQR,
+    cancelReservation
 };

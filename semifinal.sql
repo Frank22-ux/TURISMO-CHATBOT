@@ -50,6 +50,11 @@ CREATE TABLE perfil_anfitrion (
     url_foto_portada TEXT,
     url_documento_legal_frontal TEXT,
     url_documento_legal_posterior TEXT,
+    
+    banco_nombre VARCHAR(100),
+    tipo_cuenta VARCHAR(50),
+    numero_cuenta VARCHAR(50),
+    identificacion VARCHAR(20),
 
     FOREIGN KEY (id_anfitrion)
         REFERENCES usuarios(id_usuario)
@@ -332,6 +337,10 @@ CREATE TABLE reservas (
     fecha_solicitud TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     fecha_respuesta TIMESTAMP,
 
+    codigo_qr_turista VARCHAR(10) UNIQUE,
+    codigo_verificacion_anfitrion VARCHAR(10) UNIQUE,
+    estado_qr VARCHAR(20) DEFAULT 'GENERADO',
+
     FOREIGN KEY (id_turista)
         REFERENCES usuarios(id_usuario)
 );
@@ -345,6 +354,7 @@ CREATE TABLE pagos (
     monto_total NUMERIC(10,2) NOT NULL,
     monto_anfitrion NUMERIC(10,2) NOT NULL,
     monto_plataforma NUMERIC(10,2) NOT NULL,
+    monto_reembolsado NUMERIC(10,2) DEFAULT 0,
 
     estado VARCHAR(20)
         CHECK (estado IN ('PENDIENTE','CONFIRMADO','DEVUELTO'))

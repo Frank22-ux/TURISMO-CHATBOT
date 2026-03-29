@@ -161,9 +161,25 @@ const initializeProfile = async (id_anfitrion) => {
     );
 };
 
+const updateBankProfile = async (id_anfitrion, bankData) => {
+    const { banco_nombre, tipo_cuenta, numero_cuenta, identificacion } = bankData;
+    const { rows } = await db.query(
+        `UPDATE perfil_anfitrion 
+         SET banco_nombre = COALESCE($1, banco_nombre),
+             tipo_cuenta = COALESCE($2, tipo_cuenta),
+             numero_cuenta = COALESCE($3, numero_cuenta),
+             identificacion = COALESCE($4, identificacion)
+         WHERE id_anfitrion = $5
+         RETURNING banco_nombre, tipo_cuenta, numero_cuenta, identificacion`,
+        [banco_nombre, tipo_cuenta, numero_cuenta, identificacion, id_anfitrion]
+    );
+    return rows[0];
+};
+
 module.exports = {
     findProfileByHostId,
     updateProfile,
     initializeProfile,
+    updateBankProfile,
     getDashboardStats
 };

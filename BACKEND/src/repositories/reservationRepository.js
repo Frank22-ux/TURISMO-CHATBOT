@@ -24,12 +24,12 @@ const updateReservationStatus = async (id_reserva, estado) => {
 };
 
 const createReservation = async (reservationData) => {
-    const { tipo_actividad, id_actividad, id_turista, fecha_experiencia, cantidad_personas, total, estado = 'PENDIENTE' } = reservationData;
+    const { tipo_actividad, id_actividad, id_turista, fecha_experiencia, cantidad_personas, total, estado = 'PENDIENTE', codigo_qr_turista, codigo_verificacion_anfitrion } = reservationData;
     const { rows } = await db.query(
-        `INSERT INTO reservas (tipo_actividad, id_actividad, id_turista, fecha_experiencia, cantidad_personas, total, estado)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)
+        `INSERT INTO reservas (tipo_actividad, id_actividad, id_turista, fecha_experiencia, cantidad_personas, total, estado, codigo_qr_turista, codigo_verificacion_anfitrion, estado_qr)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'GENERADO')
          RETURNING *`,
-        [tipo_actividad, id_actividad, id_turista, fecha_experiencia, cantidad_personas, total, estado]
+        [tipo_actividad, id_actividad, id_turista, fecha_experiencia, cantidad_personas, total, estado, codigo_qr_turista, codigo_verificacion_anfitrion]
     );
     return rows[0];
 };
@@ -45,9 +45,48 @@ const createPayment = async (paymentData) => {
     return rows[0];
 };
 
+const findReservationByQR = async (codigo_qr_turista) => {
+    const { rows } = await db.query(
+        `SELECT r.*, u.nombre as turista_nombre, 
+                COALESCE(at.titulo, aa.titulo) as actividad_titulo,
+                COALESCE(at.id_anfitrion, aa.id_anfitrion) as id_anfitrion
+         FROM reservas r
+         JOIN usuarios u ON r.id_turista = u.id_usuario
+         LEFT JOIN actividades_turisticas at ON r.id_actividad = at.id_actividad AND r.tipo_actividad = 'TURISTICA'
+         LEFT JOIN actividades_alimentarias aa ON r.id_actividad = aa.id_actividad AND r.tipo_actividad = 'ALIMENTARIA'
+         WHERE r.codigo_qr_turista = $1`,
+        [codigo_qr_turista]
+    );
+    return rows[0];
+};
+
+const updateQRStatus = async (id_reserva, estado_qr) => {
+    const { rows } = await db.query(
+        'UPDATE reservas SET estado_qr = $1 WHERE id_reserva = $2 RETURNING *',
+        [estado_qr, id_reserva]
+    );
+    return rows[0];
+};
+
+const updatePaymentRefund = async (id_reserva, monto_reembolsado) => {
+    const { rows } = await db.query(
+        `UPDATE pagos 
+         SET estado = 'DEVUELTO', 
+             monto_reembolsado = $1, 
+             fecha_devolucion = CURRENT_TIMESTAMP 
+         WHERE id_reserva = $2 
+         RETURNING *`,
+        [monto_reembolsado, id_reserva]
+    );
+    return rows[0];
+};
+
 module.exports = {
     findReservationsByHostId,
     updateReservationStatus,
     createReservation,
-    createPayment
+    createPayment,
+    findReservationByQR,
+    updateQRStatus,
+    updatePaymentRefund
 };

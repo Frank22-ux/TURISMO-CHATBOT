@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Search, Filter, Calendar, MapPin, Eye, Star, Clock, CheckCircle, AlertCircle, X, Shield, Users, Download } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import { toPng } from 'html-to-image';
+import { useToast } from '../../contexts/ToastContext';
 
 const BookingsSection = ({ status: initialStatusFilter }) => {
   const [bookings, setBookings] = useState([]);
@@ -13,10 +14,60 @@ const BookingsSection = ({ status: initialStatusFilter }) => {
   const [comment, setComment] = useState('');
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [cancelBooking, setCancelBooking] = useState(null);
+  const [cancelQrCode, setCancelQrCode] = useState('');
+  const [isCancelling, setIsCancelling] = useState(false);
   const ticketRef = useRef(null);
+  const { showToast } = useToast();
+
+  const fetchBookings = async () => {
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await fetch('http://localhost:3000/api/tourist/reservations', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      setBookings(data);
+    } catch (error) {
+      console.error('Error fetching bookings:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancelReservation = async () => {
+    if (!cancelQrCode || cancelQrCode.length !== 10) return showToast('Por favor ingresa el código protector completo (10 caracteres).', 'info');
+    setIsCancelling(true);
+    try {
+        const token = sessionStorage.getItem('token');
+        const response = await fetch(`http://localhost:3000/api/tourist/reservations/${cancelBooking.id_reserva}/cancel`, {
+          method: 'POST',
+          headers: { 
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ codigo_qr_turista: cancelQrCode })
+        });
+        const data = await response.json();
+        if (response.ok) {
+            showToast(`¡Reserva cancelada! Devolución del ${data.porcentaje_reembolso}%`, 'success', 5000);
+            setCancelBooking(null);
+            setCancelQrCode('');
+            setSelectedBooking(null);
+            fetchBookings();
+        } else {
+            showToast(data.message || 'Error al cancelar la reserva', 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showToast('Error al cancelar la reserva', 'error');
+    } finally {
+        setIsCancelling(false);
+    }
+  };
 
   const handleSubmitReview = async () => {
-    if (rating === 0) return alert('Por favor selecciona una puntuación.');
+    if (rating === 0) return showToast('Por favor selecciona una puntuación.', 'info');
     setIsSubmittingReview(true);
     try {
         const token = sessionStorage.getItem('token');
@@ -34,16 +85,16 @@ const BookingsSection = ({ status: initialStatusFilter }) => {
         });
         const data = await response.json();
         if (response.ok) {
-            alert('¡Reseña enviada con éxito!');
+            showToast('¡Reseña enviada con éxito!', 'success');
             setReviewBooking(null);
             setRating(0);
             setComment('');
         } else {
-            alert(data.message || 'Error al enviar reseña');
+            showToast(data.message || 'Error al enviar reseña', 'error');
         }
     } catch (error) {
         console.error('Error:', error);
-        alert('Error al enviar la reseña');
+        showToast('Error de conexión al enviar la reseña', 'error');
     } finally {
         setIsSubmittingReview(false);
     }
@@ -72,20 +123,6 @@ const BookingsSection = ({ status: initialStatusFilter }) => {
   };
 
   useEffect(() => {
-    const fetchBookings = async () => {
-      try {
-        const token = sessionStorage.getItem('token');
-        const response = await fetch('http://localhost:3000/api/tourist/reservations', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const data = await response.json();
-        setBookings(data);
-      } catch (error) {
-        console.error('Error fetching bookings:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchBookings();
   }, []);
 
@@ -242,12 +279,15 @@ const BookingsSection = ({ status: initialStatusFilter }) => {
               <div className="absolute top-0 right-0 p-4 opacity-10">
                 <Star className="w-24 h-24" />
               </div>
-              <div className="bg-white p-4 rounded-[1.5rem] mb-6 shadow-xl w-fit">
+              <div className="bg-white p-4 rounded-[1.5rem] mb-6 shadow-xl w-fit flex flex-col items-center">
                 <QRCode 
-                  value={`BOLETO DIGITAL - ISTPET\n\nID: #${selectedBooking.id_reserva.toString().padStart(6, '0')}\nActividad: ${selectedBooking.actividad_titulo}\nAnfitrion: ${selectedBooking.anfitrion_nombre || 'No asignado'}\nFecha: ${new Date(selectedBooking.fecha_experiencia).toLocaleDateString('es-ES')} a las ${new Date(selectedBooking.fecha_experiencia).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}\nAforo: ${selectedBooking.cantidad_personas} Pax\nPago: $${parseFloat(selectedBooking.total).toFixed(2)} (${selectedBooking.estado})\n\nDisfruta tu aventura!`} 
+                  value={`BOLETO DIGITAL - ISTPET\n\nID: #${selectedBooking.id_reserva.toString().padStart(6, '0')}\nActividad: ${selectedBooking.actividad_titulo}\nAnfitrion: ${selectedBooking.anfitrion_nombre || 'No asignado'}\nFecha: ${new Date(selectedBooking.fecha_experiencia).toLocaleDateString('es-ES')} a las ${new Date(selectedBooking.fecha_experiencia).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}\nAforo: ${selectedBooking.cantidad_personas} Pax\nPago: $${parseFloat(selectedBooking.total).toFixed(2)} (${selectedBooking.estado})\n\nCODIGO PROTECTOR: ${selectedBooking.codigo_qr_turista}`} 
                   size={140} 
                   level="L"
                 />
+                {selectedBooking.codigo_qr_turista && (
+                  <p className="mt-3 font-mono font-black text-slate-800 text-lg tracking-[0.2em]">{selectedBooking.codigo_qr_turista}</p>
+                )}
               </div>
               <h3 className="font-display font-black text-xl mb-1 flex items-center gap-2">
                 <CheckCircle className="w-5 h-5 text-emerald-400"/> Boleto Digital
@@ -305,21 +345,31 @@ const BookingsSection = ({ status: initialStatusFilter }) => {
                 </div>
               </div>
               
-              <div className="flex gap-3 mt-auto pt-6" data-html2canvas-ignore="true">
-                <button 
-                  onClick={handleDownloadTicket}
-                  disabled={isDownloading}
-                  className="flex-1 py-4 bg-primary text-white rounded-2xl font-bold text-sm hover:bg-primary-dark transition-all shadow-lg hover:shadow-xl active:scale-95 flex items-center justify-center gap-2"
-                >
-                  {isDownloading ? <Clock className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
-                  {isDownloading ? 'Generando...' : 'Descargar Boleto'}
-                </button>
-                <button 
-                  onClick={() => setSelectedBooking(null)} 
-                  className="px-8 py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all active:scale-95"
-                >
-                  Cerrar
-                </button>
+              <div className="flex flex-col gap-3 mt-auto pt-6" data-html2canvas-ignore="true">
+                <div className="flex gap-3">
+                  <button 
+                    onClick={handleDownloadTicket}
+                    disabled={isDownloading}
+                    className="flex-1 py-4 bg-primary text-white rounded-2xl font-bold text-sm hover:bg-primary-dark transition-all shadow-lg hover:shadow-xl active:scale-95 flex items-center justify-center gap-2"
+                  >
+                    {isDownloading ? <Clock className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
+                    {isDownloading ? 'Generando...' : 'Descargar Boleto'}
+                  </button>
+                  <button 
+                    onClick={() => setSelectedBooking(null)} 
+                    className="px-8 py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all active:scale-95"
+                  >
+                    Cerrar
+                  </button>
+                </div>
+                {['PENDIENTE', 'APROBADA'].includes(selectedBooking.estado) && (
+                  <button 
+                    onClick={() => setCancelBooking(selectedBooking)} 
+                    className="w-full py-3 bg-red-50 text-red-500 rounded-2xl font-bold text-sm hover:bg-red-500 hover:text-white transition-all active:scale-95"
+                  >
+                    Cancelar Reserva
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -364,6 +414,49 @@ const BookingsSection = ({ status: initialStatusFilter }) => {
               className={`w-full py-4 rounded-2xl font-bold text-sm shadow-lg transition-all flex items-center justify-center gap-2 ${rating === 0 ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-primary text-white hover:bg-primary-dark hover:shadow-xl active:scale-95'}`}
             >
               {isSubmittingReview ? <Clock className="w-5 h-5 animate-spin" /> : 'Enviar Calificación'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Cancel Modal */}
+      {cancelBooking && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setCancelBooking(null)}></div>
+          <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-md relative z-10 overflow-hidden animate-scale-up p-8">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-black text-slate-800 text-red-500 flex items-center gap-2"><AlertCircle className="w-6 h-6" /> Cancelar Reserva</h2>
+              <button onClick={() => setCancelBooking(null)} className="p-2 text-slate-400 hover:text-red-500 transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="bg-red-50 p-4 rounded-2xl mb-6">
+              <h4 className="font-bold text-red-800 mb-2 border-b border-red-200 pb-2">Políticas de Reembolso:</h4>
+              <ul className="text-sm space-y-2 text-red-700 mt-2">
+                <li className="flex items-start gap-2"><div className="w-1.5 h-1.5 rounded-full bg-red-400 mt-1.5 shrink-0"></div><span><strong>Más de 2 días</strong> de antelación: 75% reembolso</span></li>
+                <li className="flex items-start gap-2"><div className="w-1.5 h-1.5 rounded-full bg-red-400 mt-1.5 shrink-0"></div><span><strong>De 1 a 2 días</strong> de antelación: 50% reembolso</span></li>
+                <li className="flex items-start gap-2"><div className="w-1.5 h-1.5 rounded-full bg-red-400 mt-1.5 shrink-0"></div><span><strong>Mismo día</strong> de la reserva: Sin reembolso</span></li>
+              </ul>
+            </div>
+
+            <p className="text-slate-500 mb-4 text-sm font-bold">Para confirmar tu cancelación, ingresa el código protector de reserva (Código QR de 10 caracteres) que aparece en tu boleto digital:</p>
+            
+            <input 
+              type="text" 
+              value={cancelQrCode}
+              onChange={(e) => setCancelQrCode(e.target.value.toUpperCase())}
+              placeholder="Ej: ABCDE12345"
+              maxLength={10}
+              className="w-full px-4 py-4 rounded-2xl bg-slate-50 border border-slate-200 focus:ring-4 focus:ring-red-100 transition-all outline-none text-center font-mono font-bold text-lg uppercase tracking-widest mb-6"
+            />
+
+            <button 
+              onClick={handleCancelReservation}
+              disabled={isCancelling || cancelQrCode.length !== 10}
+              className={`w-full py-4 rounded-2xl font-bold text-sm shadow-lg transition-all flex items-center justify-center gap-2 ${cancelQrCode.length !== 10 ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-red-500 text-white hover:bg-red-600 active:scale-95 shadow-red-500/20'}`}
+            >
+              {isCancelling ? <Clock className="w-5 h-5 animate-spin" /> : 'Confirmar Cancelación Definitiva'}
             </button>
           </div>
         </div>

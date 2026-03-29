@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import SidebarHost from '../components/dashboard/SidebarHost';
 import HostSummarySection from '../components/dashboard/HostSummarySection';
 import ExperiencesSection from '../components/dashboard/ExperiencesSection';
@@ -7,8 +8,11 @@ import HostBookingsSection from '../components/dashboard/HostBookingsSection';
 import MessagingSection from '../components/dashboard/MessagingSection';
 import ProfileSection from '../components/dashboard/ProfileSection';
 import MyReviewsSection from '../components/dashboard/MyReviewsSection';
+import NotificationBell from '../components/ui/NotificationBell';
+import HostPaymentsSection from '../components/dashboard/HostPaymentsSection';
 
 const DashboardHost = () => {
+  const [searchParams] = useSearchParams();
   const [activeSection, setActiveSection] = useState('summary');
   const [user, setUser] = useState(null);
 
@@ -23,13 +27,26 @@ const DashboardHost = () => {
     sessionStorage.setItem('user', JSON.stringify(newUser));
   };
 
+  useEffect(() => {
+    const section = searchParams.get('section');
+    if (section) {
+      setActiveSection(section);
+    }
+  }, [searchParams]);
+
   const renderSection = () => {
     switch(activeSection) {
       case 'summary': return <HostSummarySection user={user} />;
       case 'experiences': return <ExperiencesSection />;
       case 'services': return <ServicesSection />;
       case 'bookings': return <HostBookingsSection />;
-      case 'messaging': return <MessagingSection />;
+      case 'payments': return <HostPaymentsSection />;
+      case 'messaging': return (
+        <MessagingSection 
+          initialHostId={searchParams.get('touristId')} 
+          initialHostName={searchParams.get('touristName')} 
+        />
+      );
       case 'reviews': return <MyReviewsSection />;
       case 'profile': return <ProfileSection isHost={true} onUpdateProfile={handleProfileUpdate} />;
       default: return <HostSummarySection user={user} />;
@@ -52,17 +69,21 @@ const DashboardHost = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-4 bg-white p-2 pr-6 rounded-2xl border border-slate-100 shadow-sm">
-            <div className="w-12 h-12 rounded-xl bg-primary-dark flex items-center justify-center text-white font-black text-xl shadow-lg overflow-hidden">
-              {user.url_foto_perfil ? (
-                <img src={user.url_foto_perfil} alt="Avatar" className="w-full h-full object-cover" />
-              ) : (
-                user.nombre ? user.nombre[0].toUpperCase() : 'A'
-              )}
-            </div>
-            <div>
-              <p className="text-sm font-black text-slate-800 leading-tight">{user.nombre}</p>
-              <p className="text-[10px] font-bold text-primary uppercase tracking-widest">Anfitrión Verificado</p>
+          <div className="flex items-center gap-6">
+            <NotificationBell role="ANFITRION" onNavigate={(section) => setActiveSection(section)} />
+
+            <div className="flex items-center gap-4 bg-white p-2 pr-6 rounded-2xl border border-slate-100 shadow-sm">
+              <div className="w-12 h-12 rounded-xl bg-primary-dark flex items-center justify-center text-white font-black text-xl shadow-lg overflow-hidden">
+                {user.url_foto_perfil ? (
+                  <img src={user.url_foto_perfil} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  user.nombre ? user.nombre[0].toUpperCase() : 'A'
+                )}
+              </div>
+              <div>
+                <p className="text-sm font-black text-slate-800 leading-tight">{user.nombre}</p>
+                <p className="text-[10px] font-bold text-primary uppercase tracking-widest">Anfitrión Verificado</p>
+              </div>
             </div>
           </div>
         </header>

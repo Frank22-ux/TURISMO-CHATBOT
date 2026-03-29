@@ -16,6 +16,10 @@ const updateProfile = async (id_anfitrion, profileData) => {
     return await hostRepository.updateProfile(id_anfitrion, profileData);
 };
 
+const updateBankProfile = async (id_anfitrion, bankData) => {
+    return await hostRepository.updateBankProfile(id_anfitrion, bankData);
+};
+
 const getDashboardStats = async (id_anfitrion) => {
     return await hostRepository.getDashboardStats(id_anfitrion);
 };
@@ -23,5 +27,6 @@ const getDashboardStats = async (id_anfitrion) => {
 module.exports = {
     getProfile,
     updateProfile,
+    updateBankProfile,
     getDashboardStats
 };

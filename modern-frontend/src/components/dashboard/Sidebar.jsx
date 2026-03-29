@@ -1,11 +1,12 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Calendar, History, MessageSquare, User, Mountain, LogOut, Compass, Star } from 'lucide-react';
+import { Home, Calendar, History, MessageSquare, User, Mountain, LogOut, Compass, Star, Wallet } from 'lucide-react';
 
 const Sidebar = ({ activeSection, setActiveSection }) => {
   const menuItems = [
     { id: 'summary', label: 'Resumen', icon: Home },
     { id: 'bookings', label: 'Mis Reservas', icon: Calendar },
     { id: 'history', label: 'Historial', icon: History },
+    { id: 'payments', label: 'Mis Pagos', icon: Wallet },
     { id: 'messages', label: 'Mensajería', icon: MessageSquare },
     { id: 'reviews', label: 'Mis Reseñas', icon: Star },
     { id: 'profile', label: 'Mi Perfil', icon: User },

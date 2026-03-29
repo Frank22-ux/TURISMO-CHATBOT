@@ -2,9 +2,14 @@ const express = require('express');
 const router = express.Router();
 const hostController = require('../controllers/hostController');
 const authMiddleware = require('../middlewares/authMiddleware');
+const paymentController = require('../controllers/paymentController');
+const notificationController = require('../controllers/notificationController');
 
 router.get('/profile', authMiddleware, hostController.getProfile);
 router.put('/profile', authMiddleware, hostController.updateProfile);
+router.put('/profile/bank', authMiddleware, hostController.updateBankProfile);
+router.get('/notifications', authMiddleware, notificationController.getHostNotifications);
+router.get('/payments', authMiddleware, paymentController.getHostPayments);
 router.get('/activities', authMiddleware, hostController.getMyActivities);
 router.post('/activities', authMiddleware, hostController.createActivity);
 router.get('/activities/:id', authMiddleware, hostController.getActivityDetails);
@@ -23,6 +28,7 @@ router.put('/services/:id/status', authMiddleware, hostController.updateServiceS
 const reservationController = require('../controllers/reservationController');
 router.get('/reservations', authMiddleware, reservationController.getHostReservations);
 router.put('/reservations/:id/status', authMiddleware, reservationController.updateStatus);
+router.post('/reservations/validate-qr', authMiddleware, reservationController.validateQR);
 
 router.get('/dashboard-stats', authMiddleware, hostController.getDashboardStats);
 

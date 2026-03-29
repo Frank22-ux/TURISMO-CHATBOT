@@ -48,9 +48,27 @@ const updateProfile = async (req, res) => {
     }
 };
 
+const updateBankProfile = async (req, res) => {
+    try {
+        const id_turista = req.user.id;
+        const bankData = {
+            banco_nombre: req.body.banco_nombre,
+            tipo_cuenta: req.body.tipo_cuenta,
+            numero_cuenta: req.body.numero_cuenta,
+            identificacion: req.body.identificacion
+        };
+        const updatedProfile = await touristRepository.updateBankProfile(id_turista, bankData);
+        res.json(updatedProfile);
+    } catch (error) {
+        console.error('Error in updateBankProfile:', error);
+        res.status(500).json({ message: 'Error al actualizar información bancaria' });
+    }
+};
+
 module.exports = {
     getDashboardStats,
     getMyReservations,
     getProfile,
-    updateProfile
+    updateProfile,
+    updateBankProfile
 };
