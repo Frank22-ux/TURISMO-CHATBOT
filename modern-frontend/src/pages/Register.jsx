@@ -1,7 +1,27 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Mail, Lock, Phone, Calendar, ArrowRight, Mountain } from 'lucide-react';
+import { User, Mail, Lock, Phone, Calendar, ArrowRight, Mountain, X, Check, AlertCircle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import AuthLayout from '../components/AuthLayout';
+
+const Toast = ({ message, type = 'error', onClose }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 50, scale: 0.9 }}
+    animate={{ opacity: 1, y: 0, scale: 1 }}
+    exit={{ opacity: 0, y: 20, scale: 0.9 }}
+    className={`fixed bottom-10 right-10 z-[100] flex items-center gap-4 px-6 py-4 rounded-3xl shadow-2xl backdrop-blur-xl border ${
+      type === 'success' 
+        ? 'bg-green-500/90 border-green-400 text-white' 
+        : 'bg-red-500/90 border-red-400 text-white'
+    }`}
+  >
+    {type === 'success' ? <Check className="w-6 h-6" /> : <AlertCircle className="w-6 h-6" />}
+    <p className="font-bold text-sm tracking-tight">{message}</p>
+    <button onClick={onClose} className="ml-4 hover:scale-110 transition-transform">
+      <X className="w-4 h-4 opacity-60" />
+    </button>
+  </motion.div>
+);
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -12,31 +32,47 @@ const Register = () => {
     dob: '',
     email: '',
     phone: '',
-    password: '',
     role: 'TURISTA'
   });
   const [loading, setLoading] = useState(false);
+  const [notification, setNotification] = useState(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (notification) {
+      const timer = setTimeout(() => setNotification(null), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [notification]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+
+    const payload = {
+      nombre: `${formData.firstName} ${formData.secondName || ''} ${formData.lastName1} ${formData.lastName2 || ''}`.replace(/\s+/g, ' ').trim(),
+      email: formData.email,
+      telefono: formData.phone,
+      fecha_nacimiento: formData.dob,
+      rol: formData.role
+    };
+
     try {
       const response = await fetch('http://localhost:3000/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload)
       });
       const data = await response.json();
       if (data.token) {
-        sessionStorage.setItem('token', data.token);
-        sessionStorage.setItem('user', JSON.stringify(data.user));
-        navigate('/dashboard-tourist');
+        // En lugar de redirigir al Dashboard, comunicamos que debe revisar el correo
+        setNotification({ message: '¡Registro exitoso! Revisa tu correo electrónico para obtener tu contraseña de acceso.', type: 'success' });
+        setTimeout(() => navigate('/login'), 4000);
       } else {
-        alert(data.message || 'Error al registrarse');
+        setNotification({ message: data.message || 'Error al registrarse', type: 'error' });
       }
     } catch (error) {
-      alert('Error de conexión');
+      setNotification({ message: 'Error de conexión con el servidor', type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -47,11 +83,15 @@ const Register = () => {
   };
 
   return (
-    <AuthLayout 
-      title="Únete a la mayor comunidad turística" 
-      subtitle="Crea tu cuenta hoy y comienza a explorar o a ofrecer tus mejores experiencias en el Ecuador."
-      image="https://images.unsplash.com/photo-1590523277543-a94d2e4eb00b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"
-    >
+    <>
+      <AnimatePresence>
+        {notification && <Toast {...notification} onClose={() => setNotification(null)} />}
+      </AnimatePresence>
+      <AuthLayout 
+        title="Únete a la mayor comunidad turística" 
+        subtitle="Crea tu cuenta hoy y comienza a explorar o a ofrecer tus mejores experiencias en el Ecuador."
+        image="https://images.unsplash.com/photo-1590523277543-a94d2e4eb00b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"
+      >
       <div className="flex items-center gap-2 mb-2 hidden md:flex text-primary">
         <Mountain className="w-8 h-8" />
         <span className="text-2xl font-display font-black text-primary-dark tracking-tighter">
@@ -121,20 +161,12 @@ const Register = () => {
           </div>
         </div>
 
-        <div>
-          <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Contraseña</label>
-          <div className="relative">
-            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
-            <input type="password" name="password" required className="auth-input pl-12" placeholder="••••••••" onChange={handleChange} />
-          </div>
-        </div>
-
         <button 
           type="submit" 
           disabled={loading}
           className="w-full py-4 bg-primary hover:bg-primary-dark text-white rounded-2xl font-black shadow-xl shadow-primary/20 hover:shadow-primary/30 transform hover:-translate-y-1 active:scale-95 transition-all flex items-center justify-center gap-2 group"
         >
-          {loading ? 'Creando cuenta...' : <>Crear cuenta <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" /></>}
+          {loading ? 'Creando cuenta y generando perfil...' : <>Crear cuenta y recibir clave por correo <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" /></>}
         </button>
       </form>
 
@@ -150,6 +182,7 @@ const Register = () => {
         }
       `}</style>
     </AuthLayout>
+    </>
   );
 };
 

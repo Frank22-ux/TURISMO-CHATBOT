@@ -32,6 +32,9 @@ const ProfileSection = ({ isHost = false, onUpdateProfile }) => {
   const [saving, setSaving] = useState(false);
   const [previews, setPreviews] = useState({ avatar: null, cover: null });
   const [notification, setNotification] = useState(null);
+  
+  const [passwordData, setPasswordData] = useState({ currentPassword: '', newPassword: '' });
+  const [savingPassword, setSavingPassword] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -123,6 +126,36 @@ const ProfileSection = ({ isHost = false, onUpdateProfile }) => {
       setNotification({ message: 'Error de conexión con el servidor', type: 'error' });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handlePasswordChange = async () => {
+    if (!passwordData.currentPassword || !passwordData.newPassword) {
+      setNotification({ message: 'Por favor, completa ambos campos de contraseña', type: 'error' });
+      return;
+    }
+    setSavingPassword(true);
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await fetch('http://localhost:3000/api/auth/change-password', {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` 
+        },
+        body: JSON.stringify(passwordData)
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setNotification({ message: '¡Contraseña actualizada con éxito!', type: 'success' });
+        setPasswordData({ currentPassword: '', newPassword: '' });
+      } else {
+        setNotification({ message: `Error: ${data.message}`, type: 'error' });
+      }
+    } catch (error) {
+      setNotification({ message: 'Error de conexión con el servidor', type: 'error' });
+    } finally {
+      setSavingPassword(false);
     }
   };
 
@@ -284,6 +317,42 @@ const ProfileSection = ({ isHost = false, onUpdateProfile }) => {
               placeholder="Cuéntanos sobre tus aventuras favoritas..."
               className="w-full p-6 rounded-3xl bg-slate-50 border border-slate-100 focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all outline-none resize-none leading-relaxed text-slate-600"
             ></textarea>
+          </div>
+
+          {/* Change Password Section */}
+          <div className="bg-white p-10 rounded-[40px] border border-slate-50 shadow-sm space-y-6">
+            <h3 className="text-xl font-display font-black text-slate-800 flex items-center gap-3">
+              <Shield className="text-primary w-6 h-6" /> Seguridad
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Contraseña Actual (o Temporal)</label>
+                <input 
+                  type="password" 
+                  value={passwordData.currentPassword}
+                  onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
+                  className="w-full px-4 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:ring-4 focus:ring-primary/10 transition-all outline-none"
+                  placeholder="••••••••"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Nueva Contraseña</label>
+                <input 
+                  type="password" 
+                  value={passwordData.newPassword}
+                  onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
+                  className="w-full px-4 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:ring-4 focus:ring-primary/10 transition-all outline-none"
+                  placeholder="••••••••"
+                />
+              </div>
+            </div>
+            <button 
+              onClick={handlePasswordChange}
+              disabled={savingPassword}
+              className="bg-slate-800 hover:bg-slate-900 text-white px-8 py-3 rounded-2xl font-bold transition-all shadow-lg flex items-center gap-2 group disabled:opacity-50 mt-4"
+            >
+              {savingPassword ? 'Actualizando...' : <><Shield className="w-5 h-5 group-hover:scale-110 transition-transform" /> Actualizar Contraseña</>}
+            </button>
           </div>
         </div>
 

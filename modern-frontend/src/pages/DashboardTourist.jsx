@@ -8,6 +8,7 @@ import ProfileSection from '../components/dashboard/ProfileSection';
 import MyReviewsSection from '../components/dashboard/MyReviewsSection';
 import NotificationBell from '../components/ui/NotificationBell';
 import TouristPaymentsSection from '../components/dashboard/TouristPaymentsSection';
+import ForcePasswordChangeModal from '../components/ForcePasswordChangeModal';
 
 const DashboardTourist = () => {
   const [searchParams] = useSearchParams();
@@ -95,6 +96,14 @@ const DashboardTourist = () => {
 
         {renderSection()}
       </main>
+
+      <ForcePasswordChangeModal 
+        isOpen={user.requiere_cambio_clave} 
+        onPasswordChanged={() => {
+          const updatedUser = { ...user, requiere_cambio_clave: false };
+          setUser(updatedUser);
+        }}
+      />
     </div>
   );
 };

@@ -5,6 +5,11 @@ const findByEmail = async (email) => {
     return rows[0];
 };
 
+const findById = async (id_usuario) => {
+    const { rows } = await db.query('SELECT * FROM usuarios WHERE id_usuario = $1', [id_usuario]);
+    return rows[0];
+};
+
 const findByIdentifier = async (identifier) => {
     // Search by email or phone
     const { rows } = await db.query(
@@ -15,10 +20,10 @@ const findByIdentifier = async (identifier) => {
 };
 
 const create = async (user) => {
-    const { nombre, email, rol, contraseña, telefono, fecha_nacimiento } = user;
+    const { nombre, email, rol, contraseña, telefono, fecha_nacimiento, requiere_cambio_clave } = user;
     const { rows } = await db.query(
-        'INSERT INTO usuarios (nombre, email, rol, contraseña, telefono, fecha_nacimiento) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-        [nombre, email, rol, contraseña, telefono, fecha_nacimiento]
+        'INSERT INTO usuarios (nombre, email, rol, contraseña, telefono, fecha_nacimiento, requiere_cambio_clave) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+        [nombre, email, rol, contraseña, telefono, fecha_nacimiento, requiere_cambio_clave !== undefined ? requiere_cambio_clave : false]
     );
     return rows[0];
 };
@@ -30,9 +35,27 @@ const createProfile = async (id_anfitrion) => {
     );
 };
 
+const updatePassword = async (id_usuario, hashedContraseña) => {
+    // Cuando el usuario actualiza la clave, ya no requiere cambiarla.
+    await db.query(
+        'UPDATE usuarios SET contraseña = $1, requiere_cambio_clave = false WHERE id_usuario = $2',
+        [hashedContraseña, id_usuario]
+    );
+};
+
+const setRequiresPasswordChange = async (id_usuario, status) => {
+    await db.query(
+        'UPDATE usuarios SET requiere_cambio_clave = $1 WHERE id_usuario = $2',
+        [status, id_usuario]
+    );
+};
+
 module.exports = {
     findByEmail,
+    findById,
     findByIdentifier,
     create,
-    createProfile
+    createProfile,
+    updatePassword,
+    setRequiresPasswordChange
 };

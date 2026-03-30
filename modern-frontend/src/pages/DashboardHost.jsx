@@ -10,6 +10,7 @@ import ProfileSection from '../components/dashboard/ProfileSection';
 import MyReviewsSection from '../components/dashboard/MyReviewsSection';
 import NotificationBell from '../components/ui/NotificationBell';
 import HostPaymentsSection from '../components/dashboard/HostPaymentsSection';
+import ForcePasswordChangeModal from '../components/ForcePasswordChangeModal';
 
 const DashboardHost = () => {
   const [searchParams] = useSearchParams();
@@ -90,6 +91,14 @@ const DashboardHost = () => {
 
         {renderSection()}
       </main>
+
+      <ForcePasswordChangeModal 
+        isOpen={user.requiere_cambio_clave} 
+        onPasswordChanged={() => {
+          const updatedUser = { ...user, requiere_cambio_clave: false };
+          setUser(updatedUser);
+        }}
+      />
     </div>
   );
 };

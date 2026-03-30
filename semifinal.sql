@@ -33,6 +33,7 @@ CREATE TABLE usuarios (
     rol VARCHAR(20) NOT NULL
         CHECK (rol IN ('TURISTA', 'ANFITRION', 'ADMIN')),
     fecha_nacimiento DATE,
+    requiere_cambio_clave BOOLEAN DEFAULT false,
     fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

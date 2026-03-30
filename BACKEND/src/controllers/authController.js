@@ -23,7 +23,38 @@ const login = async (req, res) => {
     }
 };
 
+const forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email) {
+            return res.status(400).json({ message: 'El correo electrónico es requerido' });
+        }
+        const result = await authService.forgotPassword(email);
+        res.status(200).json(result);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
+const changePassword = async (req, res) => {
+    try {
+        const id_usuario = req.user.id; // from authMiddleware
+        const { currentPassword, newPassword } = req.body;
+        
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ message: 'Contraseña actual y nueva contraseña son requeridas' });
+        }
+
+        const result = await authService.changePassword(id_usuario, currentPassword, newPassword);
+        res.status(200).json(result);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
 module.exports = {
     register,
-    login
+    login,
+    forgotPassword,
+    changePassword
 };

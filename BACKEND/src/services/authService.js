@@ -1,9 +1,19 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer');
 const authRepository = require('../repositories/authRepository');
+const emailTemplates = require('../utils/emailTemplates');
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER || 'tucorreo@gmail.com',
+    pass: process.env.EMAIL_PASS || 'TU_CONTRASEÑA_DE_APLICACIÓN',
+  },
+});
 
 const register = async (userData) => {
-    const { nombre, email, rol, contraseña, telefono, fecha_nacimiento } = userData;
+    const { nombre, email, rol, telefono, fecha_nacimiento } = userData;
     
     // Server-side validation for phone number
     if (telefono) {
@@ -12,12 +22,6 @@ const register = async (userData) => {
         if (!phoneRegex.test(telefono)) {
             throw new Error('Formato de teléfono inválido. Debe incluir prefijo y entre 7 a 15 números.');
         }
-    }
-    
-    // Server-side validation for password
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
-    if (!passwordRegex.test(contraseña)) {
-        throw new Error('La contraseña debe tener al menos 8 caracteres, una mayúscula, un número y un símbolo.');
     }
 
     // Check if user exists by email
@@ -34,19 +38,39 @@ const register = async (userData) => {
         }
     }
 
+    // Generate a secure temporary password
+    const tempPassword = Math.random().toString(36).slice(-8) + 'A1!'; 
+
     // Hash password
     const salt = await bcrypt.genSalt(10);
-    const hashedContraseña = await bcrypt.hash(contraseña, salt);
+    const hashedContraseña = await bcrypt.hash(tempPassword, salt);
 
-    // Create user
+    // Create user natively forcing a password change
     const newUser = await authRepository.create({
         nombre,
         email,
         rol,
         contraseña: hashedContraseña,
         telefono,
-        fecha_nacimiento
+        fecha_nacimiento,
+        requiere_cambio_clave: true
     });
+
+    // Send Welcome Email containing the password
+    const msg = {
+        from: `"ISTPET Turismo" <${process.env.EMAIL_USER || 'tucorreo@gmail.com'}>`, 
+        to: email, 
+        subject: '¡Bienvenido a ISTPET Turismo! Tu acceso interior.',
+        html: emailTemplates.getWelcomeTemplate(nombre, tempPassword)
+    };
+
+    try {
+        await transporter.sendMail(msg);
+    } catch (error) {
+        console.error('Nodemailer Error during registration:', error);
+        // We do not throw to prevent stopping registration if email fails, 
+        // but ideally we should notify the user or log it.
+    }
 
     // If host, initialize profile
     if (rol === 'ANFITRION') {
@@ -77,9 +101,9 @@ const login = async (identifier, contraseña) => {
         throw new Error('Credenciales inválidas');
     }
 
-    // Generate token
+    // Generate token includes requiere_cambio_clave
     const token = jwt.sign(
-        { id: user.id_usuario, rol: user.rol },
+        { id: user.id_usuario, rol: user.rol, requiere_cambio_clave: user.requiere_cambio_clave },
         process.env.JWT_SECRET,
         { expiresIn: '24h' }
     );
@@ -88,7 +112,67 @@ const login = async (identifier, contraseña) => {
     return { user: userWithoutPassword, token };
 };
 
+const forgotPassword = async (email) => {
+    const user = await authRepository.findByEmail(email);
+    if (!user) {
+        throw new Error('No existe una cuenta con ese correo electrónico');
+    }
+
+    // Generate random password
+    const tempPassword = Math.random().toString(36).slice(-8) + 'A1!'; 
+    
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashedContraseña = await bcrypt.hash(tempPassword, salt);
+
+    // Update in DB (Password + force flag)
+    await authRepository.updatePassword(user.id_usuario, hashedContraseña);
+    await authRepository.setRequiresPasswordChange(user.id_usuario, true);
+
+    // Send Email via beautiful template
+    const msg = {
+        from: `"ISTPET Turismo" <${process.env.EMAIL_USER || 'tucorreo@gmail.com'}>`, 
+        to: email, 
+        subject: 'Recuperación de Contraseña - ISTPET Turismo',
+        html: emailTemplates.getForgotPasswordTemplate(user.nombre, tempPassword)
+    };
+
+    try {
+        await transporter.sendMail(msg);
+        return { message: 'Contraseña temporal enviada al correo' };
+    } catch (error) {
+        console.error('Nodemailer Error:', error);
+        throw new Error('Error al enviar el correo. Revisa las credenciales de tu correo SMTP.');
+    }
+};
+
+const changePassword = async (id_usuario, currentPassword, newPassword) => {
+    const user = await authRepository.findById(id_usuario);
+    if (!user) {
+        throw new Error('Usuario no encontrado');
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.contraseña);
+    if (!isMatch) {
+        throw new Error('La contraseña actual es incorrecta');
+    }
+
+    // Server-side validation for new password
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
+    if (!passwordRegex.test(newPassword)) {
+        throw new Error('La contraseña debe tener al menos 8 caracteres, una mayúscula, un número y un símbolo.');
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedContraseña = await bcrypt.hash(newPassword, salt);
+
+    await authRepository.updatePassword(id_usuario, hashedContraseña);
+    return { message: 'Contraseña actualizada exitosamente' };
+};
+
 module.exports = {
     register,
-    login
+    login,
+    forgotPassword,
+    changePassword
 };
