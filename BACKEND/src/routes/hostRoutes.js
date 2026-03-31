@@ -10,6 +10,7 @@ router.put('/profile', authMiddleware, hostController.updateProfile);
 router.put('/profile/bank', authMiddleware, hostController.updateBankProfile);
 router.get('/notifications', authMiddleware, notificationController.getHostNotifications);
 router.get('/payments', authMiddleware, paymentController.getHostPayments);
+router.post('/bulk-offers', authMiddleware, hostController.updateBulkOffers);
 router.get('/activities', authMiddleware, hostController.getMyActivities);
 router.post('/activities', authMiddleware, hostController.createActivity);
 router.get('/activities/:id', authMiddleware, hostController.getActivityDetails);

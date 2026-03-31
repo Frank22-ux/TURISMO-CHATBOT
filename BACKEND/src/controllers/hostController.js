@@ -204,6 +204,25 @@ const getDashboardStats = async (req, res) => {
     }
 };
 
+const updateBulkOffers = async (req, res) => {
+    try {
+        const id_anfitrion = req.user.id;
+        const { ids, type, offerPrice, expirationDate, percentage } = req.body;
+        
+        if (!ids || !Array.isArray(ids) || ids.length === 0) {
+            return res.status(400).json({ message: 'Se requieren IDs de actividades' });
+        }
+
+        const activityRepository = require('../repositories/activityRepository');
+        await activityRepository.updateBulkOffers(ids, type, offerPrice, expirationDate, percentage);
+        
+        res.status(200).json({ message: 'Ofertas actualizadas con éxito' });
+    } catch (error) {
+        console.error('Error in updateBulkOffers:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     getProfile,
     updateProfile,
@@ -220,5 +239,6 @@ module.exports = {
     deleteService,
     updateServiceStatus,
     updateService,
-    getDashboardStats
+    getDashboardStats,
+    updateBulkOffers
 };

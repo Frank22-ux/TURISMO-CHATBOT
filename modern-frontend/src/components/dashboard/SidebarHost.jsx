@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { LayoutDashboard, MapPinned, Utensils, CalendarCheck, MessageSquare, User, Mountain, LogOut, Star, Wallet } from 'lucide-react';
+import { LayoutDashboard, MapPinned, Utensils, CalendarCheck, MessageSquare, User, Mountain, LogOut, Star, Wallet, Ticket } from 'lucide-react';
 
 const SidebarHost = ({ activeSection, setActiveSection }) => {
   const menuItems = [
@@ -7,6 +7,7 @@ const SidebarHost = ({ activeSection, setActiveSection }) => {
     { id: 'experiences', label: 'Experiencias', icon: MapPinned },
     { id: 'services', label: 'Servicios', icon: Utensils },
     { id: 'bookings', label: 'Reservas', icon: CalendarCheck },
+    { id: 'offers', label: 'Centro de Ofertas', icon: Ticket },
     { id: 'payments', label: 'Mi Billetera', icon: Wallet },
     { id: 'messaging', label: 'Mensajería', icon: MessageSquare },
     { id: 'reviews', label: 'Mis Reseñas', icon: Star },

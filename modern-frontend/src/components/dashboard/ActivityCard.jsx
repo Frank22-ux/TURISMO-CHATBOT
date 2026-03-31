@@ -42,8 +42,19 @@ const ActivityCard = ({ activity, onView, onEdit, onDelete, onToggleStatus }) =>
         
         <div className="flex justify-between items-center pt-6 border-t border-slate-50">
           <div>
-            <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-1">Desde</p>
-            <p className="text-2xl font-display font-black text-primary">${activity.price || activity.precio}</p>
+            <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-1">
+              {activity.precio_oferta ? 'Precio de Oferta' : 'Desde'}
+            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-2xl font-display font-black text-primary">
+                ${activity.precio_oferta || activity.price || activity.precio}
+              </p>
+              {activity.precio_oferta && (
+                <p className="text-sm font-bold text-slate-300 line-through">
+                  ${activity.price || activity.precio}
+                </p>
+              )}
+            </div>
           </div>
           <button 
             onClick={() => onToggleStatus(activity)}

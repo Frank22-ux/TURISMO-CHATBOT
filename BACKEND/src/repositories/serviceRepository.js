@@ -140,7 +140,8 @@ const updateService = async (id, data) => {
             accesibilidad_adultos_mayores = $18, estacionamiento = $19,
             metodos_pago = $20, descuentos_promociones = $21,
             musica_en_vivo = $22, zona_infantil = $23, eventos_privados = $24,
-            porcentaje_ganancia = $25, tipo_reserva = $26
+            porcentaje_ganancia = $25, tipo_reserva = $26,
+            precio_oferta = $27, fecha_fin_oferta = $28
         WHERE id_actividad = $12
     `;
     try {
@@ -150,7 +151,9 @@ const updateService = async (id, data) => {
             servicio_local, servicio_para_llevar, servicio_delivery, nivel_picante,
             accesibilidad_silla_ruedas, accesibilidad_adultos_mayores, estacionamiento,
             metodos_pago, descuentos_promociones, musica_en_vivo, zona_infantil, eventos_privados,
-            porcentaje_ganancia, tipo_reserva
+            porcentaje_ganancia, tipo_reserva,
+            data.precio_oferta || null,
+            data.fecha_fin_oferta || null
         ]);
     } catch (error) {
         console.error('DATABASE ERROR in updateService:', error);

@@ -3,6 +3,9 @@ import { X, MapPin, Camera, Info, Save, Layers, Clock, Users, Signal, Tag, Plus 
 import Map, { Marker, NavigationControl, Source } from 'react-map-gl/mapbox';
 import { motion, AnimatePresence } from 'framer-motion';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { useToast } from '../../contexts/ToastContext';
+import CustomCalendar from '../CustomCalendar';
+import { ChevronDown } from 'lucide-react';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
@@ -81,7 +84,9 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
     descuentos_promociones: '',
     // Common
     porcentaje_ganancia: 10,
-    tipo_reserva: 'INSTANTANEA'
+    tipo_reserva: 'INSTANTANEA',
+    precio_oferta: '',
+    fecha_fin_oferta: ''
   });
 
   const [position, setPosition] = useState({ lat: -0.180653, lng: -78.467834 });
@@ -94,6 +99,8 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
   });
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState(null);
+  const [showCalendar, setShowCalendar] = useState(false);
+  const { showToast } = useToast();
 
   useEffect(() => {
     if (initialData && isOpen) {
@@ -118,7 +125,9 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
         incluye_transporte: initialData.incluye_transporte || false,
         requiere_equipo: initialData.requiere_equipo || false,
         porcentaje_ganancia: initialData.porcentaje_ganancia || 10,
-        tipo_reserva: initialData.tipo_reserva || 'INSTANTANEA'
+        tipo_reserva: initialData.tipo_reserva || 'INSTANTANEA',
+        precio_oferta: initialData.precio_oferta || '',
+        fecha_fin_oferta: initialData.fecha_fin_oferta ? new Date(initialData.fecha_fin_oferta).toISOString().split('T')[0] : ''
       };
       
       setFormData(normalizedData);
@@ -144,7 +153,8 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
         accesibilidad_silla_ruedas: false, accesibilidad_adultos_mayores: false,
         estacionamiento: false, musica_en_vivo: false, zona_infantil: false,
         eventos_privados: false, metodos_pago: '', descuentos_promociones: '',
-        porcentaje_ganancia: 10, tipo_reserva: 'INSTANTANEA'
+        porcentaje_ganancia: 10, tipo_reserva: 'INSTANTANEA',
+        precio_oferta: '', fecha_fin_oferta: ''
       });
       setPreview(null);
       setStep(1);
@@ -231,6 +241,7 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
     };
     await onSave(finalData);
     setLoading(false);
+    showToast('Actividad guardada correctamente', 'success');
   };
 
   const steps = [
@@ -431,6 +442,53 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
                             onChange={(e) => setFormData({...formData, capacidad: e.target.value})}
                             className="w-full bg-transparent text-center text-3xl font-display font-black text-slate-800 outline-none"
                           />
+                        </div>
+                      </div>
+
+                      {/* Offer Fields */}
+                      <div className="p-6 bg-emerald-50 rounded-3xl border border-emerald-100 space-y-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Tag className="w-4 h-4 text-emerald-600" />
+                          <h4 className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">Oferta Especial</h4>
+                        </div>
+                        <div className="grid grid-cols-1 gap-4">
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-black text-emerald-600/60 uppercase tracking-widest ml-1">Precio Rebajado</label>
+                            <input 
+                              type="number"
+                              placeholder="Ej: 29.99"
+                              value={formData.precio_oferta || ''}
+                              onChange={(e) => setFormData({...formData, precio_oferta: e.target.value})}
+                              className="w-full px-4 py-3 bg-white border border-emerald-100 rounded-2xl text-sm font-bold focus:border-emerald-500 outline-none transition-all"
+                            />
+                          </div>
+                          <div className="space-y-1 relative">
+                            <label className="text-[9px] font-black text-emerald-600/60 uppercase tracking-widest ml-1">Fecha de Fin</label>
+                            <button 
+                              type="button"
+                              onClick={() => setShowCalendar(!showCalendar)}
+                              className="w-full px-4 py-3 bg-white border border-emerald-100 rounded-2xl text-sm font-bold flex items-center justify-between outline-none"
+                            >
+                              <span className={formData.fecha_fin_offer ? "text-slate-800" : "text-slate-300"}>
+                                {formData.fecha_fin_oferta ? formData.fecha_fin_oferta : "Seleccionar..."}
+                              </span>
+                              <ChevronDown className={`w-4 h-4 text-emerald-400 transition-transform ${showCalendar ? 'rotate-180' : ''}`} />
+                            </button>
+
+                            <AnimatePresence>
+                              {showCalendar && (
+                                <div className="absolute left-0 top-full mt-2 z-[100] shadow-2xl">
+                                  <CustomCalendar 
+                                    selectedDate={formData.fecha_fin_oferta}
+                                    onSelect={(date) => {
+                                      setFormData({ ...formData, fecha_fin_oferta: date });
+                                      setShowCalendar(false);
+                                    }}
+                                  />
+                                </div>
+                              )}
+                            </AnimatePresence>
+                          </div>
                         </div>
                       </div>
 

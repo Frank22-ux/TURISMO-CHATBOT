@@ -29,6 +29,11 @@ const ActivityCard = ({ activity, onOpenDetail, onOpenBooking }) => (
       <span className="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-full text-[10px] font-black uppercase text-primary-dark shadow-sm z-10">
         {activity.tipo === 'TURISTICA' ? 'Experiencia' : 'Servicio'}
       </span>
+      {activity.precio_oferta && (
+        <span className="absolute top-4 left-4 bg-emerald-500 text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg z-10 animate-pulse">
+          OFERTA -{Math.round((1 - (activity.precio_oferta / activity.original_price)) * 100)}%
+        </span>
+      )}
     </div>
     <div className="p-6 flex flex-col flex-grow">
       <div className="flex items-center gap-2 text-primary text-xs font-bold mb-3 uppercase tracking-wider">
@@ -40,8 +45,16 @@ const ActivityCard = ({ activity, onOpenDetail, onOpenBooking }) => (
       <div className="flex flex-col gap-4 pt-5 border-t border-slate-50 mt-auto">
         <div className="flex justify-between items-center">
           <div className="flex flex-col">
-            <div className="font-display font-black text-xl text-primary-dark">
-              ${activity.price} <span className="text-xs font-normal text-slate-400">/ persona</span>
+            <div className="flex items-center gap-2">
+              <div className="font-display font-black text-xl text-primary-dark">
+                ${activity.price}
+              </div>
+              {activity.precio_oferta && (
+                <div className="text-xs font-bold text-slate-400 line-through">
+                  ${activity.original_price}
+                </div>
+              )}
+              <span className="text-xs font-normal text-slate-400">/ pers</span>
             </div>
             <span className="text-[9px] font-black uppercase text-emerald-600 tracking-tighter mt-[-2px]">15% IVA Incluido</span>
           </div>

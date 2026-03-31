@@ -29,30 +29,30 @@ INSERT INTO ubicaciones (pais, provincia, ciudad, direccion, latitud, longitud) 
 ('Ecuador', 'Napo', 'Tena', 'Puerto Misahuallí', -1.033333, -77.666667);
 
 -- 4. ACTIVIDADES TURÍSTICAS (10)
-INSERT INTO actividades_turisticas (titulo, descripcion, precio, duracion_horas, capacidad, nivel_dificultad, id_anfitrion, id_categoria, id_clasificacion, id_ubicacion, porcentaje_ganancia, tipo_reserva) VALUES
-('Senderismo en el Cotopaxi', 'Explora las faldas del volcán activo más alto.', 45.00, 6, 12, 'MEDIO', 1, 1, 4, 1, 10, 'INSTANTANEA'),
-('Tour Histórico Quito', 'Recorrido por las iglesias y museos coloniales.', 25.00, 4, 20, 'BAJO', 1, 2, 2, 1, 10, 'MANUAL'),
-('Avistamiento de Ballenas', 'Observa ballenas jorobadas en la costa de Manta.', 60.00, 3, 15, 'BAJO', 1, 3, 9, 7, 10, 'INSTANTANEA'),
-('Escalada en Baños', 'Aventura extrema en las paredes de roca de Baños.', 35.00, 5, 8, 'ALTO', 1, 1, 6, 4, 10, 'MANUAL'),
-('Mercado de Otavalo', 'Compras de artesanías y cultura indígena.', 20.00, 5, 30, 'BAJO', 1, 2, 7, 6, 10, 'INSTANTANEA'),
-('Snorkeling en Galápagos', 'Nada con lobos marinos y tortugas gigantes.', 120.00, 4, 10, 'MEDIO', 1, 3, 10, 5, 10, 'MANUAL'),
-('Ruta del Cacao en Tena', 'Aprende el proceso del chocolate desde la semilla.', 30.00, 3, 15, 'BAJO', 1, 8, 8, 10, 10, 'INSTANTANEA'),
-('Tour Fotográfico Cuenca', 'Captura la mejor arquitectura de la ciudad.', 15.00, 3, 10, 'BAJO', 1, 9, 2, 2, 10, 'INSTANTANEA'),
-('Camping en Vilcabamba', 'Noche bajo las estrellas en el valle sagrado.', 40.00, 24, 6, 'MEDIO', 1, 1, 4, 8, 10, 'MANUAL'),
-('Rafting en el Río Napo', 'Adrenalina en las aguas blancas de la Amazonía.', 55.00, 5, 8, 'ALTO', 1, 1, 6, 10, 10, 'INSTANTANEA');
+INSERT INTO actividades_turisticas (titulo, descripcion, precio, precio_oferta, fecha_fin_oferta, duracion_horas, capacidad, nivel_dificultad, id_anfitrion, id_categoria, id_clasificacion, id_ubicacion, porcentaje_ganancia, tipo_reserva) VALUES
+('Senderismo en el Cotopaxi', 'Explora las faldas del volcán activo más alto.', 45.00, 35.00, '2026-12-31 23:59:59', 6, 12, 'MEDIO', 1, 1, 4, 1, 10, 'INSTANTANEA'),
+('Tour Histórico Quito', 'Recorrido por las iglesias y museos coloniales.', 25.00, 19.99, '2026-05-30 00:00:00', 4, 20, 'BAJO', 1, 2, 2, 1, 10, 'MANUAL'),
+('Avistamiento de Ballenas', 'Observa ballenas jorobadas en la costa de Manta.', 60.00, 49.90, '2026-08-15 12:00:00', 3, 15, 'BAJO', 1, 3, 9, 7, 10, 'INSTANTANEA'),
+('Escalada en Baños', 'Aventura extrema en las paredes de roca de Baños.', 35.00, NULL, NULL, 5, 8, 'ALTO', 1, 1, 6, 4, 10, 'MANUAL'),
+('Mercado de Otavalo', 'Compras de artesanías y cultura indígena.', 20.00, NULL, NULL, 5, 30, 'BAJO', 1, 2, 7, 6, 10, 'INSTANTANEA'),
+('Snorkeling en Galápagos', 'Nada con lobos marinos y tortugas gigantes.', 120.00, NULL, NULL, 4, 10, 'MEDIO', 1, 3, 10, 5, 10, 'MANUAL'),
+('Ruta del Cacao en Tena', 'Aprende el proceso del chocolate desde la semilla.', 30.00, NULL, NULL, 3, 15, 'BAJO', 1, 8, 8, 10, 10, 'INSTANTANEA'),
+('Tour Fotográfico Cuenca', 'Captura la mejor arquitectura de la ciudad.', 15.00, NULL, NULL, 3, 10, 'BAJO', 1, 9, 2, 2, 10, 'INSTANTANEA'),
+('Camping en Vilcabamba', 'Noche bajo las estrellas en el valle sagrado.', 40.00, NULL, NULL, 24, 6, 'MEDIO', 1, 1, 4, 8, 10, 'MANUAL'),
+('Rafting en el Río Napo', 'Adrenalina en las aguas blancas de la Amazonía.', 55.00, NULL, NULL, 5, 8, 'ALTO', 1, 1, 6, 10, 10, 'INSTANTANEA');
 
 -- 5. ACTIVIDADES ALIMENTARIAS (10)
-INSERT INTO actividades_alimentarias (titulo, descripcion, precio, duracion_horas, capacidad, id_anfitrion, id_categoria, id_ubicacion, porcentaje_ganancia, tipo_reserva, metodos_pago) VALUES
-('Cena Romántica en el Panecillo', 'Vistas increíbles de Quito con comida gourmet.', 80.00, 3, 2, 1, 6, 1, 10, 'MANUAL', 'tarjeta,transferencia'),
-('Degustación de Mariscos', 'Lo mejor del mar directo a tu mesa en Manta.', 35.00, 2, 10, 1, 2, 7, 10, 'INSTANTANEA', 'efectivo,tarjeta'),
-('Parrillada Argentina', 'Cortes seleccionados y vino en Cuenca.', 45.00, 2, 15, 1, 3, 2, 10, 'INSTANTANEA', 'efectivo,qr'),
-('Desayuno Típico Manabita', 'Bolón, tigrillo y café de pasar.', 12.00, 1, 20, 1, 4, 7, 10, 'INSTANTANEA', 'efectivo'),
-('Taller de Pizza Artesanal', 'Haz tu propia pizza en horno de leña.', 25.00, 3, 10, 1, 5, 3, 10, 'MANUAL', 'tarjeta'),
-('Buffet de Comida Amazónica', 'Maito de pescado y chontacuros.', 30.00, 2, 25, 1, 8, 9, 10, 'INSTANTANEA', 'efectivo'),
-('Cata de Café de Especialidad', 'Aprende sobre el café lojano en Vilcabamba.', 18.00, 2, 8, 1, 4, 8, 10, 'INSTANTANEA', 'tarjeta,qr'),
-('Almuerzo Saludable Vegano', 'Ingredientes orgánicos y locales en Quito.', 22.00, 1, 12, 1, 9, 1, 10, 'INSTANTANEA', 'tarjeta'),
-('Noche de Sushi y Sake', 'Fusión japonesa en pleno Guayaquil.', 50.00, 2, 20, 1, 6, 3, 10, 'INSTANTANEA', 'tarjeta,transferencia'),
-('Street Food Guayaco', 'Encebollado y guatita en el Malecón.', 10.00, 1, 30, 1, 10, 3, 10, 'INSTANTANEA', 'efectivo');
+INSERT INTO actividades_alimentarias (titulo, descripcion, precio, precio_oferta, fecha_fin_oferta, duracion_horas, capacidad, id_anfitrion, id_categoria, id_ubicacion, porcentaje_ganancia, tipo_reserva, metodos_pago) VALUES
+('Cena Romántica en el Panecillo', 'Vistas increíbles de Quito con comida gourmet.', 80.00, 69.99, '2026-12-14 23:59:59', 3, 2, 1, 6, 1, 10, 'MANUAL', 'tarjeta,transferencia'),
+('Degustación de Mariscos', 'Lo mejor del mar directo a tu mesa en Manta.', 35.00, 28.00, '2026-07-20 00:00:00', 2, 10, 1, 2, 7, 10, 'INSTANTANEA', 'efectivo,tarjeta'),
+('Parrillada Argentina', 'Cortes seleccionados y vino en Cuenca.', 45.00, NULL, NULL, 2, 15, 1, 3, 2, 10, 'INSTANTANEA', 'efectivo,qr'),
+('Desayuno Típico Manabita', 'Bolón, tigrillo y café de pasar.', 12.00, 9.99, '2026-04-10 10:00:00', 1, 20, 1, 4, 7, 10, 'INSTANTANEA', 'efectivo'),
+('Taller de Pizza Artesanal', 'Haz tu propia pizza en horno de leña.', 25.00, NULL, NULL, 3, 10, 1, 5, 3, 10, 'MANUAL', 'tarjeta'),
+('Buffet de Comida Amazónica', 'Maito de pescado y chontacuros.', 30.00, NULL, NULL, 2, 25, 1, 8, 9, 10, 'INSTANTANEA', 'efectivo'),
+('Cata de Café de Especialidad', 'Aprende sobre el café lojano en Vilcabamba.', 18.00, NULL, NULL, 2, 8, 1, 4, 8, 10, 'INSTANTANEA', 'tarjeta,qr'),
+('Almuerzo Saludable Vegano', 'Ingredientes orgánicos y locales en Quito.', 22.00, NULL, NULL, 1, 12, 1, 9, 1, 10, 'INSTANTANEA', 'tarjeta'),
+('Noche de Sushi y Sake', 'Fusión japonesa en pleno Guayaquil.', 50.00, NULL, NULL, 2, 20, 1, 6, 3, 10, 'INSTANTANEA', 'tarjeta,transferencia'),
+('Street Food Guayaco', 'Encebollado y guatita en el Malecón.', 10.00, NULL, NULL, 1, 30, 1, 10, 3, 10, 'INSTANTANEA', 'efectivo');
 
 -- 6. IMÁGENES DE PORTADA (Actividades Turísticas)
 INSERT INTO imagen_portada (tipo_actividad, id_actividad, url_imagen) VALUES

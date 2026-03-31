@@ -10,6 +10,7 @@ import ProfileSection from '../components/dashboard/ProfileSection';
 import MyReviewsSection from '../components/dashboard/MyReviewsSection';
 import NotificationBell from '../components/ui/NotificationBell';
 import HostPaymentsSection from '../components/dashboard/HostPaymentsSection';
+import OfferCenterSection from '../components/dashboard/OfferCenterSection';
 import ForcePasswordChangeModal from '../components/ForcePasswordChangeModal';
 
 const DashboardHost = () => {
@@ -41,6 +42,7 @@ const DashboardHost = () => {
       case 'experiences': return <ExperiencesSection />;
       case 'services': return <ServicesSection />;
       case 'bookings': return <HostBookingsSection />;
+      case 'offers': return <OfferCenterSection />;
       case 'payments': return <HostPaymentsSection />;
       case 'messaging': return (
         <MessagingSection 

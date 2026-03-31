@@ -104,7 +104,14 @@ const findAll = async (filters = {}) => {
         (SELECT 
             'T-' || at.id_actividad as id, 
             at.titulo as title, 
-            at.precio as price, 
+            at.precio as original_price,
+            CASE 
+                WHEN at.precio_oferta IS NOT NULL AND (at.fecha_fin_oferta IS NULL OR at.fecha_fin_oferta > CURRENT_TIMESTAMP)
+                THEN at.precio_oferta 
+                ELSE at.precio 
+            END as price,
+            at.precio_oferta,
+            at.fecha_fin_oferta,
             u.ciudad || ', ' || u.pais as location,
             ip.url_imagen as image,
             'TURISTICA' as tipo,
@@ -131,7 +138,14 @@ const findAll = async (filters = {}) => {
         (SELECT 
             'A-' || aa.id_actividad as id, 
             aa.titulo as title, 
-            aa.precio as price, 
+            aa.precio as original_price,
+            CASE 
+                WHEN aa.precio_oferta IS NOT NULL AND (aa.fecha_fin_oferta IS NULL OR aa.fecha_fin_oferta > CURRENT_TIMESTAMP)
+                THEN aa.precio_oferta 
+                ELSE aa.precio 
+            END as price,
+            aa.precio_oferta,
+            aa.fecha_fin_oferta,
             u.ciudad || ', ' || u.pais as location,
             ip.url_imagen as image,
             'ALIMENTARIA' as tipo,
@@ -248,7 +262,12 @@ const findFullById = async (id) => {
         const query = `
             SELECT 
                 at.*, 
-                at.precio as price,
+                at.precio as original_price,
+                CASE 
+                    WHEN at.precio_oferta IS NOT NULL AND (at.fecha_fin_oferta IS NULL OR at.fecha_fin_oferta > CURRENT_TIMESTAMP)
+                    THEN at.precio_oferta 
+                    ELSE at.precio 
+                END as price,
                 at.titulo as title,
                 'T-' || at.id_actividad as id,
                 'TURISTICA' as tipo,
@@ -268,7 +287,12 @@ const findFullById = async (id) => {
         const query = `
             SELECT 
                 aa.*, 
-                aa.precio as price,
+                aa.precio as original_price,
+                CASE 
+                    WHEN aa.precio_oferta IS NOT NULL AND (aa.fecha_fin_oferta IS NULL OR aa.fecha_fin_oferta > CURRENT_TIMESTAMP)
+                    THEN aa.precio_oferta 
+                    ELSE aa.precio 
+                END as price,
                 aa.titulo as title,
                 'A-' || aa.id_actividad as id,
                 'ALIMENTARIA' as tipo,
@@ -319,14 +343,17 @@ const updateActivity = async (id, data) => {
         SET titulo = $1, descripcion = $2, precio = $3, duracion_horas = $4, 
             capacidad = $5, nivel_dificultad = $6, id_categoria = $7, id_clasificacion = $8,
             porcentaje_ganancia = $9, tipo_reserva = $10,
-            incluye_recorrido = $11, incluye_transporte = $12, requiere_equipo = $13
-        WHERE id_actividad = $14
+            incluye_recorrido = $11, incluye_transporte = $12, requiere_equipo = $13,
+            precio_oferta = $14, fecha_fin_oferta = $15
+        WHERE id_actividad = $16
     `;
     await db.query(query, [
         titulo, descripcion, precio, duracion_horas, capacidad, 
         nivel_dificultad, id_categoria, id_clasificacion,
         porcentaje_ganancia, tipo_reserva,
         incluye_recorrido, incluye_transporte, requiere_equipo,
+        data.precio_oferta || null,
+        data.fecha_fin_oferta || null,
         id
     ]);
 };
@@ -349,6 +376,31 @@ const clearGallery = async (activityId) => {
     await db.query("DELETE FROM imagenes_galeria WHERE id_actividad = $1 AND tipo_actividad = 'TURISTICA'", [activityId]);
 };
 
+const updateBulkOffers = async (ids, type, offerPrice, expirationDate, percentage) => {
+    const table = type === 'EXPERIENCE' ? 'actividades_turisticas' : 'actividades_alimentarias';
+    let query;
+    let params;
+
+    if (offerPrice && offerPrice > 0) {
+        query = `
+            UPDATE ${table}
+            SET precio_oferta = $1,
+                fecha_fin_oferta = $2
+            WHERE id_actividad = ANY($3)
+        `;
+        params = [offerPrice, expirationDate, ids];
+    } else {
+        query = `
+            UPDATE ${table}
+            SET precio_oferta = ROUND(precio * (1 - $1/100.0), 2),
+                fecha_fin_oferta = $2
+            WHERE id_actividad = ANY($3)
+        `;
+        params = [percentage || 0, expirationDate, ids];
+    }
+    await db.query(query, params);
+};
+
 module.exports = {
     findAll,
     findByHost,
@@ -363,5 +415,6 @@ module.exports = {
     updateActivity,
     updateLocation,
     clearPortada,
-    clearGallery
+    clearGallery,
+    updateBulkOffers
 };

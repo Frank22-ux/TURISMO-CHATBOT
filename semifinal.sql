@@ -176,6 +176,8 @@ CREATE TABLE actividades_turisticas (
     titulo VARCHAR(150) NOT NULL,
     descripcion TEXT NOT NULL,
     precio NUMERIC(10,2) NOT NULL CHECK (precio > 0),
+    precio_oferta NUMERIC(10,2) CHECK (precio_oferta > 0 AND precio_oferta < precio),
+    fecha_fin_oferta TIMESTAMP,
     duracion_horas INT CHECK (duracion_horas > 0),
     capacidad INT CHECK (capacidad > 0),
 
@@ -213,6 +215,8 @@ CREATE TABLE actividades_alimentarias (
     titulo VARCHAR(150) NOT NULL,
     descripcion TEXT NOT NULL,
     precio NUMERIC(10,2) NOT NULL CHECK (precio > 0),
+    precio_oferta NUMERIC(10,2) CHECK (precio_oferta > 0 AND precio_oferta < precio),
+    fecha_fin_oferta TIMESTAMP,
     duracion_horas INT CHECK (duracion_horas > 0),
     capacidad INT CHECK (capacidad > 0),
 

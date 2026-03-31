@@ -52,12 +52,12 @@ const CustomCalendar = ({ selectedDate, onSelect }) => {
   };
 
   return (
-    <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-xl overflow-hidden min-w-[320px] w-full">
-      <div className="flex justify-between items-center mb-6">
-        <h4 className="font-display font-black text-slate-800 text-lg">
+    <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-xl overflow-hidden w-80">
+      <div className="flex justify-between items-center mb-5">
+        <h4 className="font-display font-black text-slate-800 text-base">
           {monthNames[currentMonth.getMonth()]} <small className="font-normal opacity-40">{currentMonth.getFullYear()}</small>
         </h4>
-        <div className="flex gap-2">
+        <div className="flex gap-1.5">
           <button onClick={handlePrevMonth} type="button" className="p-2 rounded-xl hover:bg-slate-50 transition-colors">
             <ChevronLeft className="w-4 h-4 text-slate-400" />
           </button>
@@ -69,7 +69,7 @@ const CustomCalendar = ({ selectedDate, onSelect }) => {
       
       <div className="grid grid-cols-7 gap-1 mb-2">
         {['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa', 'Do'].map(d => (
-          <div key={d} className="text-xs font-black text-slate-400 text-center uppercase py-2">{d}</div>
+          <div key={d} className="text-[11px] font-black text-slate-400 text-center uppercase py-1.5">{d}</div>
         ))}
       </div>
       
@@ -88,9 +88,9 @@ const CustomCalendar = ({ selectedDate, onSelect }) => {
                  onSelect(d.toISOString().split('T')[0]);
               }}
               className={`
-                aspect-square w-full rounded-xl flex items-center justify-center text-base font-bold transition-all
-                ${!item.current ? 'text-slate-200' : past ? 'text-slate-300 cursor-not-allowed' : 'text-slate-700 hover:bg-primary-dark/5'}
-                ${active ? 'bg-primary text-white shadow-lg shadow-primary/30 transform scale-105 !text-white' : ''}
+                aspect-square w-full rounded-xl flex items-center justify-center text-sm font-bold transition-all
+                ${!item.current ? 'text-slate-200' : past ? 'text-slate-300 cursor-not-allowed text-xs' : 'text-slate-700 hover:bg-primary-dark/5'}
+                ${active ? 'bg-primary text-white shadow-lg shadow-primary/25 transform scale-105 !text-white' : ''}
               `}
             >
               {item.day}
