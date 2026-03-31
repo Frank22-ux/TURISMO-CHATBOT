@@ -39,9 +39,11 @@ const CustomCalendar = ({ selectedDate, onSelect }) => {
     // Normalize selectedDate to local timezone YYYY-MM-DD to avoid timezone bugs
     const dateParts = selectedDate.split('-');
     if (dateParts.length !== 3) return false;
-    const d = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]));
+    const y = parseInt(dateParts[0]);
+    const m = parseInt(dateParts[1]) - 1;
+    const d = parseInt(dateParts[2]);
     
-    return d.getDate() === day && d.getMonth() === month && d.getFullYear() === currentMonth.getFullYear();
+    return d === day && m === month && y === currentMonth.getFullYear();
   };
 
   const isPast = (day, month) => {
@@ -52,7 +54,7 @@ const CustomCalendar = ({ selectedDate, onSelect }) => {
   };
 
   return (
-    <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-xl overflow-hidden w-80">
+    <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-xl overflow-hidden w-80 mx-auto">
       <div className="flex justify-between items-center mb-5">
         <h4 className="font-display font-black text-slate-800 text-base">
           {monthNames[currentMonth.getMonth()]} <small className="font-normal opacity-40">{currentMonth.getFullYear()}</small>
@@ -83,9 +85,10 @@ const CustomCalendar = ({ selectedDate, onSelect }) => {
               type="button"
               disabled={past || !item.current}
               onClick={() => {
-                 const d = new Date(currentMonth.getFullYear(), item.month, item.day);
-                 d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-                 onSelect(d.toISOString().split('T')[0]);
+                 const y = currentMonth.getFullYear();
+                 const m = String(item.month + 1).padStart(2, '0');
+                 const d = String(item.day).padStart(2, '0');
+                 onSelect(`${y}-${m}-${d}`);
               }}
               className={`
                 aspect-square w-full rounded-xl flex items-center justify-center text-sm font-bold transition-all

@@ -400,6 +400,30 @@ const updateBulkOffers = async (ids, type, offerPrice, expirationDate, percentag
     }
     await db.query(query, params);
 };
+const getAvailability = async (id, type, date) => {
+    const numericId = id.includes('-') ? id.split('-')[1] : id;
+    const table = type === 'TURISTICA' ? 'actividades_turisticas' : 'actividades_alimentarias';
+
+    // 1. Get max capacity
+    const { rows: actRows } = await db.query(`SELECT capacidad FROM ${table} WHERE id_actividad = $1`, [numericId]);
+    if (actRows.length === 0) return 0;
+    const maxCapacity = actRows[0].capacidad;
+
+    // 2. Sum existing reservations for that date
+    const { rows: resRows } = await db.query(
+        `SELECT SUM(cantidad_personas) as reserved 
+         FROM reservas 
+         WHERE id_actividad = $1 
+           AND tipo_actividad = $2 
+           AND fecha_experiencia = $3 
+           AND estado IN ('PENDIENTE', 'APROBADA', 'CONFIRMADA')`,
+        [numericId, type, date]
+    );
+
+    const reserved = parseInt(resRows[0].reserved) || 0;
+    const remaining = Math.max(0, maxCapacity - reserved);
+    return remaining;
+};
 
 module.exports = {
     findAll,
@@ -416,5 +440,6 @@ module.exports = {
     updateLocation,
     clearPortada,
     clearGallery,
-    updateBulkOffers
+    updateBulkOffers,
+    getAvailability
 };

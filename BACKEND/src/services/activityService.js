@@ -115,6 +115,13 @@ const updateActivity = async (id, data) => {
     return { id };
 };
 
+const getActivityAvailability = async (id, date) => {
+    const activity = await activityRepository.findById(id);
+    if (!activity) throw new Error('Actividad no encontrada');
+    const type = id.startsWith('T-') ? 'TURISTICA' : 'ALIMENTARIA';
+    return await activityRepository.getAvailability(id, type, date);
+};
+
 module.exports = {
     getAllActivities,
     getActivitiesByHost,
@@ -122,5 +129,6 @@ module.exports = {
     deleteActivity,
     updateActivityStatus,
     getActivityDetails,
-    updateActivity
+    updateActivity,
+    getActivityAvailability
 };

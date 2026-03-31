@@ -18,6 +18,8 @@ const BookingSidebar = ({ isOpen, onClose, activity }) => {
   const [cvv, setCvv] = useState('');
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
+  const [remainingCapacity, setRemainingCapacity] = useState(activity?.capacidad || 0);
+  const [loadingCapacity, setLoadingCapacity] = useState(false);
 
   const priceDetails = useMemo(() => {
     if (!activity) return { subtotal: 0, iva: 0, total: 0 };
@@ -134,17 +136,48 @@ const BookingSidebar = ({ isOpen, onClose, activity }) => {
       setCvv('');
       setSuccess(false);
       setAcceptedTerms(false);
+      setRemainingCapacity(activity?.capacidad || 0);
     }
-  }, [isOpen]);
+  }, [isOpen, activity]);
+
+  useEffect(() => {
+    if (date && activity) {
+      const fetchAvailability = async () => {
+        setLoadingCapacity(true);
+        try {
+          const response = await fetch(`http://localhost:3000/api/activities/${activity.id}/availability?date=${date}`);
+          if (response.ok) {
+            const data = await response.json();
+            setRemainingCapacity(data.remaining);
+          }
+        } catch (err) {
+          console.error('Error fetching availability:', err);
+        } finally {
+          setLoadingCapacity(false);
+        }
+      };
+      fetchAvailability();
+    }
+  }, [date, activity]);
 
   const highlights = useMemo(() => {
     if (!activity) return [];
     const items = [];
     if (activity.duracion_horas) items.push({ icon: Clock, label: `${activity.duracion_horas} horas`, color: 'text-blue-500 bg-blue-50' });
     if (activity.nivel_dificultad) items.push({ icon: Shield, label: activity.nivel_dificultad, color: 'text-orange-500 bg-orange-50' });
-    if (activity.capacidad) items.push({ icon: Users, label: `Cupos p/día: ${activity.capacidad}`, color: 'text-purple-500 bg-purple-50' });
+    
+    if (date) {
+        items.push({ 
+            icon: Users, 
+            label: `Disponibles: ${remainingCapacity}`, 
+            color: remainingCapacity > 0 ? 'text-emerald-500 bg-emerald-50' : 'text-red-500 bg-red-50' 
+        });
+    } else if (activity.capacidad) {
+        items.push({ icon: Users, label: `Cupos p/día: ${activity.capacidad}`, color: 'text-purple-500 bg-purple-50' });
+    }
+    
     return items;
-  }, [activity]);
+  }, [activity, date, remainingCapacity]);
 
   const inclusions = useMemo(() => {
     if (!activity) return [];
@@ -352,7 +385,13 @@ const BookingSidebar = ({ isOpen, onClose, activity }) => {
                       animate={{ opacity: 1, y: 0 }}
                       className="bg-emerald-50 text-emerald-700 p-4 rounded-2xl flex items-center gap-3 text-sm font-bold border border-emerald-100"
                     >
-                      <CheckCircle2 className="w-5 h-5" /> Seleccionado: {new Date(date).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                      <CheckCircle2 className="w-5 h-5" /> 
+                      <div className="flex flex-col">
+                        <span>Seleccionado: {new Date(date + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                        <span className={`text-[10px] uppercase font-black tracking-widest mt-0.5 ${remainingCapacity === 0 ? 'text-red-500' : 'text-emerald-600'}`}>
+                          {loadingCapacity ? 'Consultando cupos...' : remainingCapacity > 0 ? `${remainingCapacity} espacios disponibles` : 'Sin cupos para esta fecha'}
+                        </span>
+                      </div>
                     </motion.div>
                   )}
                 </div>
@@ -379,8 +418,19 @@ const BookingSidebar = ({ isOpen, onClose, activity }) => {
                         </button>
                         <span className="font-display font-black text-2xl w-6 text-center">{adults}</span>
                         <button 
-                          onClick={() => setAdults(adults + 1)}
-                          className="w-12 h-12 rounded-2xl bg-primary text-white flex items-center justify-center hover:bg-primary-dark transition-all shadow-xl shadow-primary/20 active:scale-90"
+                          onClick={() => {
+                            if (adults + children < remainingCapacity) {
+                                setAdults(adults + 1);
+                            } else {
+                                setError(`Lo sentimos, solo quedan ${remainingCapacity} cupos disponibles.`);
+                            }
+                          }}
+                          disabled={adults + children >= remainingCapacity || loadingCapacity}
+                          className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all shadow-xl active:scale-90 ${
+                            adults + children >= remainingCapacity 
+                              ? 'bg-slate-200 text-slate-400 cursor-not-allowed' 
+                              : 'bg-primary text-white hover:bg-primary-dark shadow-primary/20'
+                          }`}
                         >
                           <Plus className="w-4 h-4" />
                         </button>
@@ -402,8 +452,19 @@ const BookingSidebar = ({ isOpen, onClose, activity }) => {
                         </button>
                         <span className="font-display font-black text-2xl w-6 text-center">{children}</span>
                         <button 
-                          onClick={() => setChildren(children + 1)}
-                          className="w-12 h-12 rounded-2xl bg-primary text-white flex items-center justify-center hover:bg-primary-dark transition-all shadow-xl shadow-primary/20 active:scale-90"
+                          onClick={() => {
+                            if (adults + children < remainingCapacity) {
+                                setChildren(children + 1);
+                            } else {
+                                setError(`Lo sentimos, solo quedan ${remainingCapacity} cupos disponibles.`);
+                            }
+                          }}
+                          disabled={adults + children >= remainingCapacity || loadingCapacity}
+                          className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all shadow-xl active:scale-90 ${
+                            adults + children >= remainingCapacity 
+                              ? 'bg-slate-200 text-slate-400 cursor-not-allowed' 
+                              : 'bg-primary text-white hover:bg-primary-dark shadow-primary/20'
+                          }`}
                         >
                           <Plus className="w-4 h-4" />
                         </button>
