@@ -1,12 +1,11 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Search, MapPin, ArrowRight, Image as ImageIcon, Users, Calendar, Navigation, RefreshCw, LayoutGrid, Map } from 'lucide-react';
+import { Search, MapPin, ArrowRight, Image as ImageIcon, Users, Navigation, RefreshCw, LayoutGrid, Map } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import ActivityDetailModal from '../components/dashboard/ActivityDetailModal';
 import InfoModal from '../components/InfoModal';
 import BookingSidebar from '../components/BookingSidebar';
-import CustomCalendar from '../components/CustomCalendar';
 import MapView from '../components/dashboard/MapView';
 import { ecuadorData, provinces, countries } from '../data/ecuadorData';
 
@@ -109,13 +108,10 @@ const Home = () => {
   const [radius, setRadius] = useState(10);
   const [adults, setAdults] = useState(1);
   const [childrenCount, setChildrenCount] = useState(0);
-  const [date, setDate] = useState('');
   const [infoModal, setInfoModal] = useState({ isOpen: false, title: '', content: '' });
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
   const [viewMode, setViewMode] = useState('grid');
-  const datePickerRef = useRef(null);
   const locationDropdownRef = useRef(null);
   const navigate = useNavigate();
 
@@ -204,9 +200,6 @@ const Home = () => {
 
   useEffect(() => {
     function handleClickOutside(event) {
-      if (datePickerRef.current && !datePickerRef.current.contains(event.target)) {
-        setShowDatePicker(false);
-      }
       if (locationDropdownRef.current && !locationDropdownRef.current.contains(event.target)) {
         setShowLocationDropdown(false);
       }
@@ -304,10 +297,6 @@ const Home = () => {
       if (guestsTotal > 1) {
         params.append('guests', guestsTotal);
       }
-      if (filters.date) {
-        params.append('startDate', filters.date);
-        params.append('endDate', filters.date);
-      }
       // Set to 10 for the homepage recommendations
       if (filters.limit !== undefined) {
          if (filters.limit) params.append('limit', filters.limit);
@@ -394,7 +383,7 @@ const Home = () => {
 
   const handleSearch = () => {
     fetchActivities({
-      city, province, country, lat, lng, radius, adults, childrenCount, date
+      city, province, country, lat, lng, radius, adults, childrenCount
     });
   };
 
@@ -580,33 +569,6 @@ const Home = () => {
               </div>
             </div>
 
-            <div className="w-full xl:w-56 shrink-0 relative" ref={datePickerRef}>
-               <label className="block text-xs font-bold text-primary mb-2 tracking-widest uppercase">Fecha</label>
-               <div 
-                 className="relative cursor-pointer"
-                 onClick={() => setShowDatePicker(!showDatePicker)}
-               >
-                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                 <input 
-                   type="text" 
-                   readOnly
-                   value={date ? new Intl.DateTimeFormat('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(date + 'T12:00:00')) : ''}
-                   placeholder="Añadir fecha"
-                   className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-100 bg-white focus:ring-2 focus:ring-primary outline-none transition-all text-slate-700 font-medium cursor-pointer" 
-                 />
-               </div>
-               {showDatePicker && (
-                 <div className="absolute top-full left-0 mt-2 z-50">
-                    <CustomCalendar 
-                       selectedDate={date} 
-                       onSelect={(d) => {
-                          setDate(d);
-                          setShowDatePicker(false);
-                       }} 
-                    />
-                 </div>
-               )}
-            </div>
 
             <div className="w-full xl:w-[280px] shrink-0 grid grid-cols-2 gap-4">
               <div>
@@ -648,9 +610,9 @@ const Home = () => {
                    setRadius(10);
                    setAdults(1);
                    setChildrenCount(0);
-                   setDate('');
+                   
                    setSearchParams({});
-                   fetchActivities({ city: '', province: '', country: '', lat: null, lng: null, radius: 10, adults: 1, childrenCount: 0, date: '' });
+                   fetchActivities({ city: '', province: '', country: '', lat: null, lng: null, radius: 10, adults: 1, childrenCount: 0 });
                  }}
                  className="w-1/3 xl:w-auto bg-slate-100 hover:bg-slate-200 text-slate-600 px-6 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 border border-slate-200"
                  title="Limpiar filtros"
@@ -769,7 +731,7 @@ const Home = () => {
                     <button 
                       onClick={() => {
                         setSearchParams({ category: 'experiencias' });
-                        fetchActivities({ ...{searchQuery, lat, lng, radius, adults, childrenCount, date}, limit: null });
+                        fetchActivities({ ...{searchQuery, lat, lng, radius, adults, childrenCount}, limit: null });
                       }}
                       className="px-8 py-3 bg-secondary/10 text-secondary font-bold rounded-2xl hover:bg-secondary hover:text-white transition-all shadow-sm flex items-center gap-2"
                     >
@@ -810,7 +772,7 @@ const Home = () => {
                     <button 
                       onClick={() => {
                         setSearchParams({ category: 'servicios' });
-                        fetchActivities({ ...{searchQuery, lat, lng, radius, adults, childrenCount, date}, limit: null });
+                        fetchActivities({ ...{searchQuery, lat, lng, radius, adults, childrenCount}, limit: null });
                       }}
                       className="px-8 py-3 bg-primary/10 text-primary font-bold rounded-2xl hover:bg-primary hover:text-white transition-all shadow-sm flex items-center gap-2"
                     >
