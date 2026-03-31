@@ -16,11 +16,16 @@ const BookingSidebar = ({ isOpen, onClose, activity }) => {
   const [cardNumber, setCardNumber] = useState('');
   const [expiry, setExpiry] = useState('');
   const [cvv, setCvv] = useState('');
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
 
-  const totalPrice = useMemo(() => {
-    if (!activity) return 0;
+  const priceDetails = useMemo(() => {
+    if (!activity) return { subtotal: 0, iva: 0, total: 0 };
     const price = parseFloat(activity.price) || 0;
-    return (price * adults) + (price * 0.5 * children);
+    const subtotal = (price * adults) + (price * 0.5 * children);
+    const iva = subtotal * 0.15;
+    const total = subtotal + iva;
+    return { subtotal, iva, total };
   }, [activity, adults, children]);
 
   const handleBooking = async (token) => {
@@ -40,7 +45,7 @@ const BookingSidebar = ({ isOpen, onClose, activity }) => {
             id_actividad: activity.id,
             fecha_experiencia: date,
             cantidad_personas: adults + children,
-            total: totalPrice
+            total: priceDetails.total
           }
         })
       });
@@ -91,7 +96,7 @@ const BookingSidebar = ({ isOpen, onClose, activity }) => {
       });
 
       kushki.requestToken({
-        amount: totalPrice.toString(),
+        amount: priceDetails.total.toFixed(2),
         currency: "USD",
         card: {
           name: cardName,
@@ -123,6 +128,7 @@ const BookingSidebar = ({ isOpen, onClose, activity }) => {
       setExpiry('');
       setCvv('');
       setSuccess(false);
+      setAcceptedTerms(false);
     }
   }, [isOpen]);
 
@@ -180,6 +186,81 @@ const BookingSidebar = ({ isOpen, onClose, activity }) => {
             transition={{ type: 'spring', damping: 30, stiffness: 200 }}
             className="fixed top-0 left-0 h-full w-full max-w-lg bg-slate-50 shadow-2xl z-[60] overflow-y-auto"
           >
+            {/* T&C MODAL */}
+            <AnimatePresence>
+              {showTermsModal && (
+                <div className="fixed inset-0 flex items-center justify-center p-6 z-[100]">
+                  <motion.div 
+                    initial={{ opacity: 0 }} 
+                    animate={{ opacity: 1 }} 
+                    exit={{ opacity: 0 }}
+                    onClick={() => setShowTermsModal(false)}
+                    className="absolute inset-0 bg-black/80 backdrop-blur-md"
+                  />
+                  <motion.div 
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.9, opacity: 0 }}
+                    className="relative bg-white w-full max-w-xl rounded-[3rem] p-10 shadow-2xl overflow-hidden"
+                  >
+                    <div className="absolute top-0 left-0 w-full h-2 bg-primary"></div>
+                    <div className="flex justify-between items-center mb-6">
+                      <div>
+                        <h3 className="text-2xl font-black text-primary-dark">Términos y Condiciones</h3>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Plataforma Turismo ISTPET</p>
+                      </div>
+                      <button onClick={() => setShowTermsModal(false)} className="p-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-500 transition-all">
+                        <X className="w-6 h-6" />
+                      </button>
+                    </div>
+
+                    <div className="max-h-[60vh] overflow-y-auto pr-4 custom-scrollbar text-slate-700 space-y-8 text-base leading-relaxed p-2">
+                      <section>
+                        <h4 className="font-black text-primary-dark uppercase text-xs tracking-widest mb-3 border-b border-slate-100 pb-1">1. Reservas y Pagos</h4>
+                        <p>Al confirmar tu pago, el monto total será procesado de forma segura a través de nuestra pasarela de pagos integrada (Kushki). Los fondos se mantendrán en custodia hasta que se complete satisfactoriamente la experiencia garantizando la seguridad de tu inversión.</p>
+                      </section>
+                      <section className="bg-red-50/50 p-6 rounded-3xl border border-red-100/50">
+                        <h4 className="font-black text-red-600 uppercase text-xs tracking-widest mb-3">2. Política de Cancelación y Reembolsos</h4>
+                        <ul className="space-y-3 font-bold text-slate-700">
+                          <li className="flex items-center gap-3">
+                            <div className="w-2 h-2 rounded-full bg-red-400"></div>
+                            <span>Más de 2 días de antelación: <span className="text-emerald-600">75% de reembolso</span></span>
+                          </li>
+                          <li className="flex items-center gap-3">
+                            <div className="w-2 h-2 rounded-full bg-red-400"></div>
+                            <span>De 1 a 2 días de antelación: <span className="text-orange-500">50% de reembolso</span></span>
+                          </li>
+                          <li className="flex items-center gap-3">
+                            <div className="w-2 h-2 rounded-full bg-red-400"></div>
+                            <span>Mismo día de la reserva: <span className="text-red-600">Sin reembolso</span></span>
+                          </li>
+                        </ul>
+                        <p className="mt-4 text-sm font-medium text-slate-500 italic">* Las cancelaciones se procesan utilizando el código protector de tu boleto digital.</p>
+                      </section>
+                      <section>
+                        <h4 className="font-black text-primary-dark uppercase text-xs tracking-widest mb-3 border-b border-slate-100 pb-1">3. Responsabilidad del Turista</h4>
+                        <p>El turista es responsable de llegar puntualmente al punto de encuentro y seguir las normas de seguridad establecidas por el anfitrión. Nuestra plataforma actúa como mediador, pero la ejecución de la actividad es responsabilidad directa del anfitrión.</p>
+                      </section>
+                      <section>
+                        <h4 className="font-black text-primary-dark uppercase text-xs tracking-widest mb-3 border-b border-slate-100 pb-1">4. Privacidad de Datos</h4>
+                        <p>Tus datos bancarios nunca son almacenados en nuestros servidores. Todo el procesamiento de tarjetas cumple con los estándares internacionales PCI DSS a través de Kushki para tu total tranquilidad.</p>
+                      </section>
+                    </div>
+
+                    <button 
+                      onClick={() => {
+                        setAcceptedTerms(true);
+                        setShowTermsModal(false);
+                      }}
+                      className="w-full mt-8 bg-primary text-white py-5 rounded-2xl font-black shadow-xl shadow-primary/20 hover:bg-primary-dark transition-all"
+                    >
+                      Aceptar y Continuar
+                    </button>
+                  </motion.div>
+                </div>
+              )}
+            </AnimatePresence>
+
             <div className="bg-white p-8">
               <div className="flex justify-between items-center mb-8">
                 <div>
@@ -337,9 +418,14 @@ const BookingSidebar = ({ isOpen, onClose, activity }) => {
                   
                   <div className="space-y-4 mb-10">
                     <div className="flex justify-between text-sm items-center">
-                        <span className="opacity-50">Base ({adults} adu. + {children} niñ.)</span>
+                        <span className="opacity-50">Subtotal ({adults} adu. + {children} niñ.)</span>
                         <div className="h-px flex-grow mx-4 bg-white/5" />
-                        <span className="font-bold">${totalPrice.toFixed(2)}</span>
+                        <span className="font-bold">${priceDetails.subtotal.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm items-center">
+                        <span className="opacity-50">IVA (15%)</span>
+                        <div className="h-px flex-grow mx-4 bg-white/5" />
+                        <span className="font-bold">${priceDetails.iva.toFixed(2)}</span>
                     </div>
                   </div>
                   
@@ -359,62 +445,103 @@ const BookingSidebar = ({ isOpen, onClose, activity }) => {
                   <div className="space-y-4 mb-8">
                     <div className="flex items-center gap-2 mb-4">
                       <Shield className="w-4 h-4 text-emerald-400" />
-                      <span className="text-xs font-black uppercase tracking-widest text-emerald-400">Pago Seguro Kushki</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Pago Seguro Kushki</span>
                     </div>
-                    <div className="space-y-3">
-                      <input 
-                        type="text"
-                        placeholder="Nombre en la Tarjeta"
-                        value={cardName}
-                        onChange={e => setCardName(e.target.value)}
-                        className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-secondary transition-colors"
-                      />
-                      <input 
-                        type="text"
-                        placeholder="Número de Tarjeta"
-                        value={cardNumber}
-                        onChange={e => setCardNumber(e.target.value.replace(/\D/g, '').replace(/(\d{4})(?=\d)/g, '$1 '))}
-                        maxLength={19}
-                        className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-secondary font-mono tracking-widest transition-colors"
-                      />
-                      <div className="flex gap-3">
+                    
+                    <div className="space-y-4">
+                      {/* Nombre en la Tarjeta */}
+                      <div className="relative group">
                         <input 
                           type="text"
-                          placeholder="MM/YY"
-                          value={expiry}
-                          onChange={e => {
-                            let val = e.target.value.replace(/\D/g, '');
-                            if (val.length >= 2) val = val.substring(0,2) + '/' + val.substring(2,4);
-                            setExpiry(val);
-                          }}
-                          maxLength={5}
-                          className="w-1/2 bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-secondary text-center font-mono transition-colors"
+                          placeholder="Nombre en la Tarjeta"
+                          value={cardName}
+                          onChange={e => setCardName(e.target.value)}
+                          className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-secondary/50 focus:bg-white/[0.08] transition-all"
                         />
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-20 group-focus-within:opacity-100 transition-opacity">
+                          <Users className="w-4 h-4 text-secondary" />
+                        </div>
+                      </div>
+
+                      {/* Número de Tarjeta */}
+                      <div className="relative group">
                         <input 
-                          type="password"
-                          placeholder="CVV"
-                          value={cvv}
-                          onChange={e => setCvv(e.target.value.replace(/\D/g, ''))}
-                          maxLength={4}
-                          className="w-1/2 bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-secondary text-center tracking-[0.2em] font-mono transition-colors"
+                          type="text"
+                          placeholder="Número de Tarjeta"
+                          value={cardNumber}
+                          onChange={e => setCardNumber(e.target.value.replace(/\D/g, '').replace(/(\d{4})(?=\d)/g, '$1 '))}
+                          maxLength={19}
+                          className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-secondary/50 focus:bg-white/[0.08] font-mono tracking-widest transition-all"
                         />
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-20 group-focus-within:opacity-100 transition-opacity">
+                          <CreditCard className="w-4 h-4 text-secondary" />
+                        </div>
+                      </div>
+
+                      <div className="flex gap-4">
+                        {/* Expiración */}
+                        <div className="relative flex-1 group">
+                          <input 
+                            type="text"
+                            placeholder="MM/YY"
+                            value={expiry}
+                            onChange={e => {
+                              let val = e.target.value.replace(/\D/g, '');
+                              if (val.length >= 2) val = val.substring(0,2) + '/' + val.substring(2,4);
+                              setExpiry(val);
+                            }}
+                            maxLength={5}
+                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-secondary/50 focus:bg-white/[0.08] text-center font-mono transition-all"
+                          />
+                        </div>
+                        {/* CVV */}
+                        <div className="relative flex-1 group">
+                          <input 
+                            type="password"
+                            placeholder="CVV"
+                            value={cvv}
+                            onChange={e => setCvv(e.target.value.replace(/\D/g, ''))}
+                            maxLength={4}
+                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-secondary/50 focus:bg-white/[0.08] text-center tracking-[0.4em] font-mono transition-all"
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex flex-col sm:flex-row justify-between items-center bg-white/5 p-6 rounded-3xl border border-white/5 gap-6">
-                    <div className="text-center sm:text-left">
+                  {/* Términos y Condiciones */}
+                  <div className="mb-8 px-2">
+                    <label className="flex items-start gap-3 cursor-pointer group">
+                      <div className="relative flex items-center mt-0.5">
+                        <input 
+                          type="checkbox"
+                          checked={acceptedTerms}
+                          onChange={(e) => setAcceptedTerms(e.target.checked)}
+                          className="peer hidden"
+                        />
+                        <div className={`w-5 h-5 rounded-md border-2 transition-all flex items-center justify-center ${acceptedTerms ? 'bg-secondary border-secondary' : 'border-white/20 group-hover:border-white/40'}`}>
+                          {acceptedTerms && <CheckCircle2 className="w-3.5 h-3.5 text-primary-dark" />}
+                        </div>
+                      </div>
+                      <span className="text-[11px] font-medium text-white/50 leading-relaxed">
+                        Acepto los <button type="button" onClick={() => setShowTermsModal(true)} className="text-secondary hover:underline font-black uppercase tracking-tighter">términos y condiciones</button> de reserva y cancelación.
+                      </span>
+                    </label>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row justify-between items-center bg-white/5 p-6 rounded-3xl border border-white/5 gap-4">
+                    <div className="text-center sm:text-left shrink-0">
                         <p className="text-[10px] uppercase font-black tracking-widest text-secondary mb-1">Inversión Total</p>
-                        <p className="text-4xl font-display font-black">${totalPrice.toFixed(2)}</p>
+                        <p className="text-3xl md:text-4xl font-display font-black leading-tight">${priceDetails.total.toFixed(2)}</p>
                     </div>
                     
                     <button 
-                      type="button"
+                      type="button" 
                       onClick={handlePaymentSubmit}
-                      disabled={!date || isProcessing || success}
+                      disabled={!date || isProcessing || success || !acceptedTerms}
                       className={`
-                        w-full sm:w-auto px-10 py-5 rounded-[2rem] font-black text-sm transition-all shadow-2xl flex justify-center items-center gap-3
-                        ${date && !isProcessing && !success
+                        w-full sm:w-auto px-8 py-5 rounded-[2rem] font-black text-sm transition-all shadow-2xl flex justify-center items-center gap-3
+                        ${date && !isProcessing && !success && acceptedTerms
                           ? 'bg-secondary text-primary-dark hover:scale-105 active:scale-95 shadow-secondary/20 hover:bg-white' 
                           : 'bg-white/10 text-white/20 cursor-not-allowed border border-white/10'
                         }

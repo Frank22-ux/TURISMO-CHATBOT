@@ -39,8 +39,11 @@ const ActivityCard = ({ activity, onOpenDetail, onOpenBooking }) => (
       </h3>
       <div className="flex flex-col gap-4 pt-5 border-t border-slate-50 mt-auto">
         <div className="flex justify-between items-center">
-          <div className="font-display font-black text-xl text-primary-dark">
-            ${activity.price} <span className="text-xs font-normal text-slate-400">/ persona</span>
+          <div className="flex flex-col">
+            <div className="font-display font-black text-xl text-primary-dark">
+              ${activity.price} <span className="text-xs font-normal text-slate-400">/ persona</span>
+            </div>
+            <span className="text-[9px] font-black uppercase text-emerald-600 tracking-tighter mt-[-2px]">15% IVA Incluido</span>
           </div>
           <button 
             onClick={async () => {
