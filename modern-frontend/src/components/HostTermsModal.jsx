@@ -124,18 +124,6 @@ const HostTermsModal = ({ isOpen, onClose }) => {
         </motion.div>
       </div>
       
-      <style jsx global>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background-color: #cbd5e1;
-          border-radius: 20px;
-        }
-      `}</style>
     </AnimatePresence>
   );
 };

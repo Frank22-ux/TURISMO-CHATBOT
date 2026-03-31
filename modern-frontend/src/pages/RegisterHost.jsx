@@ -90,8 +90,8 @@ const RegisterHost = () => {
 
   return (
     <>
-      <AnimatePresence>
-        {notification && <Toast {...notification} onClose={() => setNotification(null)} />}
+      <AnimatePresence mode="wait">
+        {notification && <Toast key="host-notif" {...notification} onClose={() => setNotification(null)} />}
       </AnimatePresence>
       <AuthLayout 
         title="Promueve tus servicios al mundo" 
@@ -113,14 +113,14 @@ const RegisterHost = () => {
             <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Primer Nombre</label>
             <div className="relative">
               <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
-              <input type="text" name="firstName" required className="auth-input pl-10" placeholder="Juan" onChange={handleChange} />
+              <input type="text" name="firstName" required className="auth-input" placeholder="Juan" onChange={handleChange} />
             </div>
           </div>
           <div>
             <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Segundo Nombre</label>
             <div className="relative">
               <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
-              <input type="text" name="secondName" className="auth-input pl-10" placeholder="Andrés" onChange={handleChange} />
+              <input type="text" name="secondName" className="auth-input" placeholder="Andrés" onChange={handleChange} />
             </div>
           </div>
         </div>
@@ -130,14 +130,14 @@ const RegisterHost = () => {
             <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Primer Apellido</label>
             <div className="relative">
               <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
-              <input type="text" name="lastName1" required className="auth-input pl-10" placeholder="Pérez" onChange={handleChange} />
+              <input type="text" name="lastName1" required className="auth-input" placeholder="Pérez" onChange={handleChange} />
             </div>
           </div>
           <div>
             <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Segundo Apellido</label>
             <div className="relative">
               <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
-              <input type="text" name="lastName2" className="auth-input pl-10" placeholder="Sánchez" onChange={handleChange} />
+              <input type="text" name="lastName2" className="auth-input" placeholder="Sánchez" onChange={handleChange} />
             </div>
           </div>
         </div>
@@ -147,7 +147,7 @@ const RegisterHost = () => {
             <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Fecha Nacimiento</label>
             <div className="relative">
               <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
-              <input type="date" name="dob" required className="auth-input pl-10" onChange={handleChange} />
+              <input type="date" name="dob" required className="auth-input" onChange={handleChange} />
             </div>
           </div>
           <div>
@@ -164,7 +164,7 @@ const RegisterHost = () => {
           <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Correo Electrónico</label>
           <div className="relative">
             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
-            <input type="email" name="email" required className="auth-input pl-10 text-sm md:text-base pr-2" placeholder="tu-empresa@correo.com" onChange={handleChange} />
+            <input type="email" name="email" required className="auth-input" placeholder="tu-empresa@correo.com" onChange={handleChange} />
           </div>
         </div>
 
@@ -186,11 +186,6 @@ const RegisterHost = () => {
         </p>
       </div>
 
-      <style jsx>{`
-        .auth-input {
-          @apply w-full pr-4 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all;
-        }
-      `}</style>
     </AuthLayout>
     </>
   );

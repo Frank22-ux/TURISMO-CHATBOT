@@ -121,8 +121,8 @@ const PhoneInputWithCountry = ({ value, onChange, onValidationChange }) => {
           </div>
           <ul className="max-h-60 overflow-y-auto w-full">
             {filteredCountries.length > 0 ? (
-              filteredCountries.map((country) => (
-                <li key={country.code}>
+              filteredCountries.map((country, idx) => (
+                <li key={`${country.code}-${idx}`}>
                   <button
                     type="button"
                     onClick={() => handleCountrySelect(country)}

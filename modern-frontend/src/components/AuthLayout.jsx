@@ -30,7 +30,7 @@ const AuthLayout = ({ children, title, subtitle, image }) => {
 
         {/* Right Side - Form */}
         <div className="flex-1 p-4 sm:p-6 md:p-8 lg:p-12 flex flex-col items-center justify-center bg-white sm:bg-transparent">
-          <div className="w-[100%] xl:w-[95%] mx-auto max-w-3xl">
+          <div className="w-[100%] xl:w-[95%] mx-auto max-w-4xl">
             <div className="flex items-center gap-2 mb-8 md:hidden mt-4">
               <Mountain className="text-primary w-8 h-8" />
               <span className="text-xl font-display font-black text-primary-dark tracking-tighter">
