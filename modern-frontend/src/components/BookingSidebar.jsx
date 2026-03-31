@@ -21,10 +21,15 @@ const BookingSidebar = ({ isOpen, onClose, activity }) => {
 
   const priceDetails = useMemo(() => {
     if (!activity) return { subtotal: 0, iva: 0, total: 0 };
-    const price = parseFloat(activity.price) || 0;
-    const subtotal = (price * adults) + (price * 0.5 * children);
-    const iva = subtotal * 0.15;
-    const total = subtotal + iva;
+    const pricePerPerson = parseFloat(activity.price) || 0;
+    
+    // El precio de la actividad ya es el PRECIO FINAL
+    const total = (pricePerPerson * adults) + (pricePerPerson * 0.5 * children);
+    
+    // Desglose inverso del IVA (15% incluido)
+    const subtotal = total / 1.15;
+    const iva = total - subtotal;
+    
     return { subtotal, iva, total };
   }, [activity, adults, children]);
 
@@ -418,14 +423,14 @@ const BookingSidebar = ({ isOpen, onClose, activity }) => {
                   
                   <div className="space-y-4 mb-10">
                     <div className="flex justify-between text-sm items-center">
-                        <span className="opacity-50">Subtotal ({adults} adu. + {children} niñ.)</span>
+                        <span className="opacity-50">Subtotal (sin imp.)</span>
                         <div className="h-px flex-grow mx-4 bg-white/5" />
                         <span className="font-bold">${priceDetails.subtotal.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between text-sm items-center">
-                        <span className="opacity-50">IVA (15%)</span>
+                        <span className="opacity-50 text-emerald-400">15% IVA (Incluido)</span>
                         <div className="h-px flex-grow mx-4 bg-white/5" />
-                        <span className="font-bold">${priceDetails.iva.toFixed(2)}</span>
+                        <span className="font-bold text-emerald-400">${priceDetails.iva.toFixed(2)}</span>
                     </div>
                   </div>
                   
