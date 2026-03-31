@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Mail, Lock, Phone, Calendar, ArrowRight, Mountain, X, Check, AlertCircle, Briefcase, Compass } from 'lucide-react';
+import { User, Mail, Calendar, ArrowRight, Mountain, X, Check, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AuthLayout from '../components/AuthLayout';
 import PhoneInputWithCountry from '../components/PhoneInputWithCountry';
@@ -24,7 +24,7 @@ const Toast = ({ message, type = 'error', onClose }) => (
   </motion.div>
 );
 
-const Register = () => {
+const RegisterHost = () => {
   const [formData, setFormData] = useState({
     firstName: '',
     secondName: '',
@@ -33,7 +33,7 @@ const Register = () => {
     dob: '',
     email: '',
     phone: '',
-    role: 'TURISTA'
+    role: 'ANFITRION'
   });
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState(null);
@@ -94,9 +94,9 @@ const Register = () => {
         {notification && <Toast {...notification} onClose={() => setNotification(null)} />}
       </AnimatePresence>
       <AuthLayout 
-        title="Únete a la mayor comunidad turística" 
-        subtitle="Crea tu cuenta hoy y comienza a explorar o a ofrecer tus mejores experiencias en el Ecuador."
-        image="https://images.unsplash.com/photo-1590523277543-a94d2e4eb00b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"
+        title="Promueve tus servicios al mundo" 
+        subtitle="Publica experiencias turísticas o servicios alimentarios en nuestra gran comunidad."
+        image="https://images.unsplash.com/photo-1542259009477-d625272157b7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"
       >
       <div className="flex items-center gap-2 mb-2 hidden md:flex text-primary">
         <Mountain className="w-8 h-8" />
@@ -104,8 +104,8 @@ const Register = () => {
           ISTPET <span className="text-primary">Turismo</span>
         </span>
       </div>
-      <h2 className="text-3xl font-display font-black text-slate-800 mb-2">Crea tu cuenta</h2>
-      <p className="text-slate-500 mb-8">Regístrate para comenzar tu aventura (Turista)</p>
+      <h2 className="text-3xl font-display font-black text-slate-800 mb-2">Registro de Anfitrión</h2>
+      <p className="text-slate-500 mb-8">Ingresa tus datos personales para crear tu perfil de anfitrión</p>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -164,7 +164,7 @@ const Register = () => {
           <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Correo Electrónico</label>
           <div className="relative">
             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
-            <input type="email" name="email" required className="auth-input pl-10 text-sm md:text-base pr-2" placeholder="tu@correo.com" onChange={handleChange} />
+            <input type="email" name="email" required className="auth-input pl-10 text-sm md:text-base pr-2" placeholder="tu-empresa@correo.com" onChange={handleChange} />
           </div>
         </div>
 
@@ -173,13 +173,16 @@ const Register = () => {
           disabled={loading || (!isPhoneValid && formData.phone.length > 0)}
           className={`w-full py-4 bg-primary hover:bg-primary-dark text-white rounded-2xl font-black shadow-xl shadow-primary/20 hover:shadow-primary/30 transform hover:-translate-y-1 active:scale-95 transition-all flex items-center justify-center gap-2 group ${(!isPhoneValid && formData.phone.length > 0) ? 'opacity-70 cursor-not-allowed' : ''}`}
         >
-          {loading ? 'Creando cuenta...' : <>Crear cuenta y recibir clave por correo <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" /></>}
+          {loading ? 'Creando cuenta...' : <>Crear cuenta de anfitrión <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" /></>}
         </button>
       </form>
 
       <div className="mt-8 pt-6 border-t border-slate-100 text-center">
         <p className="text-slate-500 text-sm">
           ¿Ya tienes una cuenta? <Link to="/login" className="text-primary font-black hover:underline">Inicia sesión</Link>
+        </p>
+        <p className="text-slate-500 text-sm mt-3">
+          ¿Solamente quieres viajar? <Link to="/register" className="text-primary font-black hover:underline">Registro de Turista</Link>
         </p>
       </div>
 
@@ -193,5 +196,4 @@ const Register = () => {
   );
 };
 
-export default Register;
-
+export default RegisterHost;

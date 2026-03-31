@@ -1,10 +1,12 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { UserCircle, LayoutDashboard, LogOut, Menu, Mountain, Utensils } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import HostTermsModal from './HostTermsModal';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [user, setUser] = useState(null);
+  const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -51,9 +53,12 @@ const Navbar = () => {
 
           {!user ? (
             <>
-              <a href="#" className="bg-primary/10 hover:bg-primary/20 text-primary px-5 py-2 rounded-xl text-sm font-bold transition-all">
+              <button 
+                onClick={() => setIsTermsModalOpen(true)}
+                className="bg-primary/10 hover:bg-primary/20 text-primary px-5 py-2 rounded-xl text-sm font-bold transition-all"
+              >
                 Hazte Anfitrión
-              </a>
+              </button>
               <Link to="/login" className={`flex items-center gap-2 text-sm font-bold ${
                 isScrolled ? 'text-slate-700' : 'text-white'
               }`}>
@@ -79,6 +84,11 @@ const Navbar = () => {
           <Menu className="w-6 h-6" />
         </button>
       </div>
+
+      <HostTermsModal 
+        isOpen={isTermsModalOpen} 
+        onClose={() => setIsTermsModalOpen(false)} 
+      />
     </header>
   );
 };

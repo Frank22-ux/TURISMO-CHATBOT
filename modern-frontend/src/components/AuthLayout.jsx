@@ -3,12 +3,12 @@ import { ArrowLeft, Mountain } from 'lucide-react';
 
 const AuthLayout = ({ children, title, subtitle, image }) => {
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 md:p-8 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-0 sm:p-4 md:p-8 relative overflow-hidden">
       {/* Glow Effects */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px] pointer-events-none"></div>
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-secondary/10 rounded-full blur-[120px] pointer-events-none"></div>
 
-      <div className="w-full max-w-6xl bg-white/40 backdrop-blur-2xl rounded-[40px] shadow-2xl overflow-hidden border border-white/20 flex flex-col md:flex-row min-h-[700px]">
+      <div className="w-full sm:w-[95%] lg:w-[90%] xl:w-[85%] max-w-[1400px] bg-white sm:bg-white/40 backdrop-blur-2xl rounded-none sm:rounded-[40px] shadow-2xl overflow-hidden border-0 sm:border border-white/20 flex flex-col md:flex-row min-h-screen sm:min-h-[700px]">
         {/* Left Side - Image/Hero */}
         <div className="md:w-5/12 relative hidden md:block">
           <img 
@@ -29,9 +29,9 @@ const AuthLayout = ({ children, title, subtitle, image }) => {
         </div>
 
         {/* Right Side - Form */}
-        <div className="flex-1 p-8 md:p-16 flex flex-col">
-          <div className="max-w-md mx-auto w-full">
-            <div className="flex items-center gap-2 mb-10 md:hidden">
+        <div className="flex-1 p-4 sm:p-6 md:p-8 lg:p-12 flex flex-col items-center justify-center bg-white sm:bg-transparent">
+          <div className="w-[100%] xl:w-[95%] mx-auto max-w-3xl">
+            <div className="flex items-center gap-2 mb-8 md:hidden mt-4">
               <Mountain className="text-primary w-8 h-8" />
               <span className="text-xl font-display font-black text-primary-dark tracking-tighter">
                 ISTPET <span className="text-primary">Turismo</span>
