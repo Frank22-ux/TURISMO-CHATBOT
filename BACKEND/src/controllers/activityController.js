@@ -2,9 +2,9 @@ const activityService = require('../services/activityService');
 
 const getAllActivities = async (req, res) => {
     try {
-        const { location, lat, lng, radius, guests, startDate, endDate, limit } = req.query;
+        const { location, city, province, country, lat, lng, radius, guests, startDate, endDate, limit } = req.query;
         const activities = await activityService.getAllActivities({ 
-            location, lat, lng, radius, guests, startDate, endDate, limit
+            location, city, province, country, lat, lng, radius, guests, startDate, endDate, limit
         });
         res.status(200).json(activities);
     } catch (error) {

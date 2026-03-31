@@ -8,6 +8,7 @@ import InfoModal from '../components/InfoModal';
 import BookingSidebar from '../components/BookingSidebar';
 import CustomCalendar from '../components/CustomCalendar';
 import MapView from '../components/dashboard/MapView';
+import { ecuadorData, provinces, countries } from '../data/ecuadorData';
 
 const ActivityCard = ({ activity, onOpenDetail, onOpenBooking }) => (
   <div className="group bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 border border-slate-50 relative flex flex-col h-full">
@@ -84,6 +85,9 @@ const Home = () => {
   const [activityToBook, setActivityToBook] = useState(null);
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [city, setCity] = useState('');
+  const [province, setProvince] = useState('');
+  const [country, setCountry] = useState('');
   const [lat, setLat] = useState(null);
   const [lng, setLng] = useState(null);
   const [radius, setRadius] = useState(10);
@@ -270,11 +274,10 @@ const Home = () => {
     try {
       setLoading(true);
       const params = new URLSearchParams();
-      // If using 'Mi Ubicación Actual', we rely on lat/lng rather than text search
-      if (filters.searchQuery && filters.searchQuery !== 'Mi Ubicación Actual') {
-        const mappedSearch = mapCountryCodeToName(filters.searchQuery);
-        params.append('location', mappedSearch);
-      }
+      if (filters.city) params.append('city', filters.city);
+      if (filters.province) params.append('province', filters.province);
+      if (filters.country) params.append('country', filters.country);
+      
       if (filters.lat && filters.lng) {
         params.append('lat', filters.lat);
         params.append('lng', filters.lng);
@@ -375,37 +378,49 @@ const Home = () => {
 
   const handleSearch = () => {
     fetchActivities({
-      searchQuery, lat, lng, radius, adults, childrenCount, date
+      city, province, country, lat, lng, radius, adults, childrenCount, date
     });
   };
 
   const handleGetLocation = () => {
-    if (searchQuery === 'Mi Ubicación Actual') {
-      // Toggle OFF
-      setSearchQuery('');
-      setLat(null);
-      setLng(null);
-      return;
-    }
-
     if ('geolocation' in navigator) {
       setIsLocating(true);
       navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setLat(position.coords.latitude);
-          setLng(position.coords.longitude);
-          // Keep the current radius (or default 10)
-          setSearchQuery('Mi Ubicación Actual');
-          setIsLocating(false);
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          setLat(latitude);
+          setLng(longitude);
+          
+          try {
+            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10&addressdetails=1`, {
+              headers: { 'Accept-Language': 'es', 'User-Agent': 'TurismoApp/1.0' }
+            });
+            if (response.ok) {
+              const data = await response.json();
+              const addr = data.address;
+              const foundCity = addr.city || addr.town || addr.village || addr.suburb || '';
+              const foundProvince = addr.state || '';
+              const foundCountry = addr.country || '';
+
+              setCity(foundCity);
+              setProvince(foundProvince);
+              setCountry(foundCountry);
+              setSearchQuery('Mi Ubicación Actual');
+            }
+          } catch (err) {
+            console.error("Reverse geocoding error:", err);
+          } finally {
+            setIsLocating(false);
+          }
         },
         (error) => {
           console.error(error);
           setIsLocating(false);
-          setInfoModal({ isOpen: true, title: 'Error', content: 'No se pudo obtener la ubicación. Por favor, verifica tus permisos.' });
+          setInfoModal({ isOpen: true, title: 'Error', content: 'No se pudo obtener la ubicación.' });
         }
       );
     } else {
-      setInfoModal({ isOpen: true, title: 'Error', content: 'Geolocalización no soportada en este navegador.' });
+      setInfoModal({ isOpen: true, title: 'Error', content: 'Geolocalización no soportada.' });
     }
   };
 
@@ -443,85 +458,109 @@ const Home = () => {
           
           {/* Main Search Row */}
           <div className="flex flex-col xl:flex-row gap-6 items-end">
-            <div className="flex-1 min-w-[200px] w-full">
-              <label className="block text-xs font-bold text-primary mb-2 tracking-widest uppercase">Ubicación</label>
-              <div className="relative flex items-center gap-2">
-                <div className="relative flex-1" ref={locationDropdownRef}>
-                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input 
-                    type="text" 
-                    placeholder="Ubicación o Código de País (ej: EC)" 
-                    value={searchQuery}
+            <div className="flex-1 w-full grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* País */}
+              <div className="relative group">
+                <label className="block text-[10px] font-black text-primary mb-2 tracking-widest uppercase ml-1">País</label>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-colors" />
+                  <select 
+                    value={country}
                     onChange={(e) => {
-                       setSearchQuery(e.target.value);
-                       setShowLocationDropdown(true);
+                      setCountry(e.target.value);
+                      if (e.target.value !== 'Ecuador') {
+                        setProvince('');
+                        setCity('');
+                      }
                     }}
-                    onFocus={() => setShowLocationDropdown(true)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                    className="w-full pl-10 pr-10 py-3 rounded-xl border border-slate-100 bg-slate-50 focus:ring-2 focus:ring-primary outline-none transition-all text-slate-700" 
-                  />
-                  {isSearchingAutocomplete && (
-                    <RefreshCw className="w-4 h-4 text-primary animate-spin absolute right-3 top-1/2 -translate-y-1/2" />
-                  )}
-                  {showLocationDropdown && (filteredLocations.length > 0 || isSearchingAutocomplete) && searchQuery !== 'Mi Ubicación Actual' && (
-                    <div className="absolute top-full left-0 mt-2 w-full bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden z-50 max-h-64 overflow-y-auto">
-                      {filteredLocations.map((loc, idx) => {
-                        const isAvailable = uniqueLocations.includes(loc);
-                        return (
-                          <button
-                            key={idx}
-                            onClick={() => {
-                              setSearchQuery(loc);
-                              setShowLocationDropdown(false);
-                            }}
-                            className="w-full text-left px-5 py-3 hover:bg-slate-50 flex items-center gap-3 transition-colors text-slate-700 text-sm font-medium border-b border-slate-50 last:border-0"
-                          >
-                            <MapPin className={`w-4 h-4 ${isAvailable ? 'text-primary' : 'text-slate-300'} opacity-50`} />
-                            <span className={isAvailable ? 'text-slate-800' : 'text-slate-400'}>{loc}</span>
-                            {!isAvailable && <span className="ml-auto text-[10px] text-slate-400 font-black uppercase tracking-widest bg-slate-100 px-2 py-1 rounded-md">Próximamente</span>}
-                          </button>
-                        );
-                      })}
-                    </div>
+                    className="w-full pl-9 pr-4 py-3 rounded-xl border border-slate-100 bg-slate-50 focus:ring-2 focus:ring-primary outline-none transition-all text-slate-700 font-medium appearance-none"
+                  >
+                    <option value="">Seleccionar País</option>
+                    {countries.map(c => <option key={c} value={c}>{c}</option>)}
+                    <option value="OTRO">Otro (Escribir...)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Provincia */}
+              <div className="relative group">
+                <label className="block text-[10px] font-black text-primary mb-2 tracking-widest uppercase ml-1">Provincia</label>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-colors" />
+                  {country === 'Ecuador' ? (
+                    <select 
+                      value={province}
+                      onChange={(e) => {
+                        setProvince(e.target.value);
+                        setCity('');
+                      }}
+                      className="w-full pl-9 pr-4 py-3 rounded-xl border border-slate-100 bg-slate-50 focus:ring-2 focus:ring-primary outline-none transition-all text-slate-700 font-medium appearance-none"
+                    >
+                      <option value="">Seleccionar Provincia</option>
+                      {provinces.map(p => <option key={p} value={p}>{p}</option>)}
+                    </select>
+                  ) : (
+                    <input 
+                      type="text"
+                      placeholder="Provincia/Estado"
+                      value={province}
+                      onChange={(e) => setProvince(e.target.value)}
+                      className="w-full pl-9 pr-4 py-3 rounded-xl border border-slate-100 bg-slate-50 focus:ring-2 focus:ring-primary outline-none transition-all text-slate-700 font-medium"
+                    />
                   )}
                 </div>
-                
-                <select
-                  value={radius}
-                  onChange={(e) => setRadius(Number(e.target.value))}
-                  className="py-3 px-2 rounded-xl border border-slate-100 bg-slate-50 focus:ring-2 focus:ring-primary outline-none transition-all text-slate-700 text-sm font-bold shrink-0"
-                  title="Radio de búsqueda"
-                >
-                  <option value={10}>10 km</option>
-                  <option value={20}>20 km</option>
-                  <option value={30}>30 km</option>
-                  <option value={50}>50 km</option>
-                </select>
+              </div>
 
-                <button 
-                  onClick={handleGetLocation}
-                  disabled={isLocating}
-                  className={`p-3 rounded-xl transition-colors shrink-0 flex items-center justify-center relative ${
-                    searchQuery === 'Mi Ubicación Actual' 
-                      ? 'bg-emerald-100 text-emerald-600' 
-                      : 'bg-secondary/10 text-secondary hover:bg-secondary hover:text-white'
-                  }`}
-                  title="Usar mi ubicación actual"
-                >
-                  {isLocating ? (
-                    <RefreshCw className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <>
-                      <Navigation className={`w-5 h-5 ${searchQuery === 'Mi Ubicación Actual' ? 'animate-pulse' : ''}`} />
-                      {searchQuery === 'Mi Ubicación Actual' && (
-                         <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                           <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
-                         </span>
-                      )}
-                    </>
-                  )}
-                </button>
+              {/* Ciudad */}
+              <div className="relative group">
+                <label className="block text-[10px] font-black text-primary mb-2 tracking-widest uppercase ml-1">Ciudad</label>
+                <div className="relative flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-colors" />
+                    {country === 'Ecuador' && province ? (
+                      <select 
+                        value={city}
+                        onChange={(e) => setCity(e.target.value)}
+                        className="w-full pl-9 pr-4 py-3 rounded-xl border border-slate-100 bg-slate-50 focus:ring-2 focus:ring-primary outline-none transition-all text-slate-700 font-medium appearance-none"
+                      >
+                        <option value="">Seleccionar Ciudad</option>
+                        {ecuadorData[province]?.sort().map(c => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                    ) : (
+                      <input 
+                        type="text"
+                        placeholder="Ciudad"
+                        value={city}
+                        onChange={(e) => setCity(e.target.value)}
+                        className="w-full pl-9 pr-4 py-3 rounded-xl border border-slate-100 bg-slate-50 focus:ring-2 focus:ring-primary outline-none transition-all text-slate-700 font-medium"
+                      />
+                    )}
+                  </div>
+
+                  <button 
+                    onClick={handleGetLocation}
+                    disabled={isLocating}
+                    className={`p-3 rounded-xl transition-all shadow-sm flex items-center justify-center relative ${
+                      searchQuery === 'Mi Ubicación Actual' 
+                        ? 'bg-emerald-100 text-emerald-600' 
+                        : 'bg-secondary/10 text-secondary hover:bg-secondary hover:text-white'
+                    }`}
+                    title="Usar mi ubicación actual"
+                  >
+                    {isLocating ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Navigation className="w-5 h-5" />}
+                  </button>
+                  
+                  <select
+                    value={radius}
+                    onChange={(e) => setRadius(Number(e.target.value))}
+                    className="py-3 px-2 rounded-xl border border-slate-100 bg-slate-50 outline-none text-slate-700 text-xs font-bold shrink-0 no-appearance"
+                    title="Radio de búsqueda"
+                  >
+                    <option value={10}>10 km</option>
+                    <option value={30}>30 km</option>
+                    <option value={50}>50 km</option>
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -585,7 +624,9 @@ const Home = () => {
             <div className="flex w-full xl:w-auto gap-2 shrink-0">
               <button 
                  onClick={() => {
-                   setSearchQuery('');
+                   setCity('');
+                   setProvince('');
+                   setCountry('');
                    setLat(null);
                    setLng(null);
                    setRadius(10);
@@ -593,7 +634,7 @@ const Home = () => {
                    setChildrenCount(0);
                    setDate('');
                    setSearchParams({});
-                   fetchActivities({ searchQuery: '', lat: null, lng: null, radius: 10, adults: 1, childrenCount: 0, date: '' });
+                   fetchActivities({ city: '', province: '', country: '', lat: null, lng: null, radius: 10, adults: 1, childrenCount: 0, date: '' });
                  }}
                  className="w-1/3 xl:w-auto bg-slate-100 hover:bg-slate-200 text-slate-600 px-6 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 border border-slate-200"
                  title="Limpiar filtros"

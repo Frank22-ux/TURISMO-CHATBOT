@@ -1,7 +1,7 @@
 const db = require('../config/database');
 
 const findAll = async (filters = {}) => {
-    const { location, lat, lng, radius, guests, startDate, endDate } = filters;
+    const { location, city, province, country, lat, lng, radius, guests, startDate, endDate } = filters;
     let params = [];
     
     // Helper to add param and return its placeholder
@@ -11,6 +11,9 @@ const findAll = async (filters = {}) => {
     };
 
     let pLocation = location ? addParam(`%${location}%`) : null;
+    let pCity = city ? addParam(`%${city}%`) : null;
+    let pProvince = province ? addParam(`%${province}%`) : null;
+    let pCountry = country ? addParam(`%${country}%`) : null;
     let pLat = lat ? addParam(lat) : null;
     let pLng = lng ? addParam(lng) : null;
     let pRadius = radius ? addParam(radius) : null;
@@ -22,7 +25,19 @@ const findAll = async (filters = {}) => {
         let clauses = [];
         
         if (pLocation) {
-            clauses.push(`(u.ciudad ILIKE ${pLocation} OR u.pais ILIKE ${pLocation} OR u.direccion ILIKE ${pLocation})`);
+            clauses.push(`(u.ciudad ILIKE ${pLocation} OR u.pais ILIKE ${pLocation} OR u.provincia ILIKE ${pLocation} OR u.direccion ILIKE ${pLocation})`);
+        }
+
+        if (pCity) {
+            clauses.push(`u.ciudad ILIKE ${pCity}`);
+        }
+
+        if (pProvince) {
+            clauses.push(`u.provincia ILIKE ${pProvince}`);
+        }
+
+        if (pCountry) {
+            clauses.push(`u.pais ILIKE ${pCountry}`);
         }
 
         if (pLat && pLng && pRadius) {
