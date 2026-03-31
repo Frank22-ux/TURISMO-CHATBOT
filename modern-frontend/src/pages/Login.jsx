@@ -2,11 +2,13 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Phone, ArrowRight, Mountain } from 'lucide-react';
 import AuthLayout from '../components/AuthLayout';
+import PhoneInputWithCountry from '../components/PhoneInputWithCountry';
 
 const Login = () => {
   const [method, setMethod] = useState('email');
-  const [formData, setFormData] = useState({ identifier: '', password: '' });
+  const [formData, setFormData] = useState({ identifier: '', password: '', phone: '' });
   const [loading, setLoading] = useState(false);
+  const [isPhoneValid, setIsPhoneValid] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -17,7 +19,7 @@ const Login = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          [method]: formData.identifier,
+          [method]: method === 'phone' ? formData.phone : formData.identifier,
           password: formData.password
         })
       });
@@ -77,17 +79,23 @@ const Login = () => {
           </label>
           <div className="relative">
             {method === 'email' ? (
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
+              <>
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
+                <input 
+                  type="email"
+                  required
+                  className="auth-input pl-12"
+                  placeholder="tu@correo.com"
+                  onChange={(e) => setFormData({...formData, identifier: e.target.value})}
+                />
+              </>
             ) : (
-              <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
+              <PhoneInputWithCountry 
+                value={formData.phone}
+                onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                onValidationChange={setIsPhoneValid}
+              />
             )}
-            <input 
-              type={method === 'email' ? 'email' : 'tel'}
-              required
-              className="w-full pl-12 pr-4 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all"
-              placeholder={method === 'email' ? 'tu@correo.com' : '+593...'}
-              onChange={(e) => setFormData({...formData, identifier: e.target.value})}
-            />
           </div>
         </div>
 
@@ -101,7 +109,7 @@ const Login = () => {
             <input 
               type="password"
               required
-              className="w-full pl-12 pr-4 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all"
+              className="auth-input pl-12"
               placeholder="••••••••"
               onChange={(e) => setFormData({...formData, password: e.target.value})}
             />
@@ -110,8 +118,8 @@ const Login = () => {
 
         <button 
           type="submit" 
-          disabled={loading}
-          className="w-full py-4 bg-primary hover:bg-primary-dark text-white rounded-2xl font-black shadow-xl shadow-primary/20 hover:shadow-primary/30 transform hover:-translate-y-1 active:scale-95 transition-all flex items-center justify-center gap-2 group"
+          disabled={loading || (method === 'phone' && !isPhoneValid && formData.phone.length > 0)}
+          className={`w-full py-5 bg-primary hover:bg-primary-dark text-white rounded-2xl font-black shadow-xl shadow-primary/20 hover:shadow-primary/30 transform hover:-translate-y-1 active:scale-95 transition-all flex items-center justify-center gap-2 group ${(method === 'phone' && !isPhoneValid && formData.phone.length > 0) ? 'opacity-70 cursor-not-allowed' : ''}`}
         >
           {loading ? 'Ingresando...' : <>Ingresar <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" /></>}
         </button>
