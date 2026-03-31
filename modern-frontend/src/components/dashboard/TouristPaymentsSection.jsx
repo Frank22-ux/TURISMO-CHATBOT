@@ -8,8 +8,13 @@ const TouristPaymentsSection = () => {
     banco_nombre: '',
     tipo_cuenta: '',
     numero_cuenta: '',
-    identificacion: ''
+    identificacion: '',
+    banco_swift: '',
+    banco_direccion: '',
+    banco_pais: ''
   });
+  const [isInternational, setIsInternational] = useState(false);
+  const [showSecurityModal, setShowSecurityModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const { showToast } = useToast();
@@ -39,8 +44,14 @@ const TouristPaymentsSection = () => {
           banco_nombre: prData.banco_nombre || '',
           tipo_cuenta: prData.tipo_cuenta || '',
           numero_cuenta: prData.numero_cuenta || '',
-          identificacion: prData.identificacion || ''
+          identificacion: prData.identificacion || '',
+          banco_swift: prData.banco_swift || '',
+          banco_direccion: prData.banco_direccion || '',
+          banco_pais: prData.banco_pais || ''
         });
+        
+        // Auto-detect if it's international if swift is present
+        if (prData.banco_swift) setIsInternational(true);
       }
     } catch (err) {
       showToast('Error de red al cargar datos', 'error');
@@ -108,12 +119,38 @@ const TouristPaymentsSection = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
-            <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
-              <Landmark className="w-5 h-5 text-slate-400"/> Datos para Reembolsos
-            </h3>
+          <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col h-full">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                <Landmark className="w-5 h-5 text-slate-400"/> Datos Bancarios
+              </h3>
+              <button 
+                onClick={() => setShowSecurityModal(true)}
+                className="p-2 text-primary hover:bg-primary/10 rounded-xl transition-all"
+                title="Seguridad de tus datos"
+              >
+                <ShieldCheck className="w-5 h-5" />
+              </button>
+            </div>
             
-            <form onSubmit={handleSaveBankInfo} className="space-y-4">
+            <div className="mb-6 p-4 bg-amber-50 border border-amber-100 rounded-2xl flex gap-3">
+              <Clock className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+              <p className="text-[11px] font-bold text-amber-700 leading-relaxed">
+                <span className="uppercase block mb-1">Aviso de Reembolsos</span>
+                Las devoluciones se procesan en un plazo de <span className="underline">20 días hábiles</span> tras la cancelación.
+              </p>
+            </div>
+
+            <form onSubmit={handleSaveBankInfo} className="space-y-4 flex-grow">
+              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-slate-100 mb-2">
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-6 rounded-full transition-all relative cursor-pointer ${isInternational ? 'bg-primary' : 'bg-slate-300'}`} onClick={() => setIsInternational(!isInternational)}>
+                    <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${isInternational ? 'left-5' : 'left-1'}`} />
+                  </div>
+                  <span className="text-xs font-black text-slate-500 uppercase tracking-tight">Cuenta Internacional</span>
+                </div>
+              </div>
+
               <div>
                 <label className="text-xs font-bold text-slate-500 uppercase">Banco (Entidad)</label>
                 <input 
@@ -121,10 +158,49 @@ const TouristPaymentsSection = () => {
                   value={bankInfo.banco_nombre}
                   onChange={(e) => setBankInfo({...bankInfo, banco_nombre: e.target.value})}
                   className="w-full mt-1 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-primary/20 outline-none text-sm font-bold text-slate-700" 
-                  placeholder="Ej: Banco Guayaquil"
+                  placeholder={isInternational ? "Nombre del banco extranjero" : "Ej: Banco Guayaquil"}
                   required
                 />
               </div>
+
+              {isInternational && (
+                <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div>
+                    <label className="text-xs font-bold text-slate-500 uppercase">Código SWIFT / BIC</label>
+                    <input 
+                      type="text" 
+                      value={bankInfo.banco_swift}
+                      onChange={(e) => setBankInfo({...bankInfo, banco_swift: e.target.value})}
+                      className="w-full mt-1 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-primary/20 outline-none text-sm font-bold text-slate-700" 
+                      placeholder="8 o 11 caracteres"
+                      required={isInternational}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-slate-500 uppercase">País del Banco</label>
+                    <input 
+                      type="text" 
+                      value={bankInfo.banco_pais}
+                      onChange={(e) => setBankInfo({...bankInfo, banco_pais: e.target.value})}
+                      className="w-full mt-1 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-primary/20 outline-none text-sm font-bold text-slate-700" 
+                      placeholder="Ej: Estados Unidos"
+                      required={isInternational}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-slate-500 uppercase">Dirección de la Agencia</label>
+                    <input 
+                      type="text" 
+                      value={bankInfo.banco_direccion}
+                      onChange={(e) => setBankInfo({...bankInfo, banco_direccion: e.target.value})}
+                      className="w-full mt-1 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-primary/20 outline-none text-sm font-bold text-slate-700" 
+                      placeholder="Calle, Ciudad, Estado"
+                      required={isInternational}
+                    />
+                  </div>
+                </div>
+              )}
+
               <div>
                 <label className="text-xs font-bold text-slate-500 uppercase">Número de Identificación</label>
                 <input 
@@ -132,7 +208,7 @@ const TouristPaymentsSection = () => {
                   value={bankInfo.identificacion}
                   onChange={(e) => setBankInfo({...bankInfo, identificacion: e.target.value})}
                   className="w-full mt-1 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-primary/20 outline-none text-sm font-bold text-slate-700" 
-                  placeholder="Cédula/RUC del titular"
+                  placeholder={isInternational ? "ID / Pasaporte del titular" : "Cédula/RUC del titular"}
                   required
                 />
               </div>
@@ -146,18 +222,18 @@ const TouristPaymentsSection = () => {
                     required
                   >
                     <option value="">Seleccionar</option>
-                    <option value="AHORRO">Ahorros</option>
-                    <option value="CORRIENTE">Corriente</option>
+                    <option value="AHORRO">Ahorros / Savings</option>
+                    <option value="CORRIENTE">Corriente / Checking</option>
                   </select>
                 </div>
                 <div className="col-span-2 sm:col-span-1">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Nº de Cuenta</label>
+                  <label className="text-xs font-bold text-slate-500 uppercase">Nº de Cuenta / IBAN</label>
                   <input 
                     type="text" 
                     value={bankInfo.numero_cuenta}
                     onChange={(e) => setBankInfo({...bankInfo, numero_cuenta: e.target.value})}
                     className="w-full mt-1 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-primary/20 outline-none text-sm font-bold text-slate-700" 
-                    placeholder="2200..."
+                    placeholder="Número de cuenta..."
                     required
                   />
                 </div>
@@ -166,14 +242,36 @@ const TouristPaymentsSection = () => {
               <button 
                 type="submit" 
                 disabled={isSaving}
-                className="w-full mt-2 py-3 bg-slate-800 text-white rounded-xl font-bold text-sm hover:bg-slate-900 transition-all flex items-center justify-center gap-2"
+                className="w-full mt-4 py-3.5 bg-slate-800 text-white rounded-2xl font-bold text-sm hover:bg-slate-900 transition-all flex items-center justify-center gap-2 shadow-lg shadow-slate-200"
               >
                 {isSaving ? <Clock className="w-4 h-4 animate-spin"/> : <Save className="w-4 h-4"/>} 
-                {isSaving ? 'Guardando...' : 'Guardar Cuenta'}
+                {isSaving ? 'Guardando...' : 'Guardar Datos Bancarios'}
               </button>
             </form>
           </div>
         </div>
+
+        {/* Security Modal */}
+        {showSecurityModal && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
+            <div className="bg-white rounded-[32px] p-8 max-w-md w-full shadow-2xl relative overflow-hidden">
+              <div className="absolute -top-10 -right-10 w-40 h-40 bg-emerald-50 rounded-full" />
+              <ShieldCheck className="w-16 h-16 text-emerald-500 mb-6 relative" />
+              <h3 className="text-2xl font-black text-slate-800 mb-4 leading-tight">Tu seguridad es nuestra prioridad</h3>
+              <div className="space-y-4 text-slate-600 font-medium leading-relaxed">
+                <p>Ciframos tu información bancaria mediante protocolos de seguridad de grado bancario (AES-256).</p>
+                <p>Cumplimos con los estándares internacionales PCI DSS para el manejo seguro de datos sensibles.</p>
+                <p>Tu información solo se utiliza para procesar reembolsos automáticos y nunca se comparte con terceros.</p>
+              </div>
+              <button 
+                onClick={() => setShowSecurityModal(false)}
+                className="w-full mt-8 py-3 bg-slate-100 text-slate-800 rounded-2xl font-black text-sm hover:bg-slate-200 transition-all"
+              >
+                Entendido
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Right Side: Ledger */}
         <div className="lg:col-span-2">

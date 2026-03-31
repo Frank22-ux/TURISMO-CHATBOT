@@ -162,16 +162,19 @@ const initializeProfile = async (id_anfitrion) => {
 };
 
 const updateBankProfile = async (id_anfitrion, bankData) => {
-    const { banco_nombre, tipo_cuenta, numero_cuenta, identificacion } = bankData;
+    const { banco_nombre, tipo_cuenta, numero_cuenta, identificacion, banco_swift, banco_direccion, banco_pais } = bankData;
     const { rows } = await db.query(
         `UPDATE perfil_anfitrion 
          SET banco_nombre = COALESCE($1, banco_nombre),
              tipo_cuenta = COALESCE($2, tipo_cuenta),
              numero_cuenta = COALESCE($3, numero_cuenta),
-             identificacion = COALESCE($4, identificacion)
-         WHERE id_anfitrion = $5
-         RETURNING banco_nombre, tipo_cuenta, numero_cuenta, identificacion`,
-        [banco_nombre, tipo_cuenta, numero_cuenta, identificacion, id_anfitrion]
+             identificacion = COALESCE($4, identificacion),
+             banco_swift = COALESCE($5, banco_swift),
+             banco_direccion = COALESCE($6, banco_direccion),
+             banco_pais = COALESCE($7, banco_pais)
+         WHERE id_anfitrion = $8
+         RETURNING *`,
+        [banco_nombre, tipo_cuenta, numero_cuenta, identificacion, banco_swift, banco_direccion, banco_pais, id_anfitrion]
     );
     return rows[0];
 };

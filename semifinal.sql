@@ -56,6 +56,9 @@ CREATE TABLE perfil_anfitrion (
     tipo_cuenta VARCHAR(50),
     numero_cuenta VARCHAR(50),
     identificacion VARCHAR(20),
+    banco_swift VARCHAR(20),
+    banco_direccion TEXT,
+    banco_pais VARCHAR(80),
 
     FOREIGN KEY (id_anfitrion)
         REFERENCES usuarios(id_usuario)
@@ -76,6 +79,14 @@ CREATE TABLE perfil_turista (
     url_foto_portada TEXT,
     url_documento_legal_frontal TEXT,
     url_documento_legal_posterior TEXT,
+    
+    banco_nombre VARCHAR(100),
+    tipo_cuenta VARCHAR(50),
+    numero_cuenta VARCHAR(50),
+    identificacion VARCHAR(20),
+    banco_swift VARCHAR(20),
+    banco_direccion TEXT,
+    banco_pais VARCHAR(80),
 
     FOREIGN KEY (id_turista)
         REFERENCES usuarios(id_usuario)

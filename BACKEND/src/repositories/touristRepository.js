@@ -155,16 +155,19 @@ const initializeProfile = async (id_turista) => {
 };
 
 const updateBankProfile = async (id_turista, bankData) => {
-    const { banco_nombre, tipo_cuenta, numero_cuenta, identificacion } = bankData;
+    const { banco_nombre, tipo_cuenta, numero_cuenta, identificacion, banco_swift, banco_direccion, banco_pais } = bankData;
     const { rows } = await db.query(
         `UPDATE perfil_turista 
          SET banco_nombre = COALESCE($1, banco_nombre),
              tipo_cuenta = COALESCE($2, tipo_cuenta),
              numero_cuenta = COALESCE($3, numero_cuenta),
-             identificacion = COALESCE($4, identificacion)
-         WHERE id_turista = $5
+             identificacion = COALESCE($4, identificacion),
+             banco_swift = COALESCE($5, banco_swift),
+             banco_direccion = COALESCE($6, banco_direccion),
+             banco_pais = COALESCE($7, banco_pais)
+         WHERE id_turista = $8
          RETURNING *`,
-        [banco_nombre, tipo_cuenta, numero_cuenta, identificacion, id_turista]
+        [banco_nombre, tipo_cuenta, numero_cuenta, identificacion, banco_swift, banco_direccion, banco_pais, id_turista]
     );
     return rows[0];
 };

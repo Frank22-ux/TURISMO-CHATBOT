@@ -55,7 +55,10 @@ const updateBankProfile = async (req, res) => {
             banco_nombre: req.body.banco_nombre,
             tipo_cuenta: req.body.tipo_cuenta,
             numero_cuenta: req.body.numero_cuenta,
-            identificacion: req.body.identificacion
+            identificacion: req.body.identificacion,
+            banco_swift: req.body.banco_swift,
+            banco_direccion: req.body.banco_direccion,
+            banco_pais: req.body.banco_pais
         };
         const updatedProfile = await touristRepository.updateBankProfile(id_turista, bankData);
         res.json(updatedProfile);

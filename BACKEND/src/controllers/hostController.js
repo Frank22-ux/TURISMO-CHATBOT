@@ -28,8 +28,11 @@ const updateProfile = async (req, res) => {
 const updateBankProfile = async (req, res) => {
     try {
         const id_anfitrion = req.user.id;
-        const { banco_nombre, tipo_cuenta, numero_cuenta, identificacion } = req.body;
-        const result = await hostService.updateBankProfile(id_anfitrion, { banco_nombre, tipo_cuenta, numero_cuenta, identificacion });
+        const { banco_nombre, tipo_cuenta, numero_cuenta, identificacion, banco_swift, banco_direccion, banco_pais } = req.body;
+        const result = await hostService.updateBankProfile(id_anfitrion, { 
+            banco_nombre, tipo_cuenta, numero_cuenta, identificacion, 
+            banco_swift, banco_direccion, banco_pais 
+        });
         res.status(200).json(result);
     } catch (error) {
         res.status(500).json({ message: error.message });
