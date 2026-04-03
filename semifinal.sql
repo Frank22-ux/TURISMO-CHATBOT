@@ -184,6 +184,10 @@ CREATE TABLE actividades_turisticas (
     nivel_dificultad VARCHAR(20)
         CHECK (nivel_dificultad IN ('BAJO','MEDIO','ALTO')),
 
+    hora_inicio TIME DEFAULT '08:00:00',
+    hora_fin TIME DEFAULT '18:00:00',
+    dias_disponibles VARCHAR(100) DEFAULT '0,1,2,3,4,5,6',
+
     incluye_recorrido BOOLEAN DEFAULT TRUE,
     incluye_transporte BOOLEAN DEFAULT FALSE,
     requiere_equipo BOOLEAN DEFAULT FALSE,
@@ -219,6 +223,10 @@ CREATE TABLE actividades_alimentarias (
     fecha_fin_oferta TIMESTAMP,
     duracion_horas INT CHECK (duracion_horas > 0),
     capacidad INT CHECK (capacidad > 0),
+
+    hora_inicio TIME DEFAULT '08:00:00',
+    hora_fin TIME DEFAULT '18:00:00',
+    dias_disponibles VARCHAR(100) DEFAULT '0,1,2,3,4,5,6',
 
     menu_vegano BOOLEAN DEFAULT FALSE,
     menu_vegetariano BOOLEAN DEFAULT FALSE,
@@ -344,6 +352,9 @@ CREATE TABLE reservas (
     id_turista INT NOT NULL,
     fecha_experiencia DATE NOT NULL,
     cantidad_personas INT NOT NULL CHECK (cantidad_personas > 0),
+    cantidad_adultos INT DEFAULT 1,
+    cantidad_ninos INT DEFAULT 0,
+    cantidad_tercera_edad INT DEFAULT 0,
     total NUMERIC(10,2) NOT NULL,
 
     estado VARCHAR(20)
@@ -418,6 +429,12 @@ CREATE TABLE mensajes (
         CHECK (estado IN ('ENVIADO', 'RECIBIDO', 'LEIDO')),
     editado BOOLEAN DEFAULT FALSE,
     fecha_envio TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Nuevas columnas para soporte de gestión de mensajes
+    eliminado_emisor BOOLEAN DEFAULT FALSE,
+    eliminado_receptor BOOLEAN DEFAULT FALSE,
+    archivado_emisor BOOLEAN DEFAULT FALSE,
+    archivado_receptor BOOLEAN DEFAULT FALSE,
 
     FOREIGN KEY (id_emisor) REFERENCES usuarios(id_usuario) ON DELETE CASCADE,
     FOREIGN KEY (id_receptor) REFERENCES usuarios(id_usuario) ON DELETE CASCADE

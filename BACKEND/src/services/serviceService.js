@@ -41,7 +41,10 @@ const createService = async (data) => {
         accesibilidad_silla_ruedas: !!accesibilidad_silla_ruedas, accesibilidad_adultos_mayores: !!accesibilidad_adultos_mayores, estacionamiento: !!estacionamiento,
         metodos_pago, descuentos_promociones, musica_en_vivo: !!musica_en_vivo, zona_infantil: !!zona_infantil, eventos_privados: !!eventos_privados,
         porcentaje_ganancia: parsedGanancia,
-        tipo_reserva: data.tipo_reserva || 'MANUAL'
+        tipo_reserva: data.tipo_reserva || 'MANUAL',
+        hora_inicio: data.hora_inicio,
+        hora_fin: data.hora_fin,
+        dias_disponibles: data.dias_disponibles
     });
 
     // 3. Create Image Portada
@@ -105,7 +108,10 @@ const updateService = async (id, data) => {
         accesibilidad_silla_ruedas: !!accesibilidad_silla_ruedas, accesibilidad_adultos_mayores: !!accesibilidad_adultos_mayores, estacionamiento: !!estacionamiento,
         metodos_pago, descuentos_promociones, musica_en_vivo: !!musica_en_vivo, zona_infantil: !!zona_infantil, eventos_privados: !!eventos_privados,
         porcentaje_ganancia: parsedGanancia,
-        tipo_reserva: tipo_reserva || 'MANUAL'
+        tipo_reserva: tipo_reserva || 'MANUAL',
+        hora_inicio: data.hora_inicio,
+        hora_fin: data.hora_fin,
+        dias_disponibles: data.dias_disponibles
     });
 
     // 2. Update Location

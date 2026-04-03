@@ -9,6 +9,7 @@ const BookingSidebar = ({ isOpen, onClose, activity }) => {
   const [date, setDate] = useState('');
   const [adults, setAdults] = useState(1);
   const [children, setChildren] = useState(0);
+  const [seniors, setSeniors] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
@@ -26,7 +27,7 @@ const BookingSidebar = ({ isOpen, onClose, activity }) => {
     const pricePerPerson = parseFloat(activity.price) || 0;
     
     // El precio de la actividad ya es el PRECIO FINAL
-    const total = (pricePerPerson * adults) + (pricePerPerson * 0.5 * children);
+    const total = (pricePerPerson * adults) + (pricePerPerson * 0.5 * children) + (pricePerPerson * 0.5 * seniors);
     
     // Desglose inverso del IVA (15% incluido)
     const subtotal = total / 1.15;
@@ -51,7 +52,10 @@ const BookingSidebar = ({ isOpen, onClose, activity }) => {
           reservationData: {
             id_actividad: activity.id,
             fecha_experiencia: date,
-            cantidad_personas: adults + children,
+            cantidad_personas: adults + children + seniors,
+            cantidad_adultos: adults,
+            cantidad_ninos: children,
+            cantidad_tercera_edad: seniors,
             total: priceDetails.total
           }
         })
@@ -136,6 +140,7 @@ const BookingSidebar = ({ isOpen, onClose, activity }) => {
       setCvv('');
       setSuccess(false);
       setAcceptedTerms(false);
+      setSeniors(0);
       setRemainingCapacity(activity?.capacidad || 0);
     }
   }, [isOpen, activity]);
@@ -166,6 +171,13 @@ const BookingSidebar = ({ isOpen, onClose, activity }) => {
     if (activity.duracion_horas) items.push({ icon: Clock, label: `${activity.duracion_horas} horas`, color: 'text-blue-500 bg-blue-50' });
     if (activity.nivel_dificultad) items.push({ icon: Shield, label: activity.nivel_dificultad, color: 'text-orange-500 bg-orange-50' });
     
+    // Schedule highlight
+    if (activity.hora_inicio && activity.hora_fin) {
+      const hInicio = activity.hora_inicio.substring(0, 5);
+      const hFin = activity.hora_fin.substring(0, 5);
+      items.push({ icon: Clock, label: `${hInicio} - ${hFin}`, color: 'text-blue-600 bg-blue-100' });
+    }
+
     if (date) {
         items.push({ 
             icon: Users, 
@@ -259,20 +271,12 @@ const BookingSidebar = ({ isOpen, onClose, activity }) => {
                       </section>
                       <section className="bg-red-50/50 p-6 rounded-3xl border border-red-100/50">
                         <h4 className="font-black text-red-600 uppercase text-xs tracking-widest mb-3">2. Política de Cancelación y Reembolsos</h4>
-                        <ul className="space-y-3 font-bold text-slate-700">
-                          <li className="flex items-center gap-3">
-                            <div className="w-2 h-2 rounded-full bg-red-400"></div>
-                            <span>Más de 2 días de antelación: <span className="text-emerald-600">75% de reembolso</span></span>
-                          </li>
-                          <li className="flex items-center gap-3">
-                            <div className="w-2 h-2 rounded-full bg-red-400"></div>
-                            <span>De 1 a 2 días de antelación: <span className="text-orange-500">50% de reembolso</span></span>
-                          </li>
-                          <li className="flex items-center gap-3">
-                            <div className="w-2 h-2 rounded-full bg-red-400"></div>
-                            <span>Mismo día de la reserva: <span className="text-red-600">Sin reembolso</span></span>
-                          </li>
-                        </ul>
+                        <p className="font-bold text-slate-700 mb-3">
+                          Se devolverá únicamente el <span className="text-red-600">30% del total</span> de la experiencia en caso de cancelación por cualquier motivo.
+                        </p>
+                        <p className="text-sm font-medium text-slate-600">
+                          Solo por factores externos comprobables se podrá solicitar una reprogramación de la fecha, sujeto a disponibilidad del anfitrión.
+                        </p>
                         <p className="mt-4 text-sm font-medium text-slate-500 italic">* Las cancelaciones se procesan utilizando el código protector de tu boleto digital.</p>
                       </section>
                       <section>
@@ -378,7 +382,17 @@ const BookingSidebar = ({ isOpen, onClose, activity }) => {
                   <label className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-slate-400">
                     <Calendar className="w-3.5 h-3.5" /> 1. Elige tu fecha ideal
                   </label>
-                  <CustomCalendar selectedDate={date} onSelect={setDate} />
+                  <CustomCalendar 
+                    selectedDate={date} 
+                    onSelect={setDate} 
+                    availableDays={
+                      activity.dias_disponibles 
+                        ? (typeof activity.dias_disponibles === 'string' 
+                            ? activity.dias_disponibles.split(',').map(Number) 
+                            : activity.dias_disponibles)
+                        : [0, 1, 2, 3, 4, 5, 6]
+                    }
+                  />
                   {date && (
                     <motion.div 
                       initial={{ opacity: 0, y: -10 }} 
@@ -419,15 +433,15 @@ const BookingSidebar = ({ isOpen, onClose, activity }) => {
                         <span className="font-display font-black text-2xl w-6 text-center">{adults}</span>
                         <button 
                           onClick={() => {
-                            if (adults + children < remainingCapacity) {
+                            if (adults + children + seniors < remainingCapacity) {
                                 setAdults(adults + 1);
                             } else {
                                 setError(`Lo sentimos, solo quedan ${remainingCapacity} cupos disponibles.`);
                             }
                           }}
-                          disabled={adults + children >= remainingCapacity || loadingCapacity}
+                          disabled={adults + children + seniors >= remainingCapacity || loadingCapacity}
                           className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all shadow-xl active:scale-90 ${
-                            adults + children >= remainingCapacity 
+                            adults + children + seniors >= remainingCapacity 
                               ? 'bg-slate-200 text-slate-400 cursor-not-allowed' 
                               : 'bg-primary text-white hover:bg-primary-dark shadow-primary/20'
                           }`}
@@ -453,15 +467,15 @@ const BookingSidebar = ({ isOpen, onClose, activity }) => {
                         <span className="font-display font-black text-2xl w-6 text-center">{children}</span>
                         <button 
                           onClick={() => {
-                            if (adults + children < remainingCapacity) {
+                            if (adults + children + seniors < remainingCapacity) {
                                 setChildren(children + 1);
                             } else {
                                 setError(`Lo sentimos, solo quedan ${remainingCapacity} cupos disponibles.`);
                             }
                           }}
-                          disabled={adults + children >= remainingCapacity || loadingCapacity}
+                          disabled={adults + children + seniors >= remainingCapacity || loadingCapacity}
                           className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all shadow-xl active:scale-90 ${
-                            adults + children >= remainingCapacity 
+                            adults + children + seniors >= remainingCapacity 
                               ? 'bg-slate-200 text-slate-400 cursor-not-allowed' 
                               : 'bg-primary text-white hover:bg-primary-dark shadow-primary/20'
                           }`}
@@ -470,6 +484,54 @@ const BookingSidebar = ({ isOpen, onClose, activity }) => {
                         </button>
                       </div>
                     </div>
+
+                    {/* Seniors / Disabled */}
+                    <div className="flex justify-between items-center p-6 bg-slate-50/50 border border-slate-100 rounded-3xl group hover:border-primary/20 transition-all">
+                      <div>
+                        <p className="font-bold text-slate-800">3ra Edad / Discapacitados</p>
+                        <p className="text-[10px] text-emerald-600 uppercase font-black tracking-tighter">50% DESCUENTO</p>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <button 
+                          onClick={() => setSeniors(Math.max(0, seniors - 1))}
+                          className="w-12 h-12 rounded-2xl border border-slate-200 flex items-center justify-center hover:bg-white transition-all text-slate-400 hover:text-primary active:scale-90"
+                        >
+                          <Minus className="w-4 h-4" />
+                        </button>
+                        <span className="font-display font-black text-2xl w-6 text-center">{seniors}</span>
+                        <button 
+                          onClick={() => {
+                            if (adults + children + seniors < remainingCapacity) {
+                                setSeniors(seniors + 1);
+                            } else {
+                                setError(`Lo sentimos, solo quedan ${remainingCapacity} cupos disponibles.`);
+                            }
+                          }}
+                          disabled={adults + children + seniors >= remainingCapacity || loadingCapacity}
+                          className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all shadow-xl active:scale-90 ${
+                            adults + children + seniors >= remainingCapacity 
+                              ? 'bg-slate-200 text-slate-400 cursor-not-allowed' 
+                              : 'bg-primary text-white hover:bg-primary-dark shadow-primary/20'
+                          }`}
+                        >
+                          <Plus className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Seniors/Disabled Policy Warning */}
+                    {seniors > 0 && (
+                      <motion.div 
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        className="p-4 bg-amber-50 border border-amber-200 rounded-2xl flex gap-3 text-amber-800"
+                      >
+                        <Shield className="w-5 h-5 shrink-0" />
+                        <p className="text-[11px] font-bold leading-relaxed">
+                          IMPORTANTE: Si la persona no acredita su condición (Cédula de 3ra edad o Carnet de Discapacidad) al inicio de la actividad, deberá pagar el saldo restante o se le negará la experiencia sin derecho a reembolso.
+                        </p>
+                      </motion.div>
+                    )}
                   </div>
                 </div>
               </div>

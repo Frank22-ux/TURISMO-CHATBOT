@@ -28,7 +28,10 @@ const createActivity = async (activityData) => {
         tipo_reserva: activityData.tipo_reserva,
         incluye_recorrido: activityData.incluye_recorrido,
         incluye_transporte: activityData.incluye_transporte,
-        requiere_equipo: activityData.requiere_equipo
+        requiere_equipo: activityData.requiere_equipo,
+        hora_inicio: activityData.hora_inicio,
+        hora_fin: activityData.hora_fin,
+        dias_disponibles: activityData.dias_disponibles
     });
 
     // 3. Create Image Portada
@@ -89,7 +92,10 @@ const updateActivity = async (id, data) => {
         tipo_reserva: data.tipo_reserva,
         incluye_recorrido: data.incluye_recorrido,
         incluye_transporte: data.incluye_transporte,
-        requiere_equipo: data.requiere_equipo
+        requiere_equipo: data.requiere_equipo,
+        hora_inicio: data.hora_inicio,
+        hora_fin: data.hora_fin,
+        dias_disponibles: data.dias_disponibles
     });
 
     // 2. Update Location

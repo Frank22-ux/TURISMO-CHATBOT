@@ -212,16 +212,18 @@ const createLocation = async (locationData) => {
 const createActivity = async (activityData) => {
     const { 
         titulo, descripcion, precio, duracion_hours, capacidad, 
-        nivel_dificultad, id_anfitrion, id_categoria, id_clasificacion, id_ubicacion 
+        nivel_dificultad, id_anfitrion, id_categoria, id_clasificacion, id_ubicacion,
+        hora_inicio, hora_fin, dias_disponibles
     } = activityData;
 
     const query = `
         INSERT INTO actividades_turisticas (
             titulo, descripcion, precio, duracion_horas, capacidad, 
             nivel_dificultad, id_anfitrion, id_categoria, id_clasificacion, id_ubicacion,
-            porcentaje_ganancia, tipo_reserva, incluye_recorrido, incluye_transporte, requiere_equipo
+            porcentaje_ganancia, tipo_reserva, incluye_recorrido, incluye_transporte, requiere_equipo,
+            hora_inicio, hora_fin, dias_disponibles
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
         RETURNING id_actividad
     `;
     
@@ -232,7 +234,10 @@ const createActivity = async (activityData) => {
         activityData.tipo_reserva || 'MANUAL',
         activityData.incluye_recorrido ?? true,
         activityData.incluye_transporte || false,
-        activityData.requiere_equipo || false
+        activityData.requiere_equipo || false,
+        hora_inicio || '08:00:00',
+        hora_fin || '18:00:00',
+        dias_disponibles || '0,1,2,3,4,5,6'
     ]);
     return rows[0].id_actividad;
 };
@@ -336,7 +341,8 @@ const updateActivity = async (id, data) => {
         titulo, descripcion, precio, duracion_horas, capacidad, 
         nivel_dificultad, id_categoria, id_clasificacion,
         porcentaje_ganancia, tipo_reserva,
-        incluye_recorrido, incluye_transporte, requiere_equipo
+        incluye_recorrido, incluye_transporte, requiere_equipo,
+        hora_inicio, hora_fin, dias_disponibles
     } = data;
     const query = `
         UPDATE actividades_turisticas
@@ -344,8 +350,9 @@ const updateActivity = async (id, data) => {
             capacidad = $5, nivel_dificultad = $6, id_categoria = $7, id_clasificacion = $8,
             porcentaje_ganancia = $9, tipo_reserva = $10,
             incluye_recorrido = $11, incluye_transporte = $12, requiere_equipo = $13,
-            precio_oferta = $14, fecha_fin_oferta = $15
-        WHERE id_actividad = $16
+            precio_oferta = $14, fecha_fin_oferta = $15,
+            hora_inicio = $16, hora_fin = $17, dias_disponibles = $18
+        WHERE id_actividad = $19
     `;
     await db.query(query, [
         titulo, descripcion, precio, duracion_horas, capacidad, 
@@ -354,6 +361,9 @@ const updateActivity = async (id, data) => {
         incluye_recorrido, incluye_transporte, requiere_equipo,
         data.precio_oferta || null,
         data.fecha_fin_oferta || null,
+        hora_inicio || '08:00:00',
+        hora_fin || '18:00:00',
+        dias_disponibles || '0,1,2,3,4,5,6',
         id
     ]);
 };

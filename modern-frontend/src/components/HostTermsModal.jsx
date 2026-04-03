@@ -86,7 +86,7 @@ const HostTermsModal = ({ isOpen, onClose }) => {
               <div>
                 <h3 className="font-bold text-slate-800 mb-2">3. Política de Cancelaciones</h3>
                 <p className="text-sm text-slate-600 leading-relaxed">
-                  Los anfitriones que cancelen reservas confirmadas están sujetos a penalizaciones en su visibilidad. Los turistas pueden cancelar y recibir el reembolso íntegro según la flexibilidad que tú definas al momento de publicar el evento.
+                  Los anfitriones que cancelen reservas confirmadas están sujetos a penalizaciones en su visibilidad. Tras una cancelación por parte del turista, se aplicará un reembolso fijo del 30% del total de la experiencia.
                 </p>
               </div>
             </div>

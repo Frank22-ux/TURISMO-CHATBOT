@@ -12,7 +12,7 @@ const updateStatus = async (id_reserva, estado) => {
 };
 
 const createReservation = async (data, paymentToken) => {
-    const { id_actividad, id_turista, fecha_experiencia, cantidad_personas, total } = data;
+    const { id_actividad, id_turista, fecha_experiencia, cantidad_personas, cantidad_adultos, cantidad_ninos, cantidad_tercera_edad, total } = data;
 
     // 1. Obtener detalles de la actividad para calcular comisiones
     const activity = await activityRepository.findFullById(id_actividad);
@@ -45,6 +45,9 @@ const createReservation = async (data, paymentToken) => {
         id_turista,
         fecha_experiencia,
         cantidad_personas,
+        cantidad_adultos,
+        cantidad_ninos,
+        cantidad_tercera_edad,
         total,
         estado: 'APROBADA', // Al ser pago inmediato, la aprobamos
         codigo_qr_turista,
@@ -110,15 +113,8 @@ const cancelReservationByTourist = async (id_turista, id_reserva, codigo_qr_turi
     const diffTime = fechaExperiencia - ahora;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
-    let porcentajeReembolso = 0;
-    
-    if (diffDays > 2) {
-        porcentajeReembolso = 75;
-    } else if (diffDays > 0 && diffDays <= 2) {
-        porcentajeReembolso = 50;
-    } else {
-        porcentajeReembolso = 0;
-    }
+    // Política de reembolso fija: 30% del total por cualquier motivo
+    const porcentajeReembolso = 30;
 
     const montoReembolsado = (reservation.total * porcentajeReembolso) / 100;
 

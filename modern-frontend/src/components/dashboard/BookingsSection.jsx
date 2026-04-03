@@ -433,11 +433,12 @@ const BookingsSection = ({ status: initialStatusFilter }) => {
             
             <div className="bg-red-50 p-4 rounded-2xl mb-6">
               <h4 className="font-bold text-red-800 mb-2 border-b border-red-200 pb-2">Políticas de Reembolso:</h4>
-              <ul className="text-sm space-y-2 text-red-700 mt-2">
-                <li className="flex items-start gap-2"><div className="w-1.5 h-1.5 rounded-full bg-red-400 mt-1.5 shrink-0"></div><span><strong>Más de 2 días</strong> de antelación: 75% reembolso</span></li>
-                <li className="flex items-start gap-2"><div className="w-1.5 h-1.5 rounded-full bg-red-400 mt-1.5 shrink-0"></div><span><strong>De 1 a 2 días</strong> de antelación: 50% reembolso</span></li>
-                <li className="flex items-start gap-2"><div className="w-1.5 h-1.5 rounded-full bg-red-400 mt-1.5 shrink-0"></div><span><strong>Mismo día</strong> de la reserva: Sin reembolso</span></li>
-              </ul>
+              <p className="text-sm text-red-700 mt-2 font-bold">
+                Se devolverá únicamente el 30% del total de la experiencia por cualquier motivo de cancelación.
+              </p>
+              <p className="text-[10px] text-red-600/70 mt-2 italic">
+                * Solo por factores externos comprobables se puede reprogramar la fecha.
+              </p>
             </div>
 
             <p className="text-slate-500 mb-4 text-sm font-bold">Para confirmar tu cancelación, ingresa el código protector de reserva (Código QR de 10 caracteres) que aparece en tu boleto digital:</p>

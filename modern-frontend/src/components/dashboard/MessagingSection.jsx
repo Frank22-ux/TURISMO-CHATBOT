@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Send, Paperclip, MoreHorizontal, Info, User, Check, CheckCheck, MessageSquare, Trash2, Edit, Archive, UserCircle, X, Phone, Globe } from 'lucide-react';
+import ConfirmModal from './ConfirmModal';
 
 const MessagingSection = ({ initialHostId, initialHostName }) => {
   const [conversations, setConversations] = useState([]);
@@ -12,6 +13,7 @@ const MessagingSection = ({ initialHostId, initialHostName }) => {
   const [showInfo, setShowInfo] = useState(false);
   const [editingMsgId, setEditingMsgId] = useState(null);
   const [editContent, setEditContent] = useState('');
+  const [confirmState, setConfirmState] = useState({ isOpen: false, type: 'message', targetId: null, isLoading: false });
   const scrollRef = useRef();
 
   const fetchConversations = async () => {
@@ -117,19 +119,36 @@ const MessagingSection = ({ initialHostId, initialHostName }) => {
     }
   };
 
-  const handleDeleteMessage = async (id) => {
-    if (!window.confirm('¿Borrar este mensaje?')) return;
+  const handleDeleteMessage = (id) => {
+    setConfirmState({ isOpen: true, type: 'message', targetId: id, isLoading: false });
+  };
+
+  const executeDelete = async () => {
+    const { type, targetId } = confirmState;
+    setConfirmState(prev => ({ ...prev, isLoading: true }));
     try {
       const token = sessionStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/api/messages/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (response.ok) {
-        setMessages(prev => prev.filter(m => m.id_mensaje !== id));
+      if (type === 'message') {
+        const response = await fetch(`http://localhost:3000/api/messages/${targetId}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          setMessages(prev => prev.filter(m => m.id_mensaje !== targetId));
+        }
+      } else if (type === 'chat') {
+        await fetch(`http://localhost:3000/api/messages/conversations/${activeChat.id_receptor}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        setShowChatMenu(false);
+        setActiveChat(null);
+        fetchConversations();
       }
+      setConfirmState({ isOpen: false, type: 'message', targetId: null, isLoading: false });
     } catch (error) {
-      console.error('Error deleting message:', error);
+      console.error(`Error deleting ${type}:`, error);
+      setConfirmState(prev => ({ ...prev, isLoading: false }));
     }
   };
 
@@ -177,20 +196,9 @@ const MessagingSection = ({ initialHostId, initialHostName }) => {
     }
   };
 
-  const handleDeleteChat = async () => {
-    if (!activeChat || !window.confirm('¿Borrar toda la conversación?')) return;
-    try {
-      const token = sessionStorage.getItem('token');
-      await fetch(`http://localhost:3000/api/messages/conversations/${activeChat.id_receptor}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      setShowChatMenu(false);
-      setActiveChat(null);
-      fetchConversations();
-    } catch (error) {
-      console.error('Error deleting chat:', error);
-    }
+  const handleDeleteChat = () => {
+    if (!activeChat) return;
+    setConfirmState({ isOpen: true, type: 'chat', targetId: activeChat.id_receptor, isLoading: false });
   };
 
   if (loading) return <div className="p-20 text-center animate-pulse text-primary font-bold">Iniciando mensajería...</div>;
@@ -449,6 +457,19 @@ const MessagingSection = ({ initialHostId, initialHostName }) => {
           </div>
         )}
       </div>
+
+      <ConfirmModal 
+        isOpen={confirmState.isOpen}
+        onClose={() => setConfirmState({ isOpen: false, type: 'message', targetId: null, isLoading: false })}
+        onConfirm={executeDelete}
+        isLoading={confirmState.isLoading}
+        title={confirmState.type === 'message' ? '¿Eliminar Mensaje?' : '¿Eliminar Conversación?'}
+        message={
+          confirmState.type === 'message' 
+            ? 'Este mensaje se borrará permanentemente para ti.' 
+            : 'Se eliminarán todos los mensajes de esta conversación. Esta acción no se puede deshacer.'
+        }
+      />
     </div>
   );
 };

@@ -86,7 +86,11 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
     porcentaje_ganancia: 10,
     tipo_reserva: 'INSTANTANEA',
     precio_oferta: '',
-    fecha_fin_oferta: ''
+    fecha_fin_oferta: '',
+    // Scheduling
+    hora_inicio: '08:00',
+    hora_fin: '18:00',
+    dias_disponibles: [0, 1, 2, 3, 4, 5, 6]
   });
 
   const [position, setPosition] = useState({ lat: -0.180653, lng: -78.467834 });
@@ -127,7 +131,14 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
         porcentaje_ganancia: initialData.porcentaje_ganancia || 10,
         tipo_reserva: initialData.tipo_reserva || 'INSTANTANEA',
         precio_oferta: initialData.precio_oferta || '',
-        fecha_fin_oferta: initialData.fecha_fin_oferta ? new Date(initialData.fecha_fin_oferta).toISOString().split('T')[0] : ''
+        fecha_fin_oferta: initialData.fecha_fin_oferta ? new Date(initialData.fecha_fin_oferta).toISOString().split('T')[0] : '',
+        hora_inicio: initialData.hora_inicio ? initialData.hora_inicio.substring(0, 5) : '08:00',
+        hora_fin: initialData.hora_fin ? initialData.hora_fin.substring(0, 5) : '18:00',
+        dias_disponibles: initialData.dias_disponibles 
+          ? (typeof initialData.dias_disponibles === 'string' 
+              ? initialData.dias_disponibles.split(',').map(Number) 
+              : initialData.dias_disponibles)
+          : [0, 1, 2, 3, 4, 5, 6]
       };
       
       setFormData(normalizedData);
@@ -154,7 +165,9 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
         estacionamiento: false, musica_en_vivo: false, zona_infantil: false,
         eventos_privados: false, metodos_pago: '', descuentos_promociones: '',
         porcentaje_ganancia: 10, tipo_reserva: 'INSTANTANEA',
-        precio_oferta: '', fecha_fin_oferta: ''
+        precio_oferta: '', fecha_fin_oferta: '',
+        hora_inicio: '08:00', hora_fin: '18:00',
+        dias_disponibles: [0, 1, 2, 3, 4, 5, 6]
       });
       setPreview(null);
       setStep(1);
@@ -237,7 +250,9 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
       latitud: position.lat, 
       longitud: position.lng,
       url_imagen: formData.portada, // Mapping for backend
-      galeria: formData.galeria
+      galeria: formData.galeria,
+      // Convert dias_disponibles to string for backend if needed (though repo handles it)
+      dias_disponibles: formData.dias_disponibles.join(',')
     };
     await onSave(finalData);
     setLoading(false);
@@ -411,6 +426,75 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
                             ))}
                           </>
                         )}
+                      </div>
+                    </div>
+
+                    {/* Scheduling Section */}
+                    <div className="p-8 bg-slate-50/50 rounded-[40px] border border-slate-100 space-y-6">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Clock className="w-4 h-4 text-primary" />
+                        <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Horarios y Disponibilidad Semanal</h3>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        {/* Time pickers */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Hora Inicio</label>
+                            <input 
+                              type="time"
+                              value={formData.hora_inicio}
+                              onChange={(e) => setFormData({...formData, hora_inicio: e.target.value})}
+                              className="w-full px-4 py-3 bg-white border border-slate-100 rounded-2xl text-sm font-bold focus:border-primary outline-none transition-all"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Hora Fin</label>
+                            <input 
+                              type="time"
+                              value={formData.hora_fin}
+                              onChange={(e) => setFormData({...formData, hora_fin: e.target.value})}
+                              className="w-full px-4 py-3 bg-white border border-slate-100 rounded-2xl text-sm font-bold focus:border-primary outline-none transition-all"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Day selector */}
+                        <div className="space-y-2">
+                          <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Días Disponibles</label>
+                          <div className="flex justify-between gap-1">
+                            {[
+                              { label: 'D', value: 0 },
+                              { label: 'L', value: 1 },
+                              { label: 'M', value: 2 },
+                              { label: 'M', value: 3 },
+                              { label: 'J', value: 4 },
+                              { label: 'V', value: 5 },
+                              { label: 'S', value: 6 }
+                            ].map((day) => {
+                              const isSelected = formData.dias_disponibles.includes(day.value);
+                              return (
+                                <button
+                                  key={day.value}
+                                  type="button"
+                                  onClick={() => {
+                                    const newDays = isSelected
+                                      ? formData.dias_disponibles.filter(d => d !== day.value)
+                                      : [...formData.dias_disponibles, day.value].sort();
+                                    setFormData({...formData, dias_disponibles: newDays});
+                                  }}
+                                  className={`w-9 h-9 rounded-xl font-black text-xs transition-all ${
+                                    isSelected 
+                                      ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-110' 
+                                      : 'bg-white text-slate-300 border border-slate-100 hover:border-primary/30'
+                                  }`}
+                                >
+                                  {day.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>

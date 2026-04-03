@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-const CustomCalendar = ({ selectedDate, onSelect }) => {
+const CustomCalendar = ({ selectedDate, onSelect, availableDays = [0, 1, 2, 3, 4, 5, 6] }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   
   const daysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
@@ -22,11 +22,15 @@ const CustomCalendar = ({ selectedDate, onSelect }) => {
       current: false
     }));
     
-    const currentMonthDays = Array.from({ length: totalDays }, (_, i) => ({
-      day: i + 1,
-      month: month,
-      current: true
-    }));
+    const currentMonthDays = Array.from({ length: totalDays }, (_, i) => {
+      const d = new Date(year, month, i + 1);
+      return {
+        day: i + 1,
+        month: month,
+        current: true,
+        dayOfWeek: d.getDay() // 0=Sun, 1=Mon...
+      };
+    });
     
     return [...prevMonthDays, ...currentMonthDays];
   }, [currentMonth]);
@@ -79,11 +83,13 @@ const CustomCalendar = ({ selectedDate, onSelect }) => {
         {days.map((item, idx) => {
           const past = isPast(item.day, item.month);
           const active = isSelected(item.day, item.month);
+          const isAvailable = item.current && availableDays.includes(item.dayOfWeek);
+          
           return (
             <button
               key={idx}
               type="button"
-              disabled={past || !item.current}
+              disabled={past || !item.current || !isAvailable}
               onClick={() => {
                  const y = currentMonth.getFullYear();
                  const m = String(item.month + 1).padStart(2, '0');
@@ -92,7 +98,7 @@ const CustomCalendar = ({ selectedDate, onSelect }) => {
               }}
               className={`
                 aspect-square w-full rounded-xl flex items-center justify-center text-sm font-bold transition-all
-                ${!item.current ? 'text-slate-200' : past ? 'text-slate-300 cursor-not-allowed text-xs' : 'text-slate-700 hover:bg-primary-dark/5'}
+                ${!item.current ? 'text-slate-200' : past ? 'text-slate-300 cursor-not-allowed text-xs' : !isAvailable ? 'text-slate-200 cursor-not-allowed opacity-50' : 'text-slate-700 hover:bg-primary-dark/5'}
                 ${active ? 'bg-primary text-white shadow-lg shadow-primary/25 transform scale-105 !text-white' : ''}
               `}
             >

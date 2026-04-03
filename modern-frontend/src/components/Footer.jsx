@@ -159,7 +159,7 @@ const Footer = () => {
                           <strong>¿Cómo reservo?</strong> Selecciona tu actividad, elige la fecha y sigue los pasos de pago seguro.
                         </div>
                         <div className="p-4 border border-slate-100 rounded-2xl text-sm">
-                          <strong>Cancelaciones:</strong> Ofrecemos reembolso total hasta 48 horas antes del inicio de la actividad.
+                          <strong>Cancelaciones:</strong> Ofrecemos un reembolso del 30% del total por cualquier motivo de cancelación.
                         </div>
                         <div className="p-4 border border-slate-100 rounded-2xl text-sm">
                           <strong>Seguridad:</strong> Todas nuestras actividades cuentan con seguros y protocolos de emergencia actualizados.
