@@ -8,6 +8,7 @@ import InfoModal from '../components/InfoModal';
 import BookingSidebar from '../components/BookingSidebar';
 import MapView from '../components/dashboard/MapView';
 import { ecuadorData, provinces, countries } from '../data/ecuadorData';
+import { useCart, CartProvider } from '../contexts/CartContext';
 
 const ActivityCard = ({ activity, onOpenDetail, onOpenBooking }) => (
   <div className="group bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 border border-slate-50 relative flex flex-col h-full">
@@ -114,6 +115,7 @@ const Home = () => {
   const [viewMode, setViewMode] = useState('grid');
   const locationDropdownRef = useRef(null);
   const navigate = useNavigate();
+  const { addToCart } = useCart();
 
   const handleOpenBookingRequest = async (act) => {
     const userData = sessionStorage.getItem('user');
@@ -143,15 +145,23 @@ const Home = () => {
       const response = await fetch(`http://localhost:3000/api/activities/${act.id}`);
       if (response.ok) {
         const fullData = await response.json();
-        setActivityToBook(fullData);
+        const result = addToCart(fullData);
+        if (result.success || result.error === 'DUPLICATE') {
+           setIsBookingOpen(true);
+        }
       } else {
-        setActivityToBook(act);
+        const result = addToCart(act);
+        if (result.success || result.error === 'DUPLICATE') {
+           setIsBookingOpen(true);
+        }
       }
     } catch (error) {
       console.error('Error fetching booking details:', error);
-      setActivityToBook(act);
+      const result = addToCart(act);
+      if (result.success || result.error === 'DUPLICATE') {
+         setIsBookingOpen(true);
+      }
     }
-    setIsBookingOpen(true);
   };
   
   const [nominatimLocations, setNominatimLocations] = useState([]);
@@ -797,7 +807,6 @@ const Home = () => {
       <BookingSidebar 
         isOpen={isBookingOpen}
         onClose={() => setIsBookingOpen(false)}
-        activity={activityToBook}
       />
 
       <Footer />
@@ -813,4 +822,10 @@ const Home = () => {
 };
 
 
-export default Home;
+const HomeWrapper = () => (
+  <CartProvider>
+    <Home />
+  </CartProvider>
+);
+
+export default HomeWrapper;

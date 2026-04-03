@@ -49,6 +49,7 @@ const createReservation = async (data, paymentToken) => {
         cantidad_ninos,
         cantidad_tercera_edad,
         total,
+        descuento_aplicado: data.descuento_aplicado || 0,
         estado: 'APROBADA', // Al ser pago inmediato, la aprobamos
         codigo_qr_turista,
         codigo_verificacion_anfitrion
@@ -144,10 +145,70 @@ const cancelReservationByTourist = async (id_turista, id_reserva, codigo_qr_turi
     };
 };
 
+const createPackageReservation = async (data, paymentToken) => {
+    const { id_turista, hostId, discountPercentage, items, total } = data;
+
+    // 1. Procesar el cobro UNICO con Kushki por el TOTAL del paquete
+    const paymentResponse = await paymentService.processCharge(paymentToken, total, {
+        hostId,
+        id_turista,
+        packageSize: items.length
+    });
+
+    if (!paymentResponse.success) {
+        throw new Error(paymentResponse.error);
+    }
+
+    const generateCode = () => Math.random().toString(36).substring(2, 12).toUpperCase();
+    const reservations = [];
+
+    // 2. Crear cada reserva individualmente
+    for (const item of items) {
+        const activity = await activityRepository.findFullById(item.id_actividad);
+        if (!activity) continue;
+
+        const porcentajePlataforma = activity.porcentaje_ganancia || 10;
+        const monto_plataforma = (item.final_total * porcentajePlataforma) / 100;
+        const monto_anfitrion = item.final_total - monto_plataforma;
+
+        const codigo_qr_turista = generateCode();
+        const codigo_verificacion_anfitrion = generateCode();
+
+        const reservation = await reservationRepository.createReservation({
+            tipo_actividad: activity.tipo,
+            id_actividad: activity.id_actividad,
+            id_turista,
+            fecha_experiencia: item.fecha_experiencia,
+            cantidad_personas: item.cantidad_personas,
+            cantidad_adultos: item.cantidad_adultos,
+            cantidad_ninos: item.cantidad_ninos,
+            cantidad_tercera_edad: item.cantidad_tercera_edad,
+            total: item.final_total,
+            descuento_aplicado: discountPercentage || 0,
+            estado: 'APROBADA',
+            codigo_qr_turista,
+            codigo_verificacion_anfitrion
+        });
+
+        await reservationRepository.createPayment({
+            id_reserva: reservation.id_reserva,
+            monto_total: item.final_total,
+            monto_anfitrion,
+            monto_plataforma,
+            estado: 'CONFIRMADO'
+        });
+
+        reservations.push(reservation);
+    }
+
+    return reservations;
+};
+
 module.exports = {
     getHostReservations,
     updateStatus,
     createReservation,
     validateQR,
-    cancelReservationByTourist
+    cancelReservationByTourist,
+    createPackageReservation
 };

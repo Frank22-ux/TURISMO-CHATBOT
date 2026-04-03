@@ -24,6 +24,7 @@ app.use(express.static(frontendPath));
 // Routes
 app.get('/api/debug', (req, res) => res.json({ status: 'API is working', message: 'If you see this, /api routes are registered' }));
 app.get('/api/activities', activityController.getAllActivities);
+app.get('/api/activities/search', activityController.getAllActivities);
 app.get('/api/activities/:id', activityController.getActivityDetails);
 app.get('/api/activities/:id/availability', activityController.getActivityAvailability);
 app.use('/api/auth', authRoutes);

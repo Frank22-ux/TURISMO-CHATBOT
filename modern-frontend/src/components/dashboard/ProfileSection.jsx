@@ -46,7 +46,6 @@ const ProfileSection = ({ isHost = false, onUpdateProfile }) => {
         });
         const data = await response.json();
         
-        // Map DB names to frontend names for consistent state
         const mappedData = {
           ...data,
           avatar: data.url_foto_perfil || '',
@@ -54,7 +53,8 @@ const ProfileSection = ({ isHost = false, onUpdateProfile }) => {
           anios_viajando: data.experiencia_anios || 0,
           experiencia_anios: data.experiencia_anios || 0,
           idiomas: data.idiomas || '',
-          nombre: data.nombre || ''
+          nombre: data.nombre || '',
+          descuento_paquete: data.descuento_paquete || 0
         };
         setProfile(mappedData);
       } catch (error) {
@@ -113,11 +113,7 @@ const ProfileSection = ({ isHost = false, onUpdateProfile }) => {
         const updatedData = await response.json();
         setNotification({ message: '¡Perfil actualizado con éxito!', type: 'success' });
         setPreviews({ avatar: null, cover: null });
-        
-        // Notify parent dashboard and update session
-        if (onUpdateProfile) {
-          onUpdateProfile(updatedData);
-        }
+        if (onUpdateProfile) onUpdateProfile(updatedData);
       } else {
         const errorData = await response.json();
         setNotification({ message: `Error: ${errorData.message}`, type: 'error' });
@@ -181,7 +177,6 @@ const ProfileSection = ({ isHost = false, onUpdateProfile }) => {
       </div>
 
       <div className="relative group">
-        {/* Cover Photo */}
         <div className="h-64 rounded-[40px] bg-slate-200 overflow-hidden relative border-4 border-white shadow-sm transition-all group-hover:shadow-xl">
           <img 
             src={previews.cover || profile?.cover_photo || "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80"} 
@@ -196,7 +191,6 @@ const ProfileSection = ({ isHost = false, onUpdateProfile }) => {
           </div>
         </div>
 
-        {/* Avatar */}
         <div className="absolute -bottom-16 left-12 w-32 h-32 rounded-3xl bg-white p-1.5 shadow-2xl relative">
           <div className="w-full h-full rounded-[22px] bg-primary flex items-center justify-center text-white text-4xl font-black overflow-hidden group/avatar">
             {previews.avatar || profile?.avatar ? (
@@ -215,7 +209,6 @@ const ProfileSection = ({ isHost = false, onUpdateProfile }) => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-10">
-        {/* Main Info */}
         <div className="lg:col-span-2 space-y-8">
           <div className="bg-white p-10 rounded-[40px] border border-slate-50 shadow-sm space-y-8">
             <h3 className="text-xl font-display font-black text-slate-800 flex items-center gap-3">
@@ -306,6 +299,33 @@ const ProfileSection = ({ isHost = false, onUpdateProfile }) => {
             </div>
           </div>
 
+          {isHost && (
+            <div className="bg-white p-10 rounded-[40px] border border-slate-50 shadow-sm space-y-6">
+              <h3 className="text-xl font-display font-black text-slate-800 flex items-center gap-3">
+                <Plus className="text-primary w-6 h-6" /> Ofertas y Paquetes
+              </h3>
+              <div className="p-8 bg-primary/5 rounded-3xl border border-primary/10 space-y-6">
+                <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+                  <div className="flex-1">
+                    <p className="font-black text-primary-dark">Descuento por Paquete</p>
+                    <p className="text-xs text-slate-500 font-bold mt-1">Este descuento se aplicará automáticamente cuando un turista reserve 2 o más experiencias tuyas en una sola transacción.</p>
+                  </div>
+                  <div className="shrink-0 flex items-center gap-4 bg-white px-6 py-4 rounded-2xl border border-primary/20 shadow-sm">
+                    <span className="font-black text-primary text-xl">%</span>
+                    <input 
+                      type="number" 
+                      min="0"
+                      max="100"
+                      value={profile?.descuento_paquete || 0}
+                      onChange={(e) => setProfile({...profile, descuento_paquete: e.target.value})}
+                      className="w-16 bg-transparent text-2xl font-black text-primary-dark outline-none text-center"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="bg-white p-10 rounded-[40px] border border-slate-50 shadow-sm space-y-6">
             <h3 className="text-xl font-display font-black text-slate-800 flex items-center gap-3">
               <Globe className="text-primary w-6 h-6" /> Sobre mí
@@ -319,7 +339,6 @@ const ProfileSection = ({ isHost = false, onUpdateProfile }) => {
             ></textarea>
           </div>
 
-          {/* Change Password Section */}
           <div className="bg-white p-10 rounded-[40px] border border-slate-50 shadow-sm space-y-6">
             <h3 className="text-xl font-display font-black text-slate-800 flex items-center gap-3">
               <Shield className="text-primary w-6 h-6" /> Seguridad
@@ -356,7 +375,6 @@ const ProfileSection = ({ isHost = false, onUpdateProfile }) => {
           </div>
         </div>
 
-        {/* Verification */}
         <div className="space-y-8">
           <div className="bg-gradient-to-br from-primary-dark to-slate-900 p-10 rounded-[40px] text-white shadow-xl relative overflow-hidden">
             <Shield className="absolute -top-10 -right-10 w-40 h-40 opacity-10" />
@@ -390,6 +408,5 @@ const ProfileSection = ({ isHost = false, onUpdateProfile }) => {
     </div>
   );
 };
-
 
 export default ProfileSection;

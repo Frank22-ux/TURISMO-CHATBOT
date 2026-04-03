@@ -9,8 +9,8 @@ INSERT INTO usuarios (nombre, email, contraseña, telefono, rol, fecha_nacimient
 ('Maria Turista', 'turist@test.com', '$2b$10$oq7cG0NNSiMkyKfe3NO8qOrEnCmNtEEdV9IYy9o1445L/aNZ8Yr9S', '+593992222222', 'TURISTA', '1995-10-20');
 
 -- 2. PERFILES
-INSERT INTO perfil_anfitrion (id_anfitrion, telefono, correo_contacto, biografia, idiomas, experiencia_anios, banco_nombre, tipo_cuenta, numero_cuenta, identificacion) VALUES
-(1, '+593991111111', 'contacto.host@test.com', 'Hola, soy Juan, experto en rutas de montaña y gastronomía local.', 'Español, Inglés', 10, 'Banco Pichincha', 'AHORRO', '2201234567', '1712345678');
+INSERT INTO perfil_anfitrion (id_anfitrion, telefono, correo_contacto, biografia, idiomas, experiencia_anios, banco_nombre, tipo_cuenta, numero_cuenta, identificacion, descuento_paquete) VALUES
+(1, '+593991111111', 'contacto.host@test.com', 'Hola, soy Juan, experto en rutas de montaña y gastronomía local.', 'Español, Inglés', 10, 'Banco Pichincha', 'AHORRO', '2201234567', '1712345678', 10.00);
 
 INSERT INTO perfil_turista (id_turista, telefono, correo_contacto, biografia, idiomas, experiencia_anios, banco_nombre, tipo_cuenta, numero_cuenta, identificacion, banco_swift, banco_direccion, banco_pais) VALUES
 (2, '+593992222222', 'turist@test.com', 'Me encanta viajar y conocer nuevas culturas.', 'Español, Francés', 5, 'Chase Bank', 'CHECKING', '123456789012', 'ID-998877', 'CHASEUS33', '123 Park Ave, New York, NY', 'Estados Unidos');
@@ -81,9 +81,9 @@ INSERT INTO imagen_portada (tipo_actividad, id_actividad, url_imagen) VALUES
 ('ALIMENTARIA', 10, 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38');
 
 -- 8. RESERVAS DE PRUEBA
-INSERT INTO reservas (tipo_actividad, id_actividad, id_turista, fecha_experiencia, cantidad_personas, cantidad_adultos, cantidad_ninos, cantidad_tercera_edad, total, estado, codigo_qr_turista, codigo_verificacion_anfitrion) VALUES
-('TURISTICA', 1, 2, '2026-04-15', 3, 2, 1, 0, 112.50, 'APROBADA', 'ABCDE12345', 'VWXYZ67890'),
-('ALIMENTARIA', 4, 2, '2026-04-20', 4, 2, 0, 2, 36.00, 'PENDIENTE', 'QWERT11223', 'YUIOP44556');
+INSERT INTO reservas (tipo_actividad, id_actividad, id_turista, fecha_experiencia, cantidad_personas, cantidad_adultos, cantidad_ninos, cantidad_tercera_edad, total, descuento_aplicado, estado, codigo_qr_turista, codigo_verificacion_anfitrion) VALUES
+('TURISTICA', 1, 2, '2026-04-15', 3, 2, 1, 0, 112.50, 0, 'APROBADA', 'ABCDE12345', 'VWXYZ67890'),
+('ALIMENTARIA', 4, 2, '2026-04-20', 4, 2, 0, 2, 36.00, 0, 'PENDIENTE', 'QWERT11223', 'YUIOP44556');
 
 -- 9. PAGOS DE PRUEBA
 INSERT INTO pagos (id_reserva, monto_total, monto_anfitrion, monto_plataforma, estado, fecha_pago) VALUES

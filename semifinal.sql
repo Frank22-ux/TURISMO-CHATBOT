@@ -59,6 +59,7 @@ CREATE TABLE perfil_anfitrion (
     banco_swift VARCHAR(20),
     banco_direccion TEXT,
     banco_pais VARCHAR(80),
+    descuento_paquete NUMERIC(5,2) DEFAULT 0,
 
     FOREIGN KEY (id_anfitrion)
         REFERENCES usuarios(id_usuario)
@@ -356,6 +357,7 @@ CREATE TABLE reservas (
     cantidad_ninos INT DEFAULT 0,
     cantidad_tercera_edad INT DEFAULT 0,
     total NUMERIC(10,2) NOT NULL,
+    descuento_aplicado NUMERIC(5,2) DEFAULT 0,
 
     estado VARCHAR(20)
         CHECK (estado IN ('PENDIENTE','APROBADA','CANCELADA'))

@@ -14,6 +14,8 @@ const OfferCenterSection = () => {
     price: '',
     expiration: ''
   });
+  const [packageDiscount, setPackageDiscount] = useState(0);
+  const [isUpdatingPackage, setIsUpdatingPackage] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
@@ -45,6 +47,15 @@ const OfferCenterSection = () => {
       
       if (actRes.ok) setActivities(await actRes.json());
       if (serRes.ok) setServices(await serRes.json());
+
+      // Fetch profile to get current package discount
+      const profRes = await fetch('http://localhost:3000/api/host/profile', { 
+        headers: { Authorization: `Bearer ${token}` } 
+      });
+      if (profRes.ok) {
+        const profData = await profRes.json();
+        setPackageDiscount(profData.descuento_paquete || 0);
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -100,6 +111,31 @@ const OfferCenterSection = () => {
       showToast('Error de conexión', 'error');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleUpdatePackageDiscount = async () => {
+    setIsUpdatingPackage(true);
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await fetch('http://localhost:3000/api/host/profile', {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` 
+        },
+        body: JSON.stringify({ descuento_paquete: packageDiscount })
+      });
+      
+      if (response.ok) {
+        showToast('Descuento por combo actualizado', 'success');
+      } else {
+        showToast('Error al actualizar descuento', 'error');
+      }
+    } catch (error) {
+      showToast('Error de conexión', 'error');
+    } finally {
+      setIsUpdatingPackage(false);
     }
   };
 
@@ -247,6 +283,46 @@ const OfferCenterSection = () => {
                 </button>
               </div>
             </form>
+          </div>
+
+          {/* New Package Discount Card */}
+          <div className="bg-gradient-to-br from-primary-dark to-slate-900 rounded-[32px] p-8 shadow-xl text-white relative overflow-hidden">
+            <Percent className="absolute -top-10 -right-10 w-40 h-40 opacity-10" />
+            <h3 className="text-lg font-black mb-2 flex items-center gap-2 relative z-10">
+              <Sparkles className="w-5 h-5 text-primary" /> Incentivo de Paquete
+            </h3>
+            <p className="text-[10px] font-bold opacity-60 uppercase tracking-widest mb-6 relative z-10">
+              Descuento por 2+ actividades
+            </p>
+
+            <div className="space-y-6 relative z-10">
+               <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/10">
+                  <div className="flex justify-between items-center mb-4">
+                     <span className="text-2xl font-black">{packageDiscount}%</span>
+                     <span className="text-[10px] font-black uppercase tracking-widest opacity-40">Combo 2+</span>
+                  </div>
+                  <input 
+                    type="range" 
+                    min="0" 
+                    max="50" 
+                    value={packageDiscount}
+                    onChange={(e) => setPackageDiscount(parseInt(e.target.value))}
+                    className="w-full accent-primary h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                  />
+               </div>
+
+               <p className="text-[11px] font-medium opacity-70 leading-relaxed">
+                 Este descuento se aplicará automáticamente al subtotal cuando el turista reserva 2 o más servicios de tu negocio.
+               </p>
+
+               <button 
+                 onClick={handleUpdatePackageDiscount}
+                 disabled={isUpdatingPackage}
+                 className="w-full py-4 bg-white text-primary-dark rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl disabled:opacity-50"
+               >
+                 {isUpdatingPackage ? 'Guardando...' : 'Actualizar Descuento'}
+               </button>
+            </div>
           </div>
         </div>
 

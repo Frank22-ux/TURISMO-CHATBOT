@@ -87,10 +87,35 @@ const cancelReservation = async (req, res) => {
     }
 };
 
+const createPackageReservation = async (req, res) => {
+    try {
+        const id_turista = req.user.id;
+        const { token, hostId, discountPercentage, items, total } = req.body;
+
+        if (!token || !items || !items.length) {
+            return res.status(400).json({ message: 'Token de pago y lista de experiencias son obligatorios' });
+        }
+
+        const reservations = await reservationService.createPackageReservation(
+            { id_turista, hostId, discountPercentage, items, total },
+            token
+        );
+
+        res.status(201).json({
+            message: 'Paquete de experiencias reservado y pago procesado con éxito',
+            reservations
+        });
+    } catch (error) {
+        console.error('Error in createPackageReservation:', error.message);
+        res.status(500).json({ message: error.message || 'Error al procesar el paquete de reservas' });
+    }
+};
+
 module.exports = {
     getHostReservations,
     updateStatus,
     createReservation,
     validateQR,
-    cancelReservation
+    cancelReservation,
+    createPackageReservation
 };

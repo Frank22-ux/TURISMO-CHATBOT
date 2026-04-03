@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { X, MapPin, Clock, Users, Signal, Tag, Calendar, Star, Info, Image as ImageIcon } from 'lucide-react';
+import { X, MapPin, Clock, Users, Signal, Tag, Calendar, Star, Info, Image as ImageIcon, Plus, CheckCircle2 } from 'lucide-react';
 import Map, { Marker, Source } from 'react-map-gl/mapbox';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useCart } from '../../contexts/CartContext';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
@@ -10,12 +11,25 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
   const [activeImage, setActiveImage] = useState(null);
   const [position, setPosition] = useState({ lat: -0.180653, lng: -78.467834 });
   const [showTerrain, setShowTerrain] = useState(true);
+  const cart = useCart();
+  const { addToCart, selectedItems } = cart || { addToCart: () => {}, selectedItems: [] };
+  const [added, setAdded] = useState(false);
+  const isAlreadyInCart = selectedItems?.some(item => item.id === activity?.id);
+
   const [viewState, setViewState] = useState({
     latitude: -0.180653,
     longitude: -78.467834,
     zoom: 13,
     pitch: 50
   });
+
+  const handleAddToCart = () => {
+    const result = addToCart(activity);
+    if (result.success || result.error === 'DUPLICATE') {
+      setAdded(true);
+      setTimeout(() => setAdded(false), 2000);
+    }
+  };
 
   useEffect(() => {
     if (activity) {
@@ -226,6 +240,24 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
                   <p className="text-[10px] text-center mt-8 opacity-40 uppercase font-black tracking-widest">
                     Precios finales con impuestos incluidos
                   </p>
+
+                  {cart && (
+                    <button 
+                      onClick={handleAddToCart}
+                      disabled={added}
+                      className={`w-full mt-6 py-4 rounded-2xl font-black text-xs transition-all shadow-xl flex items-center justify-center gap-3 border ${
+                        added || isAlreadyInCart
+                        ? 'bg-emerald-500 text-white border-emerald-400' 
+                        : 'bg-primary text-white border-primary-light hover:bg-white hover:text-primary-dark hover:scale-105 active:scale-95'
+                      }`}
+                    >
+                      {added || isAlreadyInCart ? (
+                        <> <CheckCircle2 className="w-5 h-5" /> En el Paquete </>
+                      ) : (
+                        <> <Plus className="w-5 h-5" /> Añadir al Paquete </>
+                      )}
+                    </button>
+                  )}
                 </div>
 
                 <div className="p-8 bg-slate-50 rounded-[40px] border border-slate-100">

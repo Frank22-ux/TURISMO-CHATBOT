@@ -24,12 +24,12 @@ const updateReservationStatus = async (id_reserva, estado) => {
 };
 
 const createReservation = async (reservationData) => {
-    const { tipo_actividad, id_actividad, id_turista, fecha_experiencia, cantidad_personas, cantidad_adultos, cantidad_ninos, cantidad_tercera_edad, total, estado = 'PENDIENTE', codigo_qr_turista, codigo_verificacion_anfitrion } = reservationData;
+    const { tipo_actividad, id_actividad, id_turista, fecha_experiencia, cantidad_personas, cantidad_adultos, cantidad_ninos, cantidad_tercera_edad, total, descuento_aplicado = 0, estado = 'PENDIENTE', codigo_qr_turista, codigo_verificacion_anfitrion } = reservationData;
     const { rows } = await db.query(
-        `INSERT INTO reservas (tipo_actividad, id_actividad, id_turista, fecha_experiencia, cantidad_personas, cantidad_adultos, cantidad_ninos, cantidad_tercera_edad, total, estado, codigo_qr_turista, codigo_verificacion_anfitrion, estado_qr)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'GENERADO')
+        `INSERT INTO reservas (tipo_actividad, id_actividad, id_turista, fecha_experiencia, cantidad_personas, cantidad_adultos, cantidad_ninos, cantidad_tercera_edad, total, descuento_aplicado, estado, codigo_qr_turista, codigo_verificacion_anfitrion, estado_qr)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, 'GENERADO')
          RETURNING *`,
-        [tipo_actividad, id_actividad, id_turista, fecha_experiencia, cantidad_personas, cantidad_adultos, cantidad_ninos, cantidad_tercera_edad, total, estado, codigo_qr_turista, codigo_verificacion_anfitrion]
+        [tipo_actividad, id_actividad, id_turista, fecha_experiencia, cantidad_personas, cantidad_adultos, cantidad_ninos, cantidad_tercera_edad, total, descuento_aplicado, estado, codigo_qr_turista, codigo_verificacion_anfitrion]
     );
     return rows[0];
 };

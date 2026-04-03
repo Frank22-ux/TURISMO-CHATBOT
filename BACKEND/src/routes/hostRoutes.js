@@ -6,6 +6,7 @@ const paymentController = require('../controllers/paymentController');
 const notificationController = require('../controllers/notificationController');
 
 router.get('/profile', authMiddleware, hostController.getProfile);
+router.get('/:id/profile', hostController.getPublicProfile);
 router.put('/profile', authMiddleware, hostController.updateProfile);
 router.put('/profile/bank', authMiddleware, hostController.updateBankProfile);
 router.get('/notifications', authMiddleware, notificationController.getHostNotifications);

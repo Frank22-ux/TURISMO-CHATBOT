@@ -15,6 +15,30 @@ const getProfile = async (req, res) => {
     }
 };
 
+const getPublicProfile = async (req, res) => {
+    try {
+        const { id } = req.params;
+        console.log('Fetching PUBLIC profile for host ID:', id);
+        const profile = await hostService.getProfile(id);
+        if (!profile) {
+            return res.status(404).json({ message: 'Perfil no encontrado' });
+        }
+        
+        // Return only non-sensitive data
+        const publicProfile = {
+            id_anfitrion: profile.id_anfitrion,
+            nombre_negocio: profile.nombre_negocio,
+            nombre_host: profile.nombre_host,
+            descuento_paquete: profile.descuento_paquete
+        };
+        
+        res.status(200).json(publicProfile);
+    } catch (error) {
+        console.error('Error in getPublicProfile:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
 const updateProfile = async (req, res) => {
     try {
         const id_anfitrion = req.user.id;
@@ -240,5 +264,6 @@ module.exports = {
     updateServiceStatus,
     updateService,
     getDashboardStats,
-    updateBulkOffers
+    updateBulkOffers,
+    getPublicProfile
 };

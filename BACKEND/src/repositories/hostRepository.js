@@ -16,7 +16,8 @@ const updateProfile = async (id_anfitrion, profileData) => {
         nombre, email, fecha_nacimiento,
         telefono, biografia, idiomas, experiencia_anios,
         avatar, cover_photo,
-        url_documento_legal_frontal, url_documento_legal_posterior
+        url_documento_legal_frontal, url_documento_legal_posterior,
+        descuento_paquete
     } = profileData;
     
     const client = await db.pool.connect();
@@ -43,8 +44,9 @@ const updateProfile = async (id_anfitrion, profileData) => {
             `INSERT INTO perfil_anfitrion (
                 id_anfitrion, telefono, correo_contacto, biografia, idiomas, 
                 experiencia_anios, url_foto_perfil, url_foto_portada,
-                url_documento_legal_frontal, url_documento_legal_posterior
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+                url_documento_legal_frontal, url_documento_legal_posterior,
+                descuento_paquete
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
             ON CONFLICT (id_anfitrion) DO UPDATE SET
                 telefono = EXCLUDED.telefono,
                 correo_contacto = EXCLUDED.correo_contacto,
@@ -54,7 +56,8 @@ const updateProfile = async (id_anfitrion, profileData) => {
                 url_foto_perfil = EXCLUDED.url_foto_perfil,
                 url_foto_portada = EXCLUDED.url_foto_portada,
                 url_documento_legal_frontal = EXCLUDED.url_documento_legal_frontal,
-                url_documento_legal_posterior = EXCLUDED.url_documento_legal_posterior
+                url_documento_legal_posterior = EXCLUDED.url_documento_legal_posterior,
+                descuento_paquete = EXCLUDED.descuento_paquete
             RETURNING *`,
             [
                 id_anfitrion, 
@@ -66,7 +69,8 @@ const updateProfile = async (id_anfitrion, profileData) => {
                 avatar || null, 
                 cover_photo || null, 
                 url_documento_legal_frontal || null, 
-                url_documento_legal_posterior || null
+                url_documento_legal_posterior || null,
+                parseFloat(descuento_paquete) || 0
             ]
         );
         

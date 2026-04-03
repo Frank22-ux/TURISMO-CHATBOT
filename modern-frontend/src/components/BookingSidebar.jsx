@@ -1,15 +1,15 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, Users, Minus, Plus, CreditCard, ChevronRight, Clock, Shield, Star, CheckCircle2, ChevronLeft, MessageSquare } from 'lucide-react';
+import { X, Calendar, Users, Minus, Plus, CreditCard, ChevronRight, Clock, Shield, Star, CheckCircle2, ChevronLeft, MessageSquare, Trash2, Sparkle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useCart } from '../contexts/CartContext';
 import CustomCalendar from './CustomCalendar';
 
-const BookingSidebar = ({ isOpen, onClose, activity }) => {
+const BookingSidebar = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
-  const [date, setDate] = useState('');
-  const [adults, setAdults] = useState(1);
-  const [children, setChildren] = useState(0);
-  const [seniors, setSeniors] = useState(0);
+  const { selectedItems, removeFromCart, checkConflicts, hostId } = useCart();
+  const [dates, setDates] = useState({}); // { activityId: dateString }
+  const [guestCounts, setGuestCounts] = useState({}); // { activityId: { adults, children, seniors } }
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
@@ -19,29 +19,49 @@ const BookingSidebar = ({ isOpen, onClose, activity }) => {
   const [cvv, setCvv] = useState('');
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
-  const [remainingCapacity, setRemainingCapacity] = useState(activity?.capacidad || 0);
-  const [loadingCapacity, setLoadingCapacity] = useState(false);
+  const [hostDiscount, setHostDiscount] = useState(0);
+  const [capacities, setCapacities] = useState({}); // { activityId: remaining }
+  const [loadingCapacities, setLoadingCapacities] = useState({});
+
+  const updateGuestCount = (activityId, type, delta) => {
+    setGuestCounts(prev => {
+      const counts = prev[activityId] || { adults: 1, children: 0, seniors: 0 };
+      const newValue = Math.max(type === 'adults' ? 1 : 0, counts[type] + delta);
+      return {
+        ...prev,
+        [activityId]: { ...counts, [type]: newValue }
+      };
+    });
+  };
 
   const priceDetails = useMemo(() => {
-    if (!activity) return { subtotal: 0, iva: 0, total: 0 };
-    const pricePerPerson = parseFloat(activity.price) || 0;
+    if (selectedItems.length === 0) return { subtotal: 0, iva: 0, discount: 0, total: 0 };
     
-    // El precio de la actividad ya es el PRECIO FINAL
-    const total = (pricePerPerson * adults) + (pricePerPerson * 0.5 * children) + (pricePerPerson * 0.5 * seniors);
+    let totalBase = 0;
+    selectedItems.forEach(item => {
+      const counts = guestCounts[item.id] || { adults: 1, children: 0, seniors: 0 };
+      const p = parseFloat(item.price || item.precio) || 0;
+      totalBase += (p * counts.adults) + (p * 0.5 * counts.children) + (p * 0.5 * counts.seniors);
+    });
+
+    let discountAmount = 0;
+    if (selectedItems.length >= 2 && hostDiscount > 0) {
+      discountAmount = (totalBase * hostDiscount) / 100;
+    }
+
+    const totalFinal = totalBase - discountAmount;
+    const subtotal = totalFinal / 1.15;
+    const iva = totalFinal - subtotal;
     
-    // Desglose inverso del IVA (15% incluido)
-    const subtotal = total / 1.15;
-    const iva = total - subtotal;
-    
-    return { subtotal, iva, total };
-  }, [activity, adults, children]);
+    return { subtotal, iva, discount: discountAmount, total: totalFinal };
+  }, [selectedItems, guestCounts, hostDiscount]);
 
   const handleBooking = async (token) => {
     setIsProcessing(true);
     setError(null);
     try {
       const tokenAuth = sessionStorage.getItem('token');
-      const response = await fetch('http://localhost:3000/api/reservations', {
+      const response = await fetch('http://localhost:3000/api/reservations/package', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -49,15 +69,27 @@ const BookingSidebar = ({ isOpen, onClose, activity }) => {
         },
         body: JSON.stringify({
           token,
-          reservationData: {
-            id_actividad: activity.id,
-            fecha_experiencia: date,
-            cantidad_personas: adults + children + seniors,
-            cantidad_adultos: adults,
-            cantidad_ninos: children,
-            cantidad_tercera_edad: seniors,
-            total: priceDetails.total
-          }
+          hostId,
+          discountPercentage: hostDiscount,
+          items: selectedItems.map(item => {
+            const counts = guestCounts[item.id] || { adults: 1, children: 0, seniors: 0 };
+            const totalPeople = counts.adults + counts.children + counts.seniors;
+            const itemBasePrice = parseFloat(item.price) || 0;
+            const itemTotal = (itemBasePrice * counts.adults) + (itemBasePrice * 0.5 * counts.children) + (itemBasePrice * 0.5 * counts.seniors);
+            const appliedDiscount = selectedItems.length >= 2 ? (itemTotal * hostDiscount / 100) : 0;
+
+            return {
+              id_actividad: item.id,
+              fecha_experiencia: dates[item.id],
+              cantidad_personas: totalPeople,
+              cantidad_adultos: counts.adults,
+              cantidad_ninos: counts.children,
+              cantidad_tercera_edad: counts.seniors,
+              original_price: itemBasePrice,
+              final_total: itemTotal - appliedDiscount
+            };
+          }),
+          total: priceDetails.total
         })
       });
 
@@ -77,10 +109,19 @@ const BookingSidebar = ({ isOpen, onClose, activity }) => {
   };
 
   const handlePaymentSubmit = () => {
-    if (!date) {
-      setError('Por favor selecciona una fecha primero.');
+    const allDatesSelected = selectedItems.every(item => dates[item.id]);
+    if (!allDatesSelected) {
+      setError('Por favor selecciona una fecha para todas las experiencias.');
       return;
     }
+
+    const datesWithActs = selectedItems.map(item => ({ activity: item, date: dates[item.id] }));
+    const conflictResult = checkConflicts(datesWithActs);
+    if (conflictResult.conflict) {
+      setError(`Conflicto de horario entre "${conflictResult.a}" y "${conflictResult.b}" el mismo día. Por favor elige horarios distintos.`);
+      return;
+    }
+
     if (!cardName || !cardNumber || !expiry || !cvv) {
       setError('Por favor completa todos los campos de la tarjeta.');
       return;
@@ -140,82 +181,47 @@ const BookingSidebar = ({ isOpen, onClose, activity }) => {
       setCvv('');
       setSuccess(false);
       setAcceptedTerms(false);
-      setSeniors(0);
-      setRemainingCapacity(activity?.capacidad || 0);
-    }
-  }, [isOpen, activity]);
-
-  useEffect(() => {
-    if (date && activity) {
-      const fetchAvailability = async () => {
-        setLoadingCapacity(true);
+      setDates({});
+      setGuestCounts({});
+      setCapacities({});
+    } else if (hostId) {
+      const fetchHostDiscount = async () => {
         try {
-          const response = await fetch(`http://localhost:3000/api/activities/${activity.id}/availability?date=${date}`);
+          const response = await fetch(`http://localhost:3000/api/host/${hostId}/profile`);
           if (response.ok) {
             const data = await response.json();
-            setRemainingCapacity(data.remaining);
+            setHostDiscount(parseFloat(data.descuento_paquete) || 0);
           }
         } catch (err) {
-          console.error('Error fetching availability:', err);
-        } finally {
-          setLoadingCapacity(false);
+          console.error('Error fetching host discount:', err);
         }
       };
-      fetchAvailability();
+      fetchHostDiscount();
     }
-  }, [date, activity]);
+  }, [isOpen, hostId]);
 
-  const highlights = useMemo(() => {
-    if (!activity) return [];
-    const items = [];
-    if (activity.duracion_horas) items.push({ icon: Clock, label: `${activity.duracion_horas} horas`, color: 'text-blue-500 bg-blue-50' });
-    if (activity.nivel_dificultad) items.push({ icon: Shield, label: activity.nivel_dificultad, color: 'text-orange-500 bg-orange-50' });
-    
-    // Schedule highlight
-    if (activity.hora_inicio && activity.hora_fin) {
-      const hInicio = activity.hora_inicio.substring(0, 5);
-      const hFin = activity.hora_fin.substring(0, 5);
-      items.push({ icon: Clock, label: `${hInicio} - ${hFin}`, color: 'text-blue-600 bg-blue-100' });
-    }
-
-    if (date) {
-        items.push({ 
-            icon: Users, 
-            label: `Disponibles: ${remainingCapacity}`, 
-            color: remainingCapacity > 0 ? 'text-emerald-500 bg-emerald-50' : 'text-red-500 bg-red-50' 
-        });
-    } else if (activity.capacidad) {
-        items.push({ icon: Users, label: `Cupos p/día: ${activity.capacidad}`, color: 'text-purple-500 bg-purple-50' });
-    }
-    
-    return items;
-  }, [activity, date, remainingCapacity]);
-
-  const inclusions = useMemo(() => {
-    if (!activity) return [];
-    const items = [];
-    
-    // Common
-    if (activity.wifi) items.push({ label: 'WiFi Grátis', icon: CheckCircle2 });
-    if (activity.estacionamiento) items.push({ label: 'Estacionamiento', icon: CheckCircle2 });
-    if (activity.permite_mascotas) items.push({ label: 'Pet Friendly', icon: CheckCircle2 });
-
-    if (activity.tipo === 'TURISTICA') {
-      if (activity.incluye_recorrido) items.push({ label: 'Recorrido guiado', icon: CheckCircle2 });
-      if (activity.incluye_transporte) items.push({ label: 'Transporte incluido', icon: CheckCircle2 });
-      if (activity.requiere_equipo) items.push({ label: 'Equipo especializado', icon: CheckCircle2 });
-    } else {
-      if (activity.menu_vegano) items.push({ label: 'Opción Vegana', icon: CheckCircle2 });
-      if (activity.menu_vegetariano) items.push({ label: 'Opción Vegetariana', icon: CheckCircle2 });
-      if (activity.menu_sin_gluten) items.push({ label: 'Sin Gluten', icon: CheckCircle2 });
-      if (activity.musica_en_vivo) items.push({ label: 'Música en vivo', icon: CheckCircle2 });
-      if (activity.zona_infantil) items.push({ label: 'Zona infantil', icon: CheckCircle2 });
-      if (activity.servicio_local) items.push({ label: 'Servicio en local', icon: CheckCircle2 });
-    }
-    return items;
-  }, [activity]);
-
-  if (!activity) return null;
+  useEffect(() => {
+    selectedItems.forEach(item => {
+      const date = dates[item.id];
+      if (date && !capacities[item.id] && !loadingCapacities[item.id]) {
+        const fetchCap = async () => {
+          setLoadingCapacities(prev => ({ ...prev, [item.id]: true }));
+          try {
+            const response = await fetch(`http://localhost:3000/api/activities/${item.id}/availability?date=${date}`);
+            if (response.ok) {
+              const data = await response.json();
+              setCapacities(prev => ({ ...prev, [item.id]: data.remaining }));
+            }
+          } catch (err) {
+            console.error('Error capacity:', err);
+          } finally {
+            setLoadingCapacities(prev => ({ ...prev, [item.id]: false }));
+          }
+        };
+        fetchCap();
+      }
+    });
+  }, [dates, selectedItems]);
 
   return (
     <AnimatePresence>
@@ -306,7 +312,7 @@ const BookingSidebar = ({ isOpen, onClose, activity }) => {
             <div className="bg-white p-8">
               <div className="flex justify-between items-center mb-8">
                 <div>
-                  <h2 className="text-3xl font-display font-black text-primary-dark leading-none pb-2 tracking-tight">Personaliza tu Viaje</h2>
+                  <h2 className="text-3xl font-display font-black text-primary-dark leading-none pb-2 tracking-tight">Tu Paquete</h2>
                   <div className="h-1.5 w-12 bg-primary rounded-full"></div>
                 </div>
                 <button 
@@ -317,224 +323,222 @@ const BookingSidebar = ({ isOpen, onClose, activity }) => {
                 </button>
               </div>
 
-              {/* Activity Header Card */}
-              <div className="relative rounded-[2.5rem] overflow-hidden mb-8 shadow-sm border border-slate-100">
-                <img src={activity.portada || activity.image} alt={activity.title} className="w-full h-48 object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-8">
-                  <h3 className="text-xl font-bold text-white mb-2 leading-tight">{activity.title}</h3>
-                  <div className="flex items-center gap-2">
-                    <Star className="w-4 h-4 text-secondary fill-current" />
-                    <span className="text-white text-xs font-bold">4.9 (124 reviews)</span>
-                  </div>
-                </div>
-              </div>
+              {/* Discount Incentive Banner */}
+              <AnimatePresence>
+                {selectedItems.length > 0 && hostDiscount > 0 && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    className={`mb-8 p-6 rounded-[2.5rem] border-2 border-dashed flex items-center justify-between transition-all ${
+                      selectedItems.length >= 2 
+                        ? 'bg-emerald-50 border-emerald-200 text-emerald-800' 
+                        : 'bg-amber-50 border-amber-200 text-amber-800'
+                    }`}
+                  >
+                    <div className="flex items-center gap-4">
+                       <div className={`p-3 rounded-2xl ${selectedItems.length >= 2 ? 'bg-emerald-500' : 'bg-amber-500'} text-white shadow-lg`}>
+                          <Sparkle className="w-5 h-5" />
+                       </div>
+                       <div>
+                          <h4 className="text-sm font-black uppercase tracking-tight">
+                            {selectedItems.length >= 2 
+                              ? `¡Combo Activo! Descuento ${hostDiscount}%` 
+                              : `¡Casi lo logras!`}
+                          </h4>
+                          <p className="text-[10px] font-bold opacity-70 uppercase tracking-widest mt-0.5">
+                            {selectedItems.length >= 2 
+                              ? 'Ahorro aplicado a todas las actividades' 
+                              : `Añade otra actividad y ahorra ${hostDiscount}%`}
+                          </p>
+                       </div>
+                    </div>
+                    {selectedItems.length >= 2 && (
+                       <CheckCircle2 className="w-6 h-6 text-emerald-500" />
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
-              {/* Highlights */}
-               <div className="grid grid-cols-2 gap-4 mb-10">
-                {highlights.map((h) => (
-                  <div key={`${activity.id}-${h.label}`} className={`flex items-center gap-3 p-4 rounded-2xl border border-slate-50 ${h.color} bg-opacity-40`}>
-                    <h.icon className="w-5 h-5 shrink-0" />
-                    <span className="text-xs font-black uppercase tracking-tight">{h.label}</span>
+              {/* Multi-Activity List */}
+              <div className="space-y-8">
+                {selectedItems.map((item) => (
+                  <div key={item.id} className="relative bg-white rounded-[2.5rem] p-6 border border-slate-100 shadow-sm animate-fade-in group hover:border-primary/30 transition-all">
+                    <button 
+                      onClick={() => removeFromCart(item.id)}
+                      className="absolute -top-3 -right-3 p-2 bg-red-100 text-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-all shadow-md z-20 hover:bg-red-500 hover:text-white"
+                      title="Eliminar del paquete"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+
+                    <div className="flex gap-6 mb-6">
+                      <div className="w-24 h-24 rounded-3xl overflow-hidden shrink-0 shadow-lg group-hover:scale-105 transition-transform">
+                        <img src={item.portada || item.image} alt={item.titulo} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-start mb-1">
+                          <h3 className="text-lg font-black text-primary-dark line-clamp-1">{item.titulo}</h3>
+                          {selectedItems.length >= 2 && hostDiscount > 0 && (
+                             <span className="px-2 py-1 rounded-lg bg-emerald-500 text-white text-[9px] font-black uppercase tracking-tighter shadow-md animate-pulse">
+                               -{hostDiscount}% Combo
+                             </span>
+                          )}
+                        </div>
+                        <div className="flex flex-wrap gap-2 mb-3">
+                           <span className="px-2 py-0.5 rounded-lg bg-primary/10 text-primary text-[9px] font-black uppercase tracking-widest leading-none flex items-center border border-primary/20">
+                              {item.tipo}
+                           </span>
+                           <span className="px-2 py-0.5 rounded-lg bg-blue-50 text-blue-500 text-[9px] font-black uppercase tracking-widest leading-none flex items-center border border-blue-100">
+                              <Clock className="w-3 h-3 mr-1" /> {item.duracion_horas}H
+                           </span>
+                        </div>
+                        <p className="text-xl font-display font-black text-primary-dark">${item.price}</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                        <Calendar className="w-3.5 h-3.5" /> Elige fecha para {item.titulo}
+                      </label>
+                      <CustomCalendar 
+                        selectedDate={dates[item.id] || ''} 
+                        onSelect={(d) => setDates(prev => ({ ...prev, [item.id]: d }))} 
+                        availableDays={
+                          item.dias_disponibles 
+                            ? (typeof item.dias_disponibles === 'string' 
+                                ? item.dias_disponibles.split(',').map(Number) 
+                                : item.dias_disponibles)
+                            : [0, 1, 2, 3, 4, 5, 6]
+                        }
+                      />
+                      {dates[item.id] && (
+                        <div className={`p-4 rounded-2xl flex items-center gap-3 text-xs font-bold border transition-all ${capacities[item.id] === 0 ? 'bg-red-50 text-red-700 border-red-100 animate-pulse' : 'bg-emerald-50 text-emerald-700 border-emerald-100'}`}>
+                           {capacities[item.id] === 0 ? <X className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
+                           {loadingCapacities[item.id] ? 'Consultando...' : capacities[item.id] === 0 ? '¡Sin cupos para esta fecha!' : `${capacities[item.id] || 0} cupos disponibles`}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Guest Selection per activity */}
+                    <div className="mt-8 space-y-4 bg-slate-50/50 p-6 rounded-3xl border border-slate-100">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Compañeros de viaje</p>
+                      
+                      <div className="space-y-4">
+                        {/* Adults */}
+                        <div className="flex justify-between items-center group">
+                          <div className="text-sm font-bold text-slate-700">Adultos</div>
+                          <div className="flex items-center gap-3">
+                            <button 
+                              onClick={() => updateGuestCount(item.id, 'adults', -1)}
+                              className="w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center hover:bg-white text-slate-400 hover:text-primary transition-all active:scale-90"
+                            >
+                              <Minus className="w-3.5 h-3.5" />
+                            </button>
+                            <span className="font-display font-black text-lg w-4 text-center">
+                              {guestCounts[item.id]?.adults || 1}
+                            </span>
+                            <button 
+                              onClick={() => updateGuestCount(item.id, 'adults', 1)}
+                              className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/10 transition-all active:scale-90 hover:scale-105"
+                            >
+                              <Plus className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Children */}
+                        <div className="flex justify-between items-center group">
+                          <div>
+                            <div className="text-sm font-bold text-slate-700">Niños</div>
+                            <p className="text-[9px] text-emerald-600 font-bold uppercase tracking-tighter">50% DESC.</p>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <button 
+                              onClick={() => updateGuestCount(item.id, 'children', -1)}
+                              className="w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center hover:bg-white text-slate-400 hover:text-primary transition-all active:scale-90"
+                            >
+                              <Minus className="w-3.5 h-3.5" />
+                            </button>
+                            <span className="font-display font-black text-lg w-4 text-center">
+                              {guestCounts[item.id]?.children || 0}
+                            </span>
+                            <button 
+                              onClick={() => updateGuestCount(item.id, 'children', 1)}
+                              className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/10 transition-all active:scale-90 hover:scale-105"
+                            >
+                              <Plus className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Seniors */}
+                        <div className="flex justify-between items-center group">
+                          <div>
+                            <div className="text-sm font-bold text-slate-700">Discapacitados</div>
+                            <p className="text-[9px] text-emerald-600 font-bold uppercase tracking-tighter">50% DESC.</p>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <button 
+                              onClick={() => updateGuestCount(item.id, 'seniors', -1)}
+                              className="w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center hover:bg-white text-slate-400 hover:text-primary transition-all active:scale-90"
+                            >
+                              <Minus className="w-3.5 h-3.5" />
+                            </button>
+                            <span className="font-display font-black text-lg w-4 text-center">
+                              {guestCounts[item.id]?.seniors || 0}
+                            </span>
+                            <button 
+                              onClick={() => updateGuestCount(item.id, 'seniors', 1)}
+                              className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/10 transition-all active:scale-90 hover:scale-105"
+                            >
+                              <Plus className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {(guestCounts[item.id]?.seniors > 0) && (
+                          <div className="pt-2">
+                             <p className="text-[9px] font-bold text-amber-700 bg-amber-50 p-3 rounded-xl border border-amber-100 flex items-center gap-2">
+                               <Shield className="w-3 h-3 shrink-0" /> Requiere acreditación
+                             </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 ))}
-              </div>
 
-              {/* Description */}
-              <div className="mb-10 text-slate-600">
-                <h4 className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-primary mb-4">
-                  Sobre esta Experiencia
-                </h4>
-                <p className="text-sm leading-relaxed mb-6">
-                  {activity.descripcion || 'Embárcate en una aventura inolvidable en el corazón del Ecuador. Esta experiencia está diseñada para sumergirte en la cultura local y la naturaleza impresionante de la región.'}
-                </p>
-
-                <button
-                  onClick={() => {
-                    console.log('Navigating to messages with host:', activity.id_anfitrion, activity.nombre_anfitrion);
-                    navigate(`/dashboard-tourist?section=messages&hostId=${activity.id_anfitrion}&hostName=${encodeURIComponent(activity.nombre_anfitrion || 'Anfitrión Local')}`);
-                    onClose();
-                  }}
-                  className="w-full mb-6 py-4 rounded-2xl bg-primary/10 text-primary font-black text-sm flex items-center justify-center gap-3 hover:bg-primary hover:text-white transition-all group"
-                >
-                  <MessageSquare className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                  Contactar Anfitrión
-                </button>
-
-                {/* Inclusions */}
-                {inclusions.length > 0 && (
-                  <div className="bg-slate-50/50 p-6 rounded-[2rem] border border-slate-100">
-                    <h5 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Qué incluye:</h5>
-                    <div className="grid grid-cols-2 gap-y-3 gap-x-4">
-                      {inclusions.map((item) => (
-                        <div key={`${activity.id}-${item.label}`} className="flex items-center gap-2 text-slate-500">
-                          <item.icon className="w-4 h-4 text-emerald-500" />
-                          <span className="text-xs font-bold">{item.label}</span>
-                        </div>
-                      ))}
-                    </div>
+                {/* Add more activities button */}
+                {selectedItems.length > 0 && (
+                  <div className="pt-4 pb-8 border-b border-dashed border-slate-200">
+                    <button 
+                      onClick={onClose}
+                      className="w-full py-4 rounded-[2rem] bg-white border-2 border-dashed border-primary/30 text-primary font-black text-sm hover:bg-primary/5 hover:border-primary transition-all flex items-center justify-center gap-3 active:scale-95"
+                    >
+                      <Plus className="w-5 h-5" /> 
+                      Añadir más actividades del anfitrión
+                    </button>
+                    {selectedItems.length === 1 && hostDiscount > 0 && (
+                      <p className="text-[10px] text-center mt-3 text-secondary font-black uppercase tracking-widest animate-bounce">
+                        ¡Añade una más y obtén un {hostDiscount}% de descuento!
+                      </p>
+                    )}
                   </div>
                 )}
               </div>
 
-              <div className="space-y-10">
-                {/* Custom Calendar Section */}
-                <div className="space-y-4">
-                  <label className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-slate-400">
-                    <Calendar className="w-3.5 h-3.5" /> 1. Elige tu fecha ideal
-                  </label>
-                  <CustomCalendar 
-                    selectedDate={date} 
-                    onSelect={setDate} 
-                    availableDays={
-                      activity.dias_disponibles 
-                        ? (typeof activity.dias_disponibles === 'string' 
-                            ? activity.dias_disponibles.split(',').map(Number) 
-                            : activity.dias_disponibles)
-                        : [0, 1, 2, 3, 4, 5, 6]
-                    }
-                  />
-                  {date && (
-                    <motion.div 
-                      initial={{ opacity: 0, y: -10 }} 
-                      animate={{ opacity: 1, y: 0 }}
-                      className="bg-emerald-50 text-emerald-700 p-4 rounded-2xl flex items-center gap-3 text-sm font-bold border border-emerald-100"
-                    >
-                      <CheckCircle2 className="w-5 h-5" /> 
-                      <div className="flex flex-col">
-                        <span>Seleccionado: {new Date(date + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span>
-                        <span className={`text-[10px] uppercase font-black tracking-widest mt-0.5 ${remainingCapacity === 0 ? 'text-red-500' : 'text-emerald-600'}`}>
-                          {loadingCapacity ? 'Consultando cupos...' : remainingCapacity > 0 ? `${remainingCapacity} espacios disponibles` : 'Sin cupos para esta fecha'}
-                        </span>
-                      </div>
-                    </motion.div>
-                  )}
-                </div>
-
-                {/* Guests */}
-                <div className="space-y-6">
-                  <label className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-slate-400">
-                    <Users className="w-3.5 h-3.5" /> 2. ¿Cuántas personas viajan?
-                  </label>
-                  
-                  <div className="space-y-4">
-                    {/* Adults */}
-                    <div className="flex justify-between items-center p-6 bg-slate-50/50 border border-slate-100 rounded-3xl group hover:border-primary/20 transition-all">
-                      <div>
-                        <p className="font-bold text-slate-800">Adultos</p>
-                        <p className="text-[10px] text-slate-400 uppercase font-bold tracking-tighter">Precio: ${activity.price}</p>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <button 
-                          onClick={() => setAdults(Math.max(1, adults - 1))}
-                          className="w-12 h-12 rounded-2xl border border-slate-200 flex items-center justify-center hover:bg-white transition-all text-slate-400 hover:text-primary active:scale-90"
-                        >
-                          <Minus className="w-4 h-4" />
-                        </button>
-                        <span className="font-display font-black text-2xl w-6 text-center">{adults}</span>
-                        <button 
-                          onClick={() => {
-                            if (adults + children + seniors < remainingCapacity) {
-                                setAdults(adults + 1);
-                            } else {
-                                setError(`Lo sentimos, solo quedan ${remainingCapacity} cupos disponibles.`);
-                            }
-                          }}
-                          disabled={adults + children + seniors >= remainingCapacity || loadingCapacity}
-                          className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all shadow-xl active:scale-90 ${
-                            adults + children + seniors >= remainingCapacity 
-                              ? 'bg-slate-200 text-slate-400 cursor-not-allowed' 
-                              : 'bg-primary text-white hover:bg-primary-dark shadow-primary/20'
-                          }`}
-                        >
-                          <Plus className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Children */}
-                    <div className="flex justify-between items-center p-6 bg-slate-50/50 border border-slate-100 rounded-3xl group hover:border-primary/20 transition-all">
-                      <div>
-                        <p className="font-bold text-slate-800">Niños (2-12 años)</p>
-                        <p className="text-[10px] text-emerald-600 uppercase font-black tracking-tighter">50% DESCUENTO</p>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <button 
-                          onClick={() => setChildren(Math.max(0, children - 1))}
-                          className="w-12 h-12 rounded-2xl border border-slate-200 flex items-center justify-center hover:bg-white transition-all text-slate-400 hover:text-primary active:scale-90"
-                        >
-                          <Minus className="w-4 h-4" />
-                        </button>
-                        <span className="font-display font-black text-2xl w-6 text-center">{children}</span>
-                        <button 
-                          onClick={() => {
-                            if (adults + children + seniors < remainingCapacity) {
-                                setChildren(children + 1);
-                            } else {
-                                setError(`Lo sentimos, solo quedan ${remainingCapacity} cupos disponibles.`);
-                            }
-                          }}
-                          disabled={adults + children + seniors >= remainingCapacity || loadingCapacity}
-                          className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all shadow-xl active:scale-90 ${
-                            adults + children + seniors >= remainingCapacity 
-                              ? 'bg-slate-200 text-slate-400 cursor-not-allowed' 
-                              : 'bg-primary text-white hover:bg-primary-dark shadow-primary/20'
-                          }`}
-                        >
-                          <Plus className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Seniors / Disabled */}
-                    <div className="flex justify-between items-center p-6 bg-slate-50/50 border border-slate-100 rounded-3xl group hover:border-primary/20 transition-all">
-                      <div>
-                        <p className="font-bold text-slate-800">3ra Edad / Discapacitados</p>
-                        <p className="text-[10px] text-emerald-600 uppercase font-black tracking-tighter">50% DESCUENTO</p>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <button 
-                          onClick={() => setSeniors(Math.max(0, seniors - 1))}
-                          className="w-12 h-12 rounded-2xl border border-slate-200 flex items-center justify-center hover:bg-white transition-all text-slate-400 hover:text-primary active:scale-90"
-                        >
-                          <Minus className="w-4 h-4" />
-                        </button>
-                        <span className="font-display font-black text-2xl w-6 text-center">{seniors}</span>
-                        <button 
-                          onClick={() => {
-                            if (adults + children + seniors < remainingCapacity) {
-                                setSeniors(seniors + 1);
-                            } else {
-                                setError(`Lo sentimos, solo quedan ${remainingCapacity} cupos disponibles.`);
-                            }
-                          }}
-                          disabled={adults + children + seniors >= remainingCapacity || loadingCapacity}
-                          className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all shadow-xl active:scale-90 ${
-                            adults + children + seniors >= remainingCapacity 
-                              ? 'bg-slate-200 text-slate-400 cursor-not-allowed' 
-                              : 'bg-primary text-white hover:bg-primary-dark shadow-primary/20'
-                          }`}
-                        >
-                          <Plus className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Seniors/Disabled Policy Warning */}
-                    {seniors > 0 && (
-                      <motion.div 
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        className="p-4 bg-amber-50 border border-amber-200 rounded-2xl flex gap-3 text-amber-800"
-                      >
-                        <Shield className="w-5 h-5 shrink-0" />
-                        <p className="text-[11px] font-bold leading-relaxed">
-                          IMPORTANTE: Si la persona no acredita su condición (Cédula de 3ra edad o Carnet de Discapacidad) al inicio de la actividad, deberá pagar el saldo restante o se le negará la experiencia sin derecho a reembolso.
-                        </p>
-                      </motion.div>
-                    )}
+              {selectedItems.length === 0 && (
+                <div className="py-20 text-center space-y-6">
+                  <div className="w-20 h-20 bg-slate-100 rounded-[2rem] flex items-center justify-center mx-auto text-slate-300">
+                    <Star className="w-10 h-10" />
                   </div>
+                  <p className="text-slate-400 font-bold max-w-xs mx-auto text-sm">Tu selección está vacía. Busca experiencias y añádelas aquí.</p>
+                  <button onClick={onClose} className="text-primary font-black uppercase tracking-widest text-xs">Explorar Ahora</button>
                 </div>
-              </div>
+              )}
+
+              {/* Cleanup: Global counter removed */}
 
               {/* Checkout Card */}
               <div className="mt-16 bg-primary-dark rounded-[3rem] p-8 text-white relative overflow-hidden shadow-2xl">
@@ -550,6 +554,23 @@ const BookingSidebar = ({ isOpen, onClose, activity }) => {
                         <div className="h-px flex-grow mx-4 bg-white/5" />
                         <span className="font-bold">${priceDetails.subtotal.toFixed(2)}</span>
                     </div>
+                    
+                    {priceDetails.discount > 0 && (
+                      <div className="p-4 bg-emerald-500/10 rounded-2xl border border-emerald-500/20 my-4 flex justify-between items-center group relative overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/0 to-emerald-500/5 group-hover:translate-x-full transition-transform duration-1000" />
+                        <div className="flex items-center gap-3">
+                           <div className="w-8 h-8 rounded-xl bg-emerald-500 flex items-center justify-center text-white shadow-xl shadow-emerald-500/20">
+                              <Sparkle className="w-4 h-4" />
+                           </div>
+                           <div>
+                              <p className="text-[9px] font-black text-emerald-400 uppercase tracking-widest">Ahorro por Paquete ISTPET</p>
+                              <p className="text-xs font-bold text-white">Descuento del {hostDiscount}% aplicado</p>
+                           </div>
+                        </div>
+                        <span className="text-lg font-black text-emerald-400">-${priceDetails.discount.toFixed(2)}</span>
+                      </div>
+                    )}
+
                     <div className="flex justify-between text-sm items-center">
                         <span className="opacity-50 text-emerald-400">15% IVA (Incluido)</span>
                         <div className="h-px flex-grow mx-4 bg-white/5" />
@@ -577,7 +598,6 @@ const BookingSidebar = ({ isOpen, onClose, activity }) => {
                     </div>
                     
                     <div className="space-y-4">
-                      {/* Nombre en la Tarjeta */}
                       <div className="relative group">
                         <input 
                           type="text"
@@ -591,7 +611,6 @@ const BookingSidebar = ({ isOpen, onClose, activity }) => {
                         </div>
                       </div>
 
-                      {/* Número de Tarjeta */}
                       <div className="relative group">
                         <input 
                           type="text"
@@ -607,7 +626,6 @@ const BookingSidebar = ({ isOpen, onClose, activity }) => {
                       </div>
 
                       <div className="flex gap-4">
-                        {/* Expiración */}
                         <div className="relative flex-1 group">
                           <input 
                             type="text"
@@ -622,7 +640,6 @@ const BookingSidebar = ({ isOpen, onClose, activity }) => {
                             className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-secondary/50 focus:bg-white/[0.08] text-center font-mono transition-all"
                           />
                         </div>
-                        {/* CVV */}
                         <div className="relative flex-1 group">
                           <input 
                             type="password"
@@ -637,7 +654,6 @@ const BookingSidebar = ({ isOpen, onClose, activity }) => {
                     </div>
                   </div>
 
-                  {/* Términos y Condiciones */}
                   <div className="mb-8 px-2">
                     <label className="flex items-start gap-3 cursor-pointer group">
                       <div className="relative flex items-center mt-0.5">
@@ -666,10 +682,10 @@ const BookingSidebar = ({ isOpen, onClose, activity }) => {
                     <button 
                       type="button" 
                       onClick={handlePaymentSubmit}
-                      disabled={!date || isProcessing || success || !acceptedTerms}
+                      disabled={selectedItems.length === 0 || isProcessing || success || !acceptedTerms}
                       className={`
                         w-full sm:w-auto px-8 py-5 rounded-[2rem] font-black text-sm transition-all shadow-2xl flex justify-center items-center gap-3
-                        ${date && !isProcessing && !success && acceptedTerms
+                        ${selectedItems.length > 0 && !isProcessing && !success && acceptedTerms
                           ? 'bg-secondary text-primary-dark hover:scale-105 active:scale-95 shadow-secondary/20 hover:bg-white' 
                           : 'bg-white/10 text-white/20 cursor-not-allowed border border-white/10'
                         }
@@ -681,7 +697,6 @@ const BookingSidebar = ({ isOpen, onClose, activity }) => {
                   </div>
                 </div>
                 
-                {/* Backdrop Pattern */}
                 <div className="absolute top-0 right-0 p-4 opacity-5">
                   <Star className="w-32 h-32 rotate-12" />
                 </div>
