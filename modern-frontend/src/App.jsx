@@ -6,6 +6,7 @@ import RegisterHost from './pages/RegisterHost';
 import ForgotPassword from './pages/ForgotPassword';
 import DashboardTourist from './pages/DashboardTourist';
 import DashboardHost from './pages/DashboardHost';
+import AdminDashboard from './pages/AdminDashboard';
 import { ToastProvider } from './contexts/ToastContext';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -32,6 +33,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <DashboardHost />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin" 
+            element={
+              <ProtectedRoute>
+                <AdminDashboard />
               </ProtectedRoute>
             } 
           />

@@ -17,6 +17,14 @@ Password: Password123!
 Rol: TURISTA
 Descripción: Maria Turista, viajera apasionada.
 ===========================================
+USUARIO ADMINISTRADOR
+-------------------------------------------
+Email: admin@test.com
+Password: Password123!
+Rol: ADMIN
+Descripción: Dashboard global y estadísticas.
+===========================================
 
 NOTA: Estas credenciales funcionan con el script SQL 'Datos_prueba.sql'.
+
 Si reinicias la base de datos, asegúrate de ejecutar primero 'semifinal.sql' y luego 'Datos_prueba.sql'.

@@ -34,6 +34,9 @@ CREATE TABLE usuarios (
         CHECK (rol IN ('TURISTA', 'ANFITRION', 'ADMIN')),
     fecha_nacimiento DATE,
     requiere_cambio_clave BOOLEAN DEFAULT false,
+    estado VARCHAR(20) DEFAULT 'ACTIVO'
+        CHECK (estado IN ('ACTIVO', 'INACTIVO', 'SUSPENDIDO')),
+    verificado BOOLEAN DEFAULT FALSE,
     fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -408,6 +411,7 @@ CREATE TABLE valoraciones (
     id_turista INT NOT NULL,
     puntuacion INT CHECK (puntuacion BETWEEN 1 AND 5),
     comentario TEXT,
+    visible BOOLEAN DEFAULT TRUE,
     fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     UNIQUE (id_actividad, id_turista),
@@ -450,9 +454,11 @@ CREATE TABLE resenas (
     id_reserva INTEGER NOT NULL,
     autor_id INTEGER NOT NULL,
     receptor_id INTEGER NOT NULL,
-    rol_autor VARCHAR(20) NOT NULL,
+    rol_autor VARCHAR(20) NOT NULL CHECK (rol_autor = 'TURISTA'),
+
     puntuacion INTEGER CHECK (puntuacion >= 1 AND puntuacion <= 5),
     comentario TEXT,
+    visible BOOLEAN DEFAULT TRUE,
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     
     UNIQUE(id_reserva, autor_id),

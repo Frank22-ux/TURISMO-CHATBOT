@@ -27,7 +27,13 @@ const Login = () => {
       if (data.token) {
         sessionStorage.setItem('token', data.token);
         sessionStorage.setItem('user', JSON.stringify(data.user));
-        navigate(data.user.rol === 'ANFITRION' ? '/dashboard-host' : '/dashboard-tourist');
+        if (data.user.rol === 'ADMIN') {
+          navigate('/admin');
+        } else if (data.user.rol === 'ANFITRION') {
+          navigate('/dashboard-host');
+        } else {
+          navigate('/dashboard-tourist');
+        }
       } else {
         alert(data.message || 'Error al iniciar sesión');
       }
