@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, MapPin, Clock, Users, Signal, Tag, Calendar, Star, Info, Image as ImageIcon, Plus, CheckCircle2 } from 'lucide-react';
+import { X, MapPin, Clock, Users, Signal, Tag, Calendar, Star, Info, Image as ImageIcon, Plus, CheckCircle2, MessageSquare, User } from 'lucide-react';
 import Map, { Marker, Source } from 'react-map-gl/mapbox';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../../contexts/CartContext';
@@ -28,6 +28,56 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
     if (result.success || result.error === 'DUPLICATE') {
       setAdded(true);
       setTimeout(() => setAdded(false), 2000);
+    }
+  };
+
+  const [toast, setToast] = useState(null);
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  };
+
+  const handleSendMessage = async () => {
+    const userData = sessionStorage.getItem('user');
+    if (!userData) {
+      showToast('Debes iniciar sesión para contactar al anfitrión.', 'error');
+      return;
+    }
+    
+    if (!activity.id_anfitrion) {
+      showToast('El anfitrión de esta actividad no está disponible.', 'error');
+      return;
+    }
+    
+    const token = sessionStorage.getItem('token');
+    const mensajePlantilla = `¡Hola! Me interesa la actividad "${activity.title || activity.titulo}". ¿Me podrías dar un poco más de información sobre esta experiencia y si hay algún consejo extra?`;
+
+    setIsSendingMessage(true);
+    try {
+      const response = await fetch('http://localhost:3000/api/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          receiverId: activity.id_anfitrion,
+          content: mensajePlantilla
+        })
+      });
+      
+      if (response.ok) {
+        showToast('¡Se ha enviado tu consulta al anfitrión exitosamente!', 'success');
+      } else {
+        showToast('No se pudo enviar el mensaje. Intenta de nuevo.', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Error de conexión al intentar contactar al anfitrión.', 'error');
+    } finally {
+      setIsSendingMessage(false);
     }
   };
 
@@ -62,6 +112,22 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
           exit={{ opacity: 0, scale: 0.9, y: 20 }}
           className="bg-white w-full max-w-5xl max-h-[90vh] rounded-[40px] shadow-2xl relative flex flex-col overflow-hidden"
         >
+          {/* Custom Toast Notification */}
+          <AnimatePresence>
+            {toast && (
+              <motion.div 
+                initial={{ opacity: 0, y: -50, scale: 0.9 }}
+                animate={{ opacity: 1, y: 30, scale: 1 }}
+                exit={{ opacity: 0, y: -50, scale: 0.9 }}
+                className="absolute top-0 left-0 right-0 z-[200] flex justify-center px-4 pointer-events-none"
+              >
+                <div className={`shadow-2xl rounded-2xl px-6 py-4 flex items-center gap-3 backdrop-blur-md border ${toast.type === 'success' ? 'bg-emerald-500/90 border-emerald-400 text-white shadow-emerald-500/30' : 'bg-red-500/90 border-red-400 text-white shadow-red-500/30'}`}>
+                   {toast.type === 'success' ? <CheckCircle2 className="w-6 h-6" /> : <X className="w-6 h-6" />}
+                   <p className="font-bold text-sm tracking-wide">{toast.message}</p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
           {/* Close Button */}
           <button 
             onClick={onClose}
@@ -107,7 +173,7 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
               )}
               
               <div className="absolute bottom-8 left-10 right-10">
-                <div className="flex items-center gap-3 mb-4">
+                <div className="flex items-center gap-3 mb-4 flex-wrap">
                   <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg ${
                     isActive ? 'bg-green-500 text-white' : 'bg-amber-500 text-white'
                   }`}>
@@ -116,6 +182,12 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
                   <span className="px-4 py-1.5 rounded-full bg-white/90 backdrop-blur-md text-primary-dark text-[10px] font-black uppercase tracking-widest shadow-lg">
                     {activity.id_categoria === '1' ? 'Aventura' : 'Cultura'}
                   </span>
+                  {activity.nombre_anfitrion && (
+                    <span className="px-4 py-1.5 rounded-full bg-amber-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg flex items-center gap-2">
+                      <User className="w-3.5 h-3.5" />
+                      Por: {activity.nombre_anfitrion}
+                    </span>
+                  )}
                 </div>
                 <h2 className="text-4xl sm:text-5xl font-display font-black text-slate-900 tracking-tight leading-tight">
                   {activity.title || activity.titulo}
@@ -242,21 +314,32 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
                   </p>
 
                   {cart && (
-                    <button 
-                      onClick={handleAddToCart}
-                      disabled={added}
-                      className={`w-full mt-6 py-4 rounded-2xl font-black text-xs transition-all shadow-xl flex items-center justify-center gap-3 border ${
-                        added || isAlreadyInCart
-                        ? 'bg-emerald-500 text-white border-emerald-400' 
-                        : 'bg-primary text-white border-primary-light hover:bg-white hover:text-primary-dark hover:scale-105 active:scale-95'
-                      }`}
-                    >
-                      {added || isAlreadyInCart ? (
-                        <> <CheckCircle2 className="w-5 h-5" /> En el Paquete </>
-                      ) : (
-                        <> <Plus className="w-5 h-5" /> Añadir al Paquete </>
-                      )}
-                    </button>
+                    <div className="mt-6 flex flex-col gap-3">
+                      <button 
+                        onClick={handleAddToCart}
+                        disabled={added}
+                        className={`w-full py-4 rounded-2xl font-black text-xs transition-all shadow-xl flex items-center justify-center gap-3 border ${
+                          added || isAlreadyInCart
+                          ? 'bg-emerald-500 text-white border-emerald-400' 
+                          : 'bg-primary text-white border-primary-light hover:bg-white hover:text-primary-dark hover:scale-105 active:scale-95'
+                        }`}
+                      >
+                        {added || isAlreadyInCart ? (
+                          <> <CheckCircle2 className="w-5 h-5" /> En el Paquete </>
+                        ) : (
+                          <> <Plus className="w-5 h-5" /> Añadir al Paquete </>
+                        )}
+                      </button>
+
+                      <button 
+                        onClick={handleSendMessage}
+                        disabled={isSendingMessage}
+                        className="w-full py-4 rounded-2xl font-black text-xs transition-all shadow-xl flex items-center justify-center gap-3 border bg-white/10 border-white/20 hover:bg-white hover:text-primary-dark text-white hover:scale-105 active:scale-95 disabled:opacity-50 disabled:scale-100"
+                      >
+                         <MessageSquare className="w-5 h-5" /> 
+                         {isSendingMessage ? 'Enviando...' : 'Consultar Anfitrión'}
+                      </button>
+                    </div>
                   )}
                 </div>
 

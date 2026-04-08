@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, Users, Minus, Plus, CreditCard, ChevronRight, Clock, Shield, Star, CheckCircle2, ChevronLeft, MessageSquare, Trash2, Sparkle } from 'lucide-react';
+import { X, Calendar, Users, Minus, Plus, CreditCard, ChevronRight, Clock, Shield, Star, CheckCircle2, ChevronLeft, MessageSquare, Trash2, Sparkle, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
 import CustomCalendar from './CustomCalendar';
@@ -22,6 +22,12 @@ const BookingSidebar = ({ isOpen, onClose }) => {
   const [hostDiscount, setHostDiscount] = useState(0);
   const [capacities, setCapacities] = useState({}); // { activityId: remaining }
   const [loadingCapacities, setLoadingCapacities] = useState({});
+  const [toast, setToast] = useState(null); // { type: 'success' | 'error', message: string }
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  };
 
   const updateGuestCount = (activityId, type, delta) => {
     setGuestCounts(prev => {
@@ -105,6 +111,38 @@ const BookingSidebar = ({ isOpen, onClose }) => {
       setError(err.message);
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  const handleSendMessage = async (item) => {
+    try {
+      const token = sessionStorage.getItem('token');
+      if (!token) {
+        alert('Debes iniciar sesión para enviar mensajes al anfitrión.');
+        navigate('/login');
+        return;
+      }
+      
+      const response = await fetch('http://localhost:3000/api/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          id_receptor: hostId,
+          contenido: `¡Hola! Estoy armando un paquete con tu actividad "${item.titulo}". ¿Me podrías dar un poco más de información sobre esta experiencia y si hay algún consejo extra?`
+        })
+      });
+      
+      if (response.ok) {
+        showToast('¡Se ha enviado tu consulta al anfitrión exitosamente!', 'success');
+      } else {
+        showToast('No se pudo enviar el mensaje. Intenta de nuevo.', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Error de conexión al intentar contactar al anfitrión.', 'error');
     }
   };
 
@@ -242,6 +280,23 @@ const BookingSidebar = ({ isOpen, onClose }) => {
             transition={{ type: 'spring', damping: 30, stiffness: 200 }}
             className="fixed top-0 left-0 h-full w-full max-w-lg bg-slate-50 shadow-2xl z-[60] overflow-y-auto"
           >
+            {/* Custom Toast Notification */}
+            <AnimatePresence>
+              {toast && (
+                <motion.div 
+                  initial={{ opacity: 0, y: -50, scale: 0.9 }}
+                  animate={{ opacity: 1, y: 30, scale: 1 }}
+                  exit={{ opacity: 0, y: -50, scale: 0.9 }}
+                  className="fixed top-0 left-0 right-0 z-[200] flex justify-center px-4 pointer-events-none"
+                >
+                  <div className={`shadow-2xl rounded-2xl px-6 py-4 flex items-center gap-3 backdrop-blur-md border ${toast.type === 'success' ? 'bg-emerald-500/90 border-emerald-400 text-white shadow-emerald-500/30' : 'bg-red-500/90 border-red-400 text-white shadow-red-500/30'}`}>
+                     {toast.type === 'success' ? <CheckCircle2 className="w-6 h-6" /> : <X className="w-6 h-6" />}
+                     <p className="font-bold text-sm tracking-wide">{toast.message}</p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {/* T&C MODAL */}
             <AnimatePresence>
               {showTermsModal && (
@@ -392,8 +447,22 @@ const BookingSidebar = ({ isOpen, onClose }) => {
                            <span className="px-2 py-0.5 rounded-lg bg-blue-50 text-blue-500 text-[9px] font-black uppercase tracking-widest leading-none flex items-center border border-blue-100">
                               <Clock className="w-3 h-3 mr-1" /> {item.duracion_horas}H
                            </span>
+                           {item.nombre_anfitrion && (
+                             <span className="px-2 py-0.5 rounded-lg bg-amber-50 text-amber-600 text-[9px] font-black uppercase tracking-widest leading-none flex items-center border border-amber-200">
+                                <User className="w-3 h-3 mr-1" /> {item.nombre_anfitrion}
+                             </span>
+                           )}
                         </div>
-                        <p className="text-xl font-display font-black text-primary-dark">${item.price}</p>
+                        <div className="flex justify-between items-center">
+                          <p className="text-xl font-display font-black text-primary-dark">${item.price}</p>
+                          <button 
+                            onClick={() => handleSendMessage(item)}
+                            className="bg-indigo-50 text-indigo-500 hover:bg-indigo-500 hover:text-white px-3 py-1.5 rounded-xl flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all active:scale-95"
+                            title="Preguntar sobre esta actividad"
+                          >
+                            <MessageSquare className="w-4 h-4" /> Consultar
+                          </button>
+                        </div>
                       </div>
                     </div>
 

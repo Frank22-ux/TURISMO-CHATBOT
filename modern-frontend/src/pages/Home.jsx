@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Search, MapPin, ArrowRight, Image as ImageIcon, Users, Navigation, RefreshCw, LayoutGrid, Map } from 'lucide-react';
+import { Search, MapPin, ArrowRight, Image as ImageIcon, Users, Navigation, RefreshCw, LayoutGrid, Map, ShoppingBag, User } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import ActivityDetailModal from '../components/dashboard/ActivityDetailModal';
@@ -36,8 +37,16 @@ const ActivityCard = ({ activity, onOpenDetail, onOpenBooking }) => (
       )}
     </div>
     <div className="p-6 flex flex-col flex-grow">
-      <div className="flex items-center gap-2 text-primary text-xs font-bold mb-3 uppercase tracking-wider">
-        <MapPin className="w-3 h-3" /> {activity.location}
+      <div className="flex flex-col gap-1.5 mb-3">
+        <div className="flex items-center gap-2 text-primary text-xs font-bold uppercase tracking-wider">
+          <MapPin className="w-3 h-3" /> {activity.location}
+        </div>
+        {activity.nombre_anfitrion && (
+          <div className="flex items-center gap-1.5 text-slate-500 text-[10px] font-black uppercase tracking-widest pl-[1px]">
+            <User className="w-3.5 h-3.5 text-secondary" />
+            <span className="opacity-70">POR:</span> <span className="text-secondary">{activity.nombre_anfitrion}</span>
+          </div>
+        )}
       </div>
       <h3 className="text-lg font-bold text-slate-800 mb-6 group-hover:text-primary transition-colors leading-snug">
         {activity.title}
@@ -115,7 +124,7 @@ const Home = () => {
   const [viewMode, setViewMode] = useState('grid');
   const locationDropdownRef = useRef(null);
   const navigate = useNavigate();
-  const { addToCart } = useCart();
+  const { addToCart, selectedItems } = useCart();
 
   const handleOpenBookingRequest = async (act) => {
     const userData = sessionStorage.getItem('user');
@@ -141,23 +150,25 @@ const Home = () => {
       return;
     }
 
+    const handleSuccess = () => setIsBookingOpen(true);
+
     try {
       const response = await fetch(`http://localhost:3000/api/activities/${act.id}`);
       if (response.ok) {
         const fullData = await response.json();
-        const result = addToCart(fullData);
+        const result = addToCart(fullData, handleSuccess);
         if (result.success || result.error === 'DUPLICATE') {
            setIsBookingOpen(true);
         }
       } else {
-        const result = addToCart(act);
+        const result = addToCart(act, handleSuccess);
         if (result.success || result.error === 'DUPLICATE') {
            setIsBookingOpen(true);
         }
       }
     } catch (error) {
       console.error('Error fetching booking details:', error);
-      const result = addToCart(act);
+      const result = addToCart(act, handleSuccess);
       if (result.success || result.error === 'DUPLICATE') {
          setIsBookingOpen(true);
       }
@@ -803,6 +814,35 @@ const Home = () => {
         onClose={() => setIsDetailOpen(false)}
         activity={selectedActivity}
       />
+
+      <AnimatePresence>
+        {!isBookingOpen && selectedItems?.length > 0 && (
+          <motion.div 
+             initial={{ scale: 0, opacity: 0, y: 50 }}
+             animate={{ scale: 1, opacity: 1, y: 0 }}
+             exit={{ scale: 0, opacity: 0, y: 50 }}
+             className="fixed bottom-8 right-8 z-[100]"
+          >
+             <button 
+                onClick={() => setIsBookingOpen(true)}
+                className="bg-primary hover:bg-primary-dark text-white rounded-[2rem] p-4 pr-6 flex items-center gap-4 shadow-2xl shadow-primary/40 hover:-translate-y-1 transition-all group"
+             >
+                <div className="relative">
+                   <div className="bg-white/20 p-3 rounded-2xl group-hover:scale-110 transition-transform">
+                      <ShoppingBag className="w-6 h-6" />
+                   </div>
+                   <span className="absolute -top-2 -right-2 bg-secondary text-primary-dark w-6 h-6 rounded-full flex items-center justify-center font-black text-xs shadow-md border-2 border-primary">
+                      {selectedItems.length}
+                   </span>
+                </div>
+                <div className="flex flex-col items-start pr-2">
+                   <span className="text-[10px] font-black uppercase tracking-widest text-white/70">Tu Paquete</span>
+                   <span className="font-bold text-sm">Ver actividades</span>
+                </div>
+             </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <BookingSidebar 
         isOpen={isBookingOpen}

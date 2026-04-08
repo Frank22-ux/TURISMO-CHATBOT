@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { AlertTriangle, X } from 'lucide-react';
 
 const CartContext = createContext();
 
@@ -23,15 +25,13 @@ export const CartProvider = ({ children }) => {
     sessionStorage.setItem('cart_selection', JSON.stringify({ items: selectedItems, hId: hostId }));
   }, [selectedItems, hostId]);
 
-  const addToCart = (activity) => {
+  const [pendingActivity, setPendingActivity] = useState(null);
+
+  const addToCart = (activity, onSuccess = null) => {
     // 1. Same Host Check
     if (hostId && String(hostId) !== String(activity.id_anfitrion)) {
-      if (window.confirm('Solo puedes reservar experiencias del mismo anfitrión en un solo paquete. ¿Deseas vaciar tu selección actual y añadir esta nueva experiencia?')) {
-        setSelectedItems([activity]);
-        setHostId(activity.id_anfitrion);
-        return { success: true };
-      }
-      return { success: false, error: 'HOST_MISMATCH' };
+      setPendingActivity({ activity, onSuccess });
+      return { success: false, error: 'HOST_MISMATCH_PENDING' };
     }
 
     // 2. Conflict Check (Overlap)
@@ -49,7 +49,21 @@ export const CartProvider = ({ children }) => {
 
     setSelectedItems([...selectedItems, activity]);
     if (!hostId) setHostId(activity.id_anfitrion);
+    if (onSuccess) onSuccess();
     return { success: true };
+  };
+
+  const confirmHostOverride = () => {
+    if (pendingActivity) {
+      setSelectedItems([pendingActivity.activity]);
+      setHostId(pendingActivity.activity.id_anfitrion);
+      if (pendingActivity.onSuccess) pendingActivity.onSuccess();
+      setPendingActivity(null);
+    }
+  };
+
+  const cancelHostOverride = () => {
+    setPendingActivity(null);
   };
 
   const removeFromCart = (activityId) => {
@@ -97,6 +111,48 @@ export const CartProvider = ({ children }) => {
       checkConflicts 
     }}>
       {children}
+
+      <AnimatePresence>
+        {pendingActivity && (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+             <motion.div 
+               initial={{ opacity: 0 }} 
+               animate={{ opacity: 1 }} 
+               exit={{ opacity: 0 }} 
+               className="absolute inset-0 bg-primary-dark/40 backdrop-blur-sm"
+               onClick={cancelHostOverride}
+             />
+             <motion.div
+               initial={{ scale: 0.9, opacity: 0, y: 20 }}
+               animate={{ scale: 1, opacity: 1, y: 0 }}
+               exit={{ scale: 0.9, opacity: 0, y: 20 }}
+               className="relative bg-white rounded-[2.5rem] p-8 max-w-md w-full shadow-2xl flex flex-col items-center text-center border-2 border-amber-100"
+             >
+                <div className="w-16 h-16 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center mb-6 shadow-inner">
+                   <AlertTriangle className="w-8 h-8" />
+                </div>
+                <h3 className="text-2xl font-black text-primary-dark mb-4 leading-tight">¿Cambiar Anfitrión?</h3>
+                <p className="text-slate-500 font-medium mb-8 text-sm">
+                   Solo puedes separar experiencias de <span className="font-bold text-slate-700">un mismo anfitrión</span> por paquete. Si continúas, <span className="font-bold text-red-500">se vaciará tu carrito actual</span> y se añadirá esta nueva experiencia.
+                </p>
+                <div className="flex gap-4 w-full">
+                   <button 
+                     onClick={cancelHostOverride}
+                     className="flex-1 py-4 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-2xl transition-all active:scale-95"
+                   >
+                     Cancelar
+                   </button>
+                   <button 
+                     onClick={confirmHostOverride}
+                     className="flex-1 py-4 bg-amber-500 hover:bg-amber-600 text-white font-black rounded-2xl shadow-lg hover:shadow-amber-500/30 transition-all active:scale-95"
+                   >
+                     Sí, Cambiar
+                   </button>
+                </div>
+             </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </CartContext.Provider>
   );
 };
