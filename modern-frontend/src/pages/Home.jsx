@@ -421,18 +421,34 @@ const Home = () => {
             const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10&addressdetails=1`, {
               headers: { 'Accept-Language': 'es', 'User-Agent': 'TurismoApp/1.0' }
             });
+            let foundCity = city;
+            let foundProvince = province;
+            let foundCountry = country;
             if (response.ok) {
               const data = await response.json();
               const addr = data.address;
-              const foundCity = addr.city || addr.town || addr.village || addr.suburb || '';
-              const foundProvince = addr.state || '';
-              const foundCountry = addr.country || '';
+              foundCity = addr.city || addr.town || addr.village || addr.suburb || '';
+              foundProvince = addr.state || '';
+              foundCountry = addr.country || '';
 
               setCity(foundCity);
               setProvince(foundProvince);
               setCountry(foundCountry);
               setSearchQuery('Mi Ubicación Actual');
             }
+
+            // Automáticamente dispara la búsqueda con la nueva ubicación
+            fetchActivities({
+               city: foundCity,
+               province: foundProvince,
+               country: foundCountry,
+               lat: latitude, 
+               lng: longitude, 
+               radius, 
+               adults, 
+               childrenCount
+            });
+
           } catch (err) {
             console.error("Reverse geocoding error:", err);
           } finally {
@@ -578,7 +594,14 @@ const Home = () => {
                   
                   <select
                     value={radius}
-                    onChange={(e) => setRadius(Number(e.target.value))}
+                    onChange={(e) => {
+                       const newRadius = Number(e.target.value);
+                       setRadius(newRadius);
+                       // Si ya tenemos coordenadas de ubicación, auto-buscar al cambiar de radio
+                       if (lat && lng) {
+                          fetchActivities({ city, province, country, lat, lng, radius: newRadius, adults, childrenCount });
+                       }
+                    }}
                     className="py-3 px-2 rounded-xl border border-slate-100 bg-slate-50 outline-none text-slate-700 text-xs font-bold shrink-0 no-appearance"
                     title="Radio de búsqueda"
                   >
