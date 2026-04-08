@@ -186,7 +186,7 @@ const OfferCenterSection = () => {
       <div className="grid lg:grid-cols-3 gap-8">
         {/* Bulk Action Panel */}
         <div className="lg:col-span-1 space-y-6">
-          <div className="bg-white rounded-[32px] p-8 shadow-sm border border-slate-100 sticky top-10">
+          <div className="bg-white rounded-[32px] p-8 shadow-sm border border-slate-100 sticky top-10 z-50">
             <h3 className="text-lg font-black text-slate-800 mb-6 flex items-center gap-2">
               <Percent className="w-5 h-5 text-primary" /> Configurar Oferta
             </h3>

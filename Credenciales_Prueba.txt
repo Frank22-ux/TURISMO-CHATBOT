@@ -25,6 +25,15 @@ Rol: ADMIN
 Descripción: Dashboard global y estadísticas.
 ===========================================
 
+===========================================
+USUARIO TURISTA (SUSPENDIDA PARA PRUEBA)
+-------------------------------------------
+Email: elena@test.com
+Password: Password123!
+Rol: TURISTA
+Descripción: Elena Viajera, inactiva por >30 días. Ideal para probar flujo de reactivación.
+===========================================
+
 NOTA: Estas credenciales funcionan con el script SQL 'Datos_prueba.sql'.
 
 Si reinicias la base de datos, asegúrate de ejecutar primero 'semifinal.sql' y luego 'Datos_prueba.sql'.

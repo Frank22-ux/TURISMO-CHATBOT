@@ -9,7 +9,36 @@ const Login = () => {
   const [formData, setFormData] = useState({ identifier: '', password: '', phone: '' });
   const [loading, setLoading] = useState(false);
   const [isPhoneValid, setIsPhoneValid] = useState(false);
+  const [showReactivation, setShowReactivation] = useState(false);
+  const [reactivationCode, setReactivationCode] = useState('');
   const navigate = useNavigate();
+
+  const handleReactivate = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const response = await fetch('http://localhost:3000/api/auth/reactivate-account', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          identifier: method === 'phone' ? formData.phone : formData.identifier,
+          codigo: reactivationCode
+        })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        alert('¡Cuenta reactivada! Por favor inicia sesión nuevamente.');
+        setShowReactivation(false);
+        setReactivationCode('');
+      } else {
+        alert(data.message || 'Error al reactivar cuenta');
+      }
+    } catch (error) {
+      alert('Error de conexión');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,6 +63,8 @@ const Login = () => {
         } else {
           navigate('/dashboard-tourist');
         }
+      } else if (data.message === 'SUSPENDED_INACTIVITY') {
+        setShowReactivation(true);
       } else {
         alert(data.message || 'Error al iniciar sesión');
       }
@@ -56,9 +87,52 @@ const Login = () => {
         </span>
       </div>
       <h2 className="text-3xl font-display font-black text-slate-800 mb-2">Ingresar</h2>
-      <p className="text-slate-500 mb-8">Ingresa tus datos para acceder a tu perfil</p>
+      <p className="text-slate-500 mb-8">
+        {showReactivation ? 'Ingresa el código enviado a tu correo' : 'Ingresa tus datos para acceder a tu perfil'}
+      </p>
 
-      {/* Tabs */}
+      {showReactivation ? (
+        <form onSubmit={handleReactivate} className="space-y-6">
+          <div className="bg-orange-50 text-orange-600 p-4 rounded-xl text-sm font-bold border border-orange-200 mb-6">
+            ⚠️ Tu cuenta fue suspendida temporalmente por más de 30 días de inactividad. Revisa tu correo, te enviamos un código de desbloqueo.
+          </div>
+          <div>
+            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">
+              Código de Reactivación (6 dígitos)
+            </label>
+            <div className="relative">
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
+              <input 
+                type="text"
+                required
+                maxLength="6"
+                className="auth-input pl-12 text-center text-xl tracking-widest font-black text-primary"
+                placeholder="000000"
+                value={reactivationCode}
+                onChange={(e) => setReactivationCode(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="flex gap-4">
+             <button 
+                type="button"
+                onClick={() => setShowReactivation(false)}
+                className="flex-1 py-4 bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-2xl font-black transition-all"
+             >
+                Volver
+             </button>
+             <button 
+               type="submit" 
+               disabled={loading || reactivationCode.length < 6}
+               className="flex-1 py-4 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl font-black shadow-xl shadow-orange-500/20 transform hover:-translate-y-1 active:scale-95 transition-all disabled:opacity-50"
+             >
+               {loading ? 'Verificando...' : 'Reactivar'}
+             </button>
+          </div>
+        </form>
+      ) : (
+        <>
+          {/* Tabs */}
       <div className="flex p-1 bg-slate-100 rounded-2xl mb-8">
         <button 
           onClick={() => setMethod('email')}
@@ -130,6 +204,8 @@ const Login = () => {
           {loading ? 'Ingresando...' : <>Ingresar <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" /></>}
         </button>
       </form>
+      </>
+      )}
 
       <div className="mt-12 pt-8 border-t border-slate-100 text-center">
         <p className="text-slate-500 text-sm">

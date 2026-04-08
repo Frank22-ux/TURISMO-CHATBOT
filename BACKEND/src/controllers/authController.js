@@ -52,9 +52,23 @@ const changePassword = async (req, res) => {
     }
 };
 
+const reactivateAccount = async (req, res) => {
+    try {
+        const { identifier, codigo } = req.body;
+        if (!identifier || !codigo) {
+            return res.status(400).json({ message: 'Identificador y código son requeridos' });
+        }
+        const result = await authService.reactivateAccount(identifier, codigo);
+        res.status(200).json(result);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
 module.exports = {
     register,
     login,
     forgotPassword,
-    changePassword
+    changePassword,
+    reactivateAccount
 };

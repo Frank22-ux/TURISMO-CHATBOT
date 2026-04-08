@@ -240,10 +240,46 @@ const getFundsCreditedTemplate = (nombre, amount) => `
 </html>
 `;
 
+const getSuspensionReactivationTemplate = (nombre, activationCode) => `
+<!DOCTYPE html>
+<html>
+<head>
+    <style>${styles}</style>
+</head>
+<body>
+    <div class="container">
+        <div class="header" style="background: #f59e0b;">
+            <h1>Cuenta Suspendida por Inactividad ⚠️</h1>
+        </div>
+        <div class="content">
+            <h2>Hola ${nombre},</h2>
+            <p>Hemos notado que no has ingresado a tu cuenta de ISTPET Turismo por más de 30 días. Por motivos de seguridad y políticas de la plataforma, tu cuenta ha sido <strong>suspendida temporalmente</strong>.</p>
+            
+            <p>Para restaurar el acceso de forma inmediata y volver a la app, por favor usa el siguiente código de reactivación en la pantalla de inicio de sesión:</p>
+            
+            <div class="highlight-box" style="border-color: #f59e0b; background: #fffbeb;">
+                <span class="password" style="color: #d97706; font-size: 32px;">${activationCode}</span>
+            </div>
+            
+            <p>Una vez ingreses el código, tu cuenta quedará Activa automáticamente.</p>
+            
+            <center>
+                <a href="http://localhost:5173/login" class="btn" style="background: #f59e0b;">Ir a Reactivar Cuenta</a>
+            </center>
+        </div>
+        <div class="footer">
+            © ${new Date().getFullYear()} ISTPET Turismo. Seguridad Informática.
+        </div>
+    </div>
+</body>
+</html>
+`;
+
 module.exports = {
     getWelcomeTemplate,
     getForgotPasswordTemplate,
     getPaymentSuccessTemplate,
     getPaymentRejectedTemplate,
-    getFundsCreditedTemplate
+    getFundsCreditedTemplate,
+    getSuspensionReactivationTemplate
 };

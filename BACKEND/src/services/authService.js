@@ -101,6 +101,34 @@ const login = async (identifier, contraseña) => {
         throw new Error('Credenciales inválidas');
     }
 
+    // Inactivity Check (30 days threshold) - Ignore for ADMIN just in case to prevent lock-outs
+    if (user.rol !== 'ADMIN') {
+        const lastConn = new Date(user.ultima_conexion || user.fecha_registro || Date.now());
+        const daysInactive = (Date.now() - lastConn.getTime()) / (1000 * 60 * 60 * 24);
+        
+        if (daysInactive >= 30 || user.estado === 'SUSPENDIDO') {
+            const code = Math.floor(100000 + Math.random() * 900000).toString(); // Generates 6-digit code
+            await authRepository.suspendUserWithCode(user.id_usuario, code);
+            
+            const msg = {
+                from: `"ISTPET Turismo" <${process.env.EMAIL_USER || 'tucorreo@gmail.com'}>`, 
+                to: user.email, 
+                subject: 'Reactivación de Cuenta - ISTPET Turismo',
+                html: emailTemplates.getSuspensionReactivationTemplate(user.nombre, code)
+            };
+            try {
+                await transporter.sendMail(msg);
+            } catch (error) {
+                console.error('Nodemailer Error during suspension mail:', error);
+            }
+            
+            throw new Error('SUSPENDED_INACTIVITY');
+        }
+    }
+
+    // Update last connection
+    await authRepository.updateLastConnection(user.id_usuario);
+
     // Generate token includes requiere_cambio_clave
     const token = jwt.sign(
         { id: user.id_usuario, rol: user.rol, requiere_cambio_clave: user.requiere_cambio_clave },
@@ -170,9 +198,26 @@ const changePassword = async (id_usuario, currentPassword, newPassword) => {
     return { message: 'Contraseña actualizada exitosamente' };
 };
 
+const reactivateAccount = async (identifier, codigo) => {
+    const user = await authRepository.findByIdentifier(identifier);
+    if (!user) throw new Error('Usuario no encontrado');
+    
+    if (user.estado !== 'SUSPENDIDO' || !user.codigo_reactivacion) {
+        throw new Error('La cuenta no requiere reactivación o código inválido');
+    }
+    
+    if (user.codigo_reactivacion !== codigo) {
+        throw new Error('Código de reactivación incorrecto');
+    }
+    
+    await authRepository.reactivateUser(user.id_usuario);
+    return { message: 'Cuenta reactivada de forma exitosa' };
+};
+
 module.exports = {
     register,
     login,
     forgotPassword,
-    changePassword
+    changePassword,
+    reactivateAccount
 };

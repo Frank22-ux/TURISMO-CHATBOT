@@ -4,12 +4,12 @@
 
 -- 1. USUARIOS (Password: Password123!)
 -- Hash: $2b$10$oq7cG0NNSiMkyKfe3NO8qOrEnCmNtEEdV9IYy9o1445L/aNZ8Yr9S
-INSERT INTO usuarios (nombre, email, contraseña, telefono, rol, fecha_nacimiento, fecha_registro, estado) VALUES
-('Juan Anfitrión', 'host@test.com', '$2b$10$oq7cG0NNSiMkyKfe3NO8qOrEnCmNtEEdV9IYy9o1445L/aNZ8Yr9S', '+593991111111', 'ANFITRION', '1985-05-15', '2025-01-10 10:00:00', 'ACTIVO'),
-('Maria Turista', 'turist@test.com', '$2b$10$oq7cG0NNSiMkyKfe3NO8qOrEnCmNtEEdV9IYy9o1445L/aNZ8Yr9S', '+593992222222', 'TURISTA', '1995-10-20', '2025-01-15 12:00:00', 'ACTIVO'),
-('Administrador', 'admin@test.com', '$2b$10$oq7cG0NNSiMkyKfe3NO8qOrEnCmNtEEdV9IYy9o1445L/aNZ8Yr9S', '+593993333333', 'ADMIN', '1980-01-01', '2025-01-01 08:00:00', 'ACTIVO'),
-('Carlos Guía', 'carlos@test.com', '$2b$10$oq7cG0NNSiMkyKfe3NO8qOrEnCmNtEEdV9IYy9o1445L/aNZ8Yr9S', '+593994444444', 'ANFITRION', '1990-03-25', '2025-02-05 09:30:00', 'ACTIVO'),
-('Elena Viajera', 'elena@test.com', '$2b$10$oq7cG0NNSiMkyKfe3NO8qOrEnCmNtEEdV9IYy9o1445L/aNZ8Yr9S', '+593995555555', 'TURISTA', '1998-07-12', '2025-02-20 14:15:00', 'ACTIVO');
+INSERT INTO usuarios (nombre, email, contraseña, telefono, rol, fecha_nacimiento, fecha_registro, estado, ultima_conexion) VALUES
+('Juan Anfitrión', 'host@test.com', '$2b$10$oq7cG0NNSiMkyKfe3NO8qOrEnCmNtEEdV9IYy9o1445L/aNZ8Yr9S', '+593991111111', 'ANFITRION', '1985-05-15', '2025-01-10 10:00:00', 'ACTIVO', CURRENT_TIMESTAMP),
+('Maria Turista', 'turist@test.com', '$2b$10$oq7cG0NNSiMkyKfe3NO8qOrEnCmNtEEdV9IYy9o1445L/aNZ8Yr9S', '+593992222222', 'TURISTA', '1995-10-20', '2025-01-15 12:00:00', 'ACTIVO', CURRENT_TIMESTAMP - INTERVAL '40 days'),
+('Administrador', 'admin@test.com', '$2b$10$oq7cG0NNSiMkyKfe3NO8qOrEnCmNtEEdV9IYy9o1445L/aNZ8Yr9S', '+593993333333', 'ADMIN', '1980-01-01', '2025-01-01 08:00:00', 'ACTIVO', CURRENT_TIMESTAMP),
+('Carlos Guía', 'carlos@test.com', '$2b$10$oq7cG0NNSiMkyKfe3NO8qOrEnCmNtEEdV9IYy9o1445L/aNZ8Yr9S', '+593994444444', 'ANFITRION', '1990-03-25', '2025-02-05 09:30:00', 'ACTIVO', CURRENT_TIMESTAMP),
+('Elena Viajera', 'elena@test.com', '$2b$10$oq7cG0NNSiMkyKfe3NO8qOrEnCmNtEEdV9IYy9o1445L/aNZ8Yr9S', '+593995555555', 'TURISTA', '1998-07-12', '2025-02-20 14:15:00', 'ACTIVO', CURRENT_TIMESTAMP - INTERVAL '35 days');
 
 -- 2. PERFILES
 INSERT INTO perfil_anfitrion (id_anfitrion, telefono, correo_contacto, biografia, idiomas, experiencia_anios, banco_nombre, tipo_cuenta, numero_cuenta, identificacion, descuento_paquete) VALUES

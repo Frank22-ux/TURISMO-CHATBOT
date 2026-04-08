@@ -24,6 +24,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import Map, { Marker, Popup, NavigationControl, FullscreenControl } from 'react-map-gl/mapbox';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import * as XLSX from 'xlsx';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
@@ -81,16 +82,7 @@ const AdminDashboard = () => {
         }
     };
 
-    const toggleUserStatus = async (userId, currentStatus) => {
-        try {
-            const token = sessionStorage.getItem('token');
-            const newStatus = currentStatus === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO';
-            await axios.patch(`http://localhost:3000/api/admin/users/${userId}/status`, { estado: newStatus }, { headers: { Authorization: `Bearer ${token}` } });
-            setUsers(users.map(u => u.id_usuario === userId ? { ...u, estado: newStatus } : u));
-        } catch (error) {
-            alert("Error al actualizar estado del usuario");
-        }
-    };
+
 
     const toggleVerification = async (userId, currentVerif) => {
         try {
@@ -124,25 +116,147 @@ const AdminDashboard = () => {
     };
 
     const downloadFinancialReport = () => {
-        const headers = ["ID Pago", "Fecha", "Monto Total", "Comision Plataforma", "Turista", "Anfitrion", "Actividad"];
-        const rows = financialReport.map(p => [
-            p.id_pago,
-            new Date().toLocaleDateString(),
-            p.monto_total,
-            p.monto_plataforma,
-            p.turista,
-            p.anfitrion,
-            p.actividad
+        // Formato estructurado de plantilla
+        const wsData = [
+            ["SISTEMA CENTRAL DE TURISMO INTELIGENTE"],
+            ["REPORTE FINANCIERO OFICIAL"],
+            [`Fecha de Emisión: ${new Date().toLocaleDateString('es-ES', { dateStyle: 'long' })}`],
+            [],
+            ["ID Transacción", "Fecha Pago", "Monto Total ($)", "Comisión Plataforma ($)", "Cliente Turista", "Socio Anfitrión", "Detalle de Actividad", "Estado Operativo"]
+        ];
+
+        financialReport.forEach(p => {
+            wsData.push([
+                `TRX-${p.id_pago.toString().padStart(4, '0')}`,
+                new Date().toLocaleDateString(),
+                Number(parseFloat(p.monto_total).toFixed(2)),
+                Number(parseFloat(p.monto_plataforma).toFixed(2)),
+                p.turista,
+                p.anfitrion,
+                p.actividad,
+                p.estado || 'COMPLETADO'
+            ]);
+        });
+
+        const ws = XLSX.utils.aoa_to_sheet(wsData);
+        
+        // Ajuste de ancho de columnas para máxima legibilidad
+        const wscols = [
+            { wch: 18 }, // ID Pago
+            { wch: 15 }, // Fecha
+            { wch: 15 }, // Monto
+            { wch: 22 }, // Comisión
+            { wch: 25 }, // Turista
+            { wch: 25 }, // Anfitrión
+            { wch: 40 }, // Actividad
+            { wch: 18 }  // Estado
+        ];
+        ws['!cols'] = wscols;
+
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Reporte Financiero");
+
+        XLSX.writeFile(wb, `Reporte_Oficial_${new Date().toISOString().split('T')[0]}.xlsx`);
+    };
+
+    const downloadUsersReport = () => {
+        const wsData = [
+            ["SISTEMA CENTRAL DE TURISMO INTELIGENTE"],
+            ["REPORTE DE USUARIOS REGISTRADOS"],
+            [`Fecha de Emisión: ${new Date().toLocaleDateString('es-ES', { dateStyle: 'long' })}`],
+            [],
+            ["ID Usuario", "Nombre", "Email", "Rol", "Verificado", "Estado"]
+        ];
+
+        users.forEach(u => {
+            wsData.push([
+                u.id_usuario,
+                u.nombre,
+                u.email,
+                u.rol,
+                u.verificado ? 'SÍ' : 'NO',
+                u.estado
+            ]);
+        });
+        const ws = XLSX.utils.aoa_to_sheet(wsData);
+        ws['!cols'] = [{ wch: 10 }, { wch: 30 }, { wch: 35 }, { wch: 15 }, { wch: 12 }, { wch: 12 }];
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Usuarios");
+        XLSX.writeFile(wb, `Reporte_Usuarios_${new Date().toISOString().split('T')[0]}.xlsx`);
+    };
+
+    const downloadCatalogReport = () => {
+        const wsData = [
+            ["SISTEMA CENTRAL DE TURISMO INTELIGENTE"],
+            ["REPORTE DEL CATÁLOGO DE ACTIVIDADES"],
+            [`Fecha de Emisión: ${new Date().toLocaleDateString('es-ES', { dateStyle: 'long' })}`],
+            [],
+            ["ID Actividad", "Título", "Tipo", "Anfitrión", "Precio ($)", "Estado"]
+        ];
+
+        allActivities.forEach(act => {
+            wsData.push([
+                act.id_actividad,
+                act.titulo,
+                act.tipo === 'TURISTICA' ? 'Experiencia' : 'Servicio',
+                act.anfitrion,
+                Number(parseFloat(act.precio_cero || act.precio || 0).toFixed(2)),
+                act.estado
+            ]);
+        });
+        const ws = XLSX.utils.aoa_to_sheet(wsData);
+        ws['!cols'] = [{ wch: 15 }, { wch: 45 }, { wch: 15 }, { wch: 25 }, { wch: 12 }, { wch: 15 }];
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Catálogo");
+        XLSX.writeFile(wb, `Reporte_Catalogo_${new Date().toISOString().split('T')[0]}.xlsx`);
+    };
+
+    const downloadOverviewReport = () => {
+        const wb = XLSX.utils.book_new();
+
+        // Sheet 1: KPIs & Summary
+        const kpiData = [
+            ["SISTEMA CENTRAL DE TURISMO INTELIGENTE"],
+            ["ANÁLISIS GENERAL (OVERVIEW)"],
+            [`Fecha de Emisión: ${new Date().toLocaleDateString('es-ES', { dateStyle: 'long' })}`],
+            [],
+            ["Métrica", "Valor", "Detalle"]
+        ];
+        
+        const localGetCount = (role) => stats?.users.find(u => u.rol === role)?.count || 0;
+        const totalUsers = stats?.users.reduce((acc, curr) => acc + parseInt(curr.count), 0) || 0;
+        kpiData.push(["Total Usuarios", totalUsers, `${localGetCount('TURISTA')} Turistas / ${localGetCount('ANFITRION')} Anfitriones`]);
+        kpiData.push(["Ganancias Plataforma", `$${parseFloat(stats?.earnings?.total_plataforma || 0).toFixed(2)}`, `De un total de $${parseFloat(stats?.earnings?.total_bruto || 0).toFixed(2)}`]);
+        kpiData.push(["Experiencias Activas", stats?.activities.find(a => a.tipo === 'Experiencias' && a.estado === 'ACTIVA')?.count || 0, "Servicios de turismo"]);
+        kpiData.push(["Servicios Activos", stats?.activities.find(a => a.tipo === 'Servicios' && a.estado === 'ACTIVA')?.count || 0, "Alimentación y más"]);
+        kpiData.push([]);
+        kpiData.push(["Mejor Anfitrión", stats?.bestHost?.nombre || 'Ninguno', `Total generado: $${parseFloat(stats?.bestHost?.total_generado || 0).toFixed(2)}`]);
+
+        const ws1 = XLSX.utils.aoa_to_sheet(kpiData);
+        ws1['!cols'] = [{ wch: 25 }, { wch: 20 }, { wch: 40 }];
+        XLSX.utils.book_append_sheet(wb, ws1, "Resumen Global");
+
+        // Sheet 2: Tendencias Mensuales
+        const trendData = [
+            ["Mes", "Nuevos Usuarios", "Nuevas Reservas"]
+        ];
+        
+        const months = new Set([
+            ...(stats?.registrationTrend?.map(t => t.mes) || []),
+            ...(stats?.bookingTrend?.map(t => t.mes) || [])
         ]);
 
-        let csvContent = "data:text/csv;charset=utf-8," + headers.join(",") + "\n" + rows.map(e => e.join(",")).join("\n");
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", `reporte_financiero_${new Date().toISOString().split('T')[0]}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        Array.from(months).sort().forEach(mes => {
+            const users = stats?.registrationTrend?.find(t => t.mes === mes)?.count || 0;
+            const bookings = stats?.bookingTrend?.find(t => t.mes === mes)?.count || 0;
+            trendData.push([mes, Number(users), Number(bookings)]);
+        });
+
+        const ws2 = XLSX.utils.aoa_to_sheet(trendData);
+        ws2['!cols'] = [{ wch: 15 }, { wch: 20 }, { wch: 20 }];
+        XLSX.utils.book_append_sheet(wb, ws2, "Tendencias Mensuales");
+
+        XLSX.writeFile(wb, `Analisis_General_${new Date().toISOString().split('T')[0]}.xlsx`);
     };
 
     const handleLogout = () => {
@@ -276,6 +390,14 @@ const AdminDashboard = () => {
                                 exit={{ opacity: 0, x: 20 }}
                                 className="space-y-8"
                             >
+                                <div className="flex justify-end -mt-4 mb-2">
+                                    <button 
+                                        onClick={downloadOverviewReport} 
+                                        className="flex items-center gap-2 px-6 py-3 bg-indigo-500 text-white rounded-2xl text-[10px] font-black uppercase shadow-lg shadow-indigo-200 hover:scale-105 active:scale-95 transition-all"
+                                    >
+                                        <Download className="w-4 h-4" /> Exportar Análisis General
+                                    </button>
+                                </div>
                                 {/* KPI Cards */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                                     {kpis.map((kpi, idx) => (
@@ -427,6 +549,12 @@ const AdminDashboard = () => {
                                                 className="pl-10 pr-4 py-2 bg-slate-50 border-none rounded-xl text-sm font-bold focus:ring-2 ring-primary/20 w-80" 
                                             />
                                         </div>
+                                        <button 
+                                            onClick={downloadUsersReport} 
+                                            className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-xl text-[10px] font-black uppercase shadow-lg shadow-blue-200 hover:scale-105 active:scale-95 transition-all"
+                                        >
+                                            <Download className="w-4 h-4" /> EXCEL
+                                        </button>
                                     </div>
                                 </div>
                                 <div className="overflow-x-auto">
@@ -437,7 +565,6 @@ const AdminDashboard = () => {
                                                 <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Rol</th>
                                                 <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Verif.</th>
                                                 <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Estado</th>
-                                                <th className="px-8 py-4 text-right text-[10px] font-black text-slate-400 uppercase tracking-widest">Acciones</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-slate-50">
@@ -495,18 +622,6 @@ const AdminDashboard = () => {
                                                             {u.estado}
                                                         </span>
                                                     </td>
-                                                    <td className="px-8 py-5 text-right">
-                                                        {u.rol !== 'ADMIN' && (
-                                                            <button 
-                                                                onClick={() => toggleUserStatus(u.id_usuario, u.estado)}
-                                                                className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${
-                                                                    u.estado === 'ACTIVO' ? 'bg-red-50 text-red-500 hover:bg-red-500 hover:text-white' : 'bg-emerald-50 text-emerald-500 hover:bg-emerald-500 hover:text-white'
-                                                                }`}
-                                                            >
-                                                                {u.estado === 'ACTIVO' ? 'Suspender' : 'Activar'}
-                                                            </button>
-                                                        )}
-                                                    </td>
                                                 </tr>
                                             ))}
                                         </tbody>
@@ -529,6 +644,9 @@ const AdminDashboard = () => {
                                         <p className="text-slate-400 text-[11px] font-black tracking-widest uppercase mt-1">Control de calidad y disponibilidad</p>
                                     </div>
                                     <div className="flex gap-4">
+                                        <button onClick={downloadCatalogReport} className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-xl text-[10px] font-black uppercase shadow-lg shadow-orange-200 hover:scale-105 active:scale-95 transition-all">
+                                            <Download className="w-4 h-4" /> EXCEL
+                                        </button>
                                         <button className="flex items-center gap-2 px-4 py-2 bg-slate-50 text-slate-600 rounded-xl text-xs font-black uppercase">
                                             <Filter className="w-4 h-4" /> Tipo
                                         </button>
@@ -606,7 +724,7 @@ const AdminDashboard = () => {
                                         onClick={downloadFinancialReport}
                                         className="flex items-center gap-2 px-6 py-3 bg-emerald-500 text-white rounded-2xl text-[10px] font-black uppercase shadow-lg shadow-emerald-200 hover:scale-105 active:scale-95 transition-all"
                                     >
-                                        <ArrowUpRight className="w-4 h-4" /> Exportar reporte CSV
+                                        <ArrowUpRight className="w-4 h-4" /> Exportar a EXCEL
                                     </button>
                                 </div>
                                 <div className="overflow-x-auto">

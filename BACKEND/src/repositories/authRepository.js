@@ -50,6 +50,27 @@ const setRequiresPasswordChange = async (id_usuario, status) => {
     );
 };
 
+const updateLastConnection = async (id_usuario) => {
+    await db.query(
+        'UPDATE usuarios SET ultima_conexion = CURRENT_TIMESTAMP WHERE id_usuario = $1',
+        [id_usuario]
+    );
+};
+
+const suspendUserWithCode = async (id_usuario, codigo) => {
+    await db.query(
+        'UPDATE usuarios SET estado = $1, codigo_reactivacion = $2 WHERE id_usuario = $3',
+        ['SUSPENDIDO', codigo, id_usuario]
+    );
+};
+
+const reactivateUser = async (id_usuario) => {
+    await db.query(
+        'UPDATE usuarios SET estado = $1, codigo_reactivacion = NULL, ultima_conexion = CURRENT_TIMESTAMP WHERE id_usuario = $2',
+        ['ACTIVO', id_usuario]
+    );
+};
+
 module.exports = {
     findByEmail,
     findById,
@@ -57,5 +78,8 @@ module.exports = {
     create,
     createProfile,
     updatePassword,
-    setRequiresPasswordChange
+    setRequiresPasswordChange,
+    updateLastConnection,
+    suspendUserWithCode,
+    reactivateUser
 };
