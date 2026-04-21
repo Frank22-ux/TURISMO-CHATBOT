@@ -4,7 +4,7 @@ const touristController = require('../controllers/touristController');
 const reservationController = require('../controllers/reservationController');
 const paymentController = require('../controllers/paymentController');
 const notificationController = require('../controllers/notificationController');
-const authMiddleware = require('../middlewares/authMiddleware');
+const { authMiddleware } = require('../middlewares/authMiddleware');
 
 router.get('/dashboard-stats', authMiddleware, touristController.getDashboardStats);
 router.get('/notifications', authMiddleware, notificationController.getTouristNotifications);

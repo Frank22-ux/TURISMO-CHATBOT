@@ -18,4 +18,20 @@ const authMiddleware = (req, res, next) => {
     }
 };
 
-module.exports = authMiddleware;
+// Optional: Decodes the token if present but does NOT block the request if missing.
+// Allows revealing privileged data (e.g. meeting point) to authenticated tourists.
+const optionalAuthMiddleware = (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if (authHeader) {
+        const token = authHeader.split(' ')[1];
+        try {
+            req.user = jwt.verify(token, process.env.JWT_SECRET);
+        } catch (_) {
+            // Invalid token — treat as unauthenticated
+            req.user = null;
+        }
+    }
+    next();
+};
+
+module.exports = { authMiddleware, optionalAuthMiddleware };

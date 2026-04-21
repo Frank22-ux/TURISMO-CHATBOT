@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, Filter, Calendar, MapPin, Eye, Star, Clock, CheckCircle, AlertCircle, X, Shield, Users, Download } from 'lucide-react';
+import { Search, Filter, Calendar, MapPin, Eye, Info, Star, Clock, CheckCircle, AlertCircle, X, Shield, Users, Download } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import { toPng } from 'html-to-image';
 import { useToast } from '../../contexts/ToastContext';
+import ActivityDetailModal from './ActivityDetailModal';
 
 const BookingsSection = ({ status: initialStatusFilter }) => {
   const [bookings, setBookings] = useState([]);
@@ -19,6 +20,9 @@ const BookingsSection = ({ status: initialStatusFilter }) => {
   const [isCancelling, setIsCancelling] = useState(false);
   const ticketRef = useRef(null);
   const { showToast } = useToast();
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [selectedActivity, setSelectedActivity] = useState(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
 
   const fetchBookings = async () => {
     try {
@@ -119,6 +123,27 @@ const BookingsSection = ({ status: initialStatusFilter }) => {
       console.error('Error al descargar el boleto:', error);
     } finally {
       setIsDownloading(false);
+    }
+  };
+
+  const handleOpenActivityDetail = async (res) => {
+    setLoadingDetail(true);
+    try {
+      const typePrefix = res.tipo_actividad === 'TURISTICA' ? 'T' : 'A';
+      const id = `${typePrefix}-${res.id_actividad}`;
+      const token = sessionStorage.getItem('token');
+      const response = await fetch(`http://localhost:3000/api/activities/${id}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!response.ok) throw new Error('No se pudo obtener el detalle de la actividad');
+      const data = await response.json();
+      setSelectedActivity(data);
+      setDetailModalOpen(true);
+    } catch (error) {
+      console.error('Error detail:', error);
+      showToast('Error al cargar los detalles de la experiencia', 'error');
+    } finally {
+      setLoadingDetail(false);
     }
   };
 
@@ -250,9 +275,17 @@ const BookingsSection = ({ status: initialStatusFilter }) => {
                         <button 
                           onClick={() => setSelectedBooking(res)}
                           className="p-2.5 rounded-xl bg-slate-100 text-slate-500 hover:bg-primary hover:text-white transition-all shadow-sm" 
-                          title="Ver detalles"
+                          title="Ver boleto digital"
                         >
                           <Eye className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => handleOpenActivityDetail(res)}
+                          disabled={loadingDetail}
+                          className="p-2.5 rounded-xl bg-slate-100 text-slate-500 hover:bg-indigo-500 hover:text-white transition-all shadow-sm" 
+                          title="Ver más de la experiencia"
+                        >
+                          {loadingDetail ? <Clock className="w-4 h-4 animate-spin" /> : <Info className="w-4 h-4" />}
                         </button>
                         {res.estado === 'APROBADA' && new Date(res.fecha_experiencia).getTime() + 24*60*60*1000 < new Date().getTime() && (
                           <button onClick={() => setReviewBooking(res)} className="p-2.5 rounded-xl bg-orange-50 text-orange-500 hover:bg-orange-500 hover:text-white transition-all shadow-sm" title="Dejar reseña">
@@ -343,6 +376,18 @@ const BookingsSection = ({ status: initialStatusFilter }) => {
                     </div>
                   </div>
                 </div>
+
+                {selectedBooking.estado === 'APROBADA' && selectedBooking.punto_encuentro && (
+                  <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100 animate-pulse">
+                    <div className="flex items-center gap-2 mb-2">
+                       <MapPin className="w-4 h-4 text-amber-600" />
+                       <p className="text-[10px] font-black uppercase tracking-widest text-amber-600">Instrucciones de Encuentro</p>
+                    </div>
+                    <p className="text-xs font-bold text-slate-700 leading-relaxed">
+                      {selectedBooking.punto_encuentro}
+                    </p>
+                  </div>
+                )}
               </div>
               
               <div className="flex flex-col gap-3 mt-auto pt-6" data-html2canvas-ignore="true">
@@ -462,6 +507,13 @@ const BookingsSection = ({ status: initialStatusFilter }) => {
           </div>
         </div>
       )}
+
+      {/* Full Activity Detail Modal */}
+      <ActivityDetailModal 
+        isOpen={detailModalOpen}
+        onClose={() => setDetailModalOpen(false)}
+        activity={selectedActivity}
+      />
     </div>
   );
 };

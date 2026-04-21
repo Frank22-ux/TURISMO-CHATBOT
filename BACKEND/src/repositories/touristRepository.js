@@ -46,6 +46,7 @@ const getTouristStats = async (id_turista) => {
 const getTouristReservations = async (id_turista) => {
     const { rows } = await db.query(
         `SELECT r.*, COALESCE(at.titulo, aa.titulo) as actividad_titulo, 
+         COALESCE(at.punto_encuentro, aa.punto_encuentro) as punto_encuentro,
          u.nombre as anfitrion_nombre
          FROM reservas r
          LEFT JOIN actividades_turisticas at ON r.id_actividad = at.id_actividad AND r.tipo_actividad = 'TURISTICA'

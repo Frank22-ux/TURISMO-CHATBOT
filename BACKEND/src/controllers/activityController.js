@@ -16,7 +16,8 @@ const getAllActivities = async (req, res) => {
 const getActivityDetails = async (req, res) => {
     try {
         const { id } = req.params;
-        const activity = await activityService.getActivityDetails(id);
+        const userId = req.user ? req.user.id : null;
+        const activity = await activityService.getActivityDetails(id, userId);
         if (!activity) {
             return res.status(404).json({ message: 'Experiencia no encontrada' });
         }

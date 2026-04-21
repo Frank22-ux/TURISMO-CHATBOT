@@ -1,4 +1,5 @@
 const activityRepository = require('../repositories/activityRepository');
+const db = require('../config/database');
 
 const getAllActivities = async (filters = {}) => {
     return await activityRepository.findAll(filters);
@@ -12,7 +13,8 @@ const createActivity = async (activityData) => {
     const { 
         titulo, descripcion, precio, duracion_horas, capacidad, 
         nivel_dificultad, id_anfitrion, id_categoria, id_clasificacion,
-        pais, ciudad, direccion, latitud, longitud, url_imagen, galeria, provincia
+        pais, ciudad, direccion, latitud, longitud, url_imagen, galeria, provincia,
+        punto_encuentro, latitud_encuentro, longitud_encuentro, direccion_encuentro
     } = activityData;
 
     // 1. Create Location
@@ -31,7 +33,11 @@ const createActivity = async (activityData) => {
         requiere_equipo: activityData.requiere_equipo,
         hora_inicio: activityData.hora_inicio,
         hora_fin: activityData.hora_fin,
-        dias_disponibles: activityData.dias_disponibles
+        dias_disponibles: activityData.dias_disponibles,
+        punto_encuentro,
+        latitud_encuentro,
+        longitud_encuentro,
+        direccion_encuentro
     });
 
     // 3. Create Image Portada
@@ -67,8 +73,53 @@ const updateActivityStatus = async (id, hostId, status) => {
     return await activityRepository.updateStatus(id, status);
 };
 
-const getActivityDetails = async (id) => {
-    return await activityRepository.findFullById(id);
+const getActivityDetails = async (id, userId = null) => {
+    const activity = await activityRepository.findFullById(id);
+    if (!activity) return null;
+
+    // Check visibility of punto_encuentro
+    let showMeetingPoint = false;
+
+    if (userId) {
+        // 1. If user is the host
+        if (activity.id_anfitrion == userId) {
+            showMeetingPoint = true;
+        } else {
+            // 2. If user is a tourist with a confirmed payment
+            const numericId = id.includes('-') ? id.split('-')[1] : id;
+            const type = id.startsWith('T-') ? 'TURISTICA' : 'ALIMENTARIA';
+            
+            const { rows } = await db.query(
+                `SELECT 1 FROM reservas r
+                 WHERE r.id_turista = $1 
+                   AND r.id_actividad = $2 
+                   AND r.tipo_actividad = $3
+                   AND r.estado IN ('APROBADA', 'CONFIRMADA', 'COMPLETADA')
+                 UNION
+                 SELECT 1 FROM reservas r
+                 JOIN pagos p ON r.id_reserva = p.id_reserva
+                 WHERE r.id_turista = $1 
+                   AND r.id_actividad = $2 
+                   AND r.tipo_actividad = $3
+                   AND p.estado = 'CONFIRMADO'
+                 LIMIT 1`,
+                [userId, numericId, type]
+            );
+            
+            if (rows.length > 0) {
+                showMeetingPoint = true;
+            }
+        }
+    }
+
+    if (!showMeetingPoint) {
+        activity.punto_encuentro = null;
+        activity.latitud_encuentro = null;
+        activity.longitud_encuentro = null;
+        activity.direccion_encuentro = null;
+    }
+
+    return activity;
 };
 
 const updateActivity = async (id, data) => {
@@ -76,7 +127,7 @@ const updateActivity = async (id, data) => {
         titulo, descripcion, precio, duracion_horas, capacidad, 
         nivel_dificultad, id_categoria, id_clasificacion,
         pais, ciudad, direccion, latitud, longitud, url_imagen, galeria, provincia,
-        id_ubicacion
+        id_ubicacion, punto_encuentro, latitud_encuentro, longitud_encuentro, direccion_encuentro
     } = data;
 
     // 1. Update Activity
@@ -95,7 +146,11 @@ const updateActivity = async (id, data) => {
         requiere_equipo: data.requiere_equipo,
         hora_inicio: data.hora_inicio,
         hora_fin: data.hora_fin,
-        dias_disponibles: data.dias_disponibles
+        dias_disponibles: data.dias_disponibles,
+        punto_encuentro,
+        latitud_encuentro,
+        longitud_encuentro,
+        direccion_encuentro
     });
 
     // 2. Update Location

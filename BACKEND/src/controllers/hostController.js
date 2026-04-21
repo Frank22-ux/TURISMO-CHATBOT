@@ -111,7 +111,7 @@ const getActivityDetails = async (req, res) => {
     try {
         const id_anfitrion = req.user.id;
         const { id } = req.params;
-        const activity = await activityService.getActivityDetails(id);
+        const activity = await activityService.getActivityDetails(id, id_anfitrion);
         
         if (!activity || activity.id_anfitrion !== id_anfitrion) {
             return res.status(403).json({ message: 'No tienes permiso para ver esta experiencia' });
@@ -127,7 +127,7 @@ const updateActivity = async (req, res) => {
     try {
         const id_anfitrion = req.user.id;
         const { id } = req.params;
-        const activity = await activityService.getActivityDetails(id);
+        const activity = await activityService.getActivityDetails(id, id_anfitrion);
         
         if (!activity || activity.id_anfitrion !== id_anfitrion) {
             return res.status(403).json({ message: 'No tienes permiso para editar esta experiencia' });

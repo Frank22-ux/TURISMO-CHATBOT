@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, Phone, ArrowRight, Mountain } from 'lucide-react';
+import { Mail, Lock, Phone, ArrowRight, Mountain, AlertCircle } from 'lucide-react';
 import AuthLayout from '../components/AuthLayout';
 import PhoneInputWithCountry from '../components/PhoneInputWithCountry';
 
@@ -11,11 +11,13 @@ const Login = () => {
   const [isPhoneValid, setIsPhoneValid] = useState(false);
   const [showReactivation, setShowReactivation] = useState(false);
   const [reactivationCode, setReactivationCode] = useState('');
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   const handleReactivate = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
     try {
       const response = await fetch('http://localhost:3000/api/auth/reactivate-account', {
         method: 'POST',
@@ -31,10 +33,10 @@ const Login = () => {
         setShowReactivation(false);
         setReactivationCode('');
       } else {
-        alert(data.message || 'Error al reactivar cuenta');
+        setError(data.message || 'Error al reactivar cuenta');
       }
-    } catch (error) {
-      alert('Error de conexión');
+    } catch (err) {
+      setError('Error de conexión');
     } finally {
       setLoading(false);
     }
@@ -43,6 +45,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
     try {
       const response = await fetch('http://localhost:3000/api/auth/login', {
         method: 'POST',
@@ -66,10 +69,10 @@ const Login = () => {
       } else if (data.message === 'SUSPENDED_INACTIVITY') {
         setShowReactivation(true);
       } else {
-        alert(data.message || 'Error al iniciar sesión');
+        setError(data.message || 'Credenciales inválidas');
       }
-    } catch (error) {
-      alert('Error de conexión');
+    } catch (err) {
+      setError('Error de red al intentar conectarse');
     } finally {
       setLoading(false);
     }
@@ -87,9 +90,16 @@ const Login = () => {
         </span>
       </div>
       <h2 className="text-3xl font-display font-black text-slate-800 mb-2">Ingresar</h2>
-      <p className="text-slate-500 mb-8">
+      <p className="text-slate-500 mb-6">
         {showReactivation ? 'Ingresa el código enviado a tu correo' : 'Ingresa tus datos para acceder a tu perfil'}
       </p>
+
+      {error && (
+        <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm font-bold border border-red-200 mb-6 flex items-center gap-3 animate-fade-in shadow-sm shadow-red-100">
+          <AlertCircle className="w-5 h-5 flex-shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
 
       {showReactivation ? (
         <form onSubmit={handleReactivate} className="space-y-6">

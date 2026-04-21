@@ -2,6 +2,9 @@
 -- DATOS DE PRUEBA PARA TURISMO ISTPET
 -- =====================================================
 
+-- 0. LIMPIEZA DE DATOS PREVIA (Para evitar errores de duplicados)
+TRUNCATE usuarios, ubicaciones RESTART IDENTITY CASCADE;
+
 -- 1. USUARIOS (Password: Password123!)
 -- Hash: $2b$10$oq7cG0NNSiMkyKfe3NO8qOrEnCmNtEEdV9IYy9o1445L/aNZ8Yr9S
 INSERT INTO usuarios (nombre, email, contraseña, telefono, rol, fecha_nacimiento, fecha_registro, estado, ultima_conexion) VALUES
@@ -35,18 +38,18 @@ INSERT INTO ubicaciones (pais, provincia, ciudad, direccion, latitud, longitud) 
 ('Ecuador', 'Napo', 'Tena', 'Puerto Misahuallí', -1.033333, -77.666667);
 
 -- 4. ACTIVIDADES TURÍSTICAS (Diferentes estados y anfitriones)
-INSERT INTO actividades_turisticas (titulo, descripcion, precio, precio_oferta, fecha_fin_oferta, duracion_horas, capacidad, nivel_dificultad, id_anfitrion, id_categoria, id_clasificacion, id_ubicacion, porcentaje_ganancia, tipo_reserva, hora_inicio, hora_fin, dias_disponibles, estado, fecha_creacion) VALUES
-('Senderismo en el Cotopaxi', 'Explora las faldas del volcán activo más alto.', 45.00, 35.00, '2026-12-31 23:59:59', 6, 12, 'MEDIO', 1, 1, 4, 1, 10, 'INSTANTANEA', '08:00:00', '18:00:00', '0,1,2,3,4,5,6', 'ACTIVA', '2025-01-20'),
-('Tour Histórico Quito', 'Recorrido por las iglesias y museos coloniales.', 25.00, 19.99, '2026-05-30 00:00:00', 4, 20, 'BAJO', 1, 2, 2, 1, 10, 'MANUAL', '09:00:00', '13:00:00', '1,2,3,4,5', 'ACTIVA', '2025-02-01'),
-('Avistamiento de Ballenas', 'Observa ballenas jorobadas en la costa de Manta.', 60.00, 49.90, '2026-08-15 12:00:00', 3, 15, 'BAJO', 4, 3, 9, 7, 10, 'INSTANTANEA', '07:00:00', '11:00:00', '0,5,6', 'ACTIVA', '2025-02-15'),
-('Escalada en Baños', 'Aventura extrema en las paredes de roca de Baños.', 35.00, NULL, NULL, 5, 8, 'ALTO', 1, 1, 6, 4, 10, 'MANUAL', '08:00:00', '14:00:00', '0,1,2,3,4,5,6', 'PAUSADA', '2025-03-05'),
-('Rafting en el Río Napo', 'Adrenalina en las aguas blancas de la Amazonía.', 55.00, NULL, NULL, 5, 8, 'ALTO', 4, 1, 6, 10, 10, 'INSTANTANEA', '09:00:00', '15:00:00', '0,1,2,3,4,5,6', 'ACTIVA', '2025-03-10');
+INSERT INTO actividades_turisticas (titulo, descripcion, precio, precio_oferta, fecha_fin_oferta, duracion_horas, capacidad, nivel_dificultad, id_anfitrion, id_categoria, id_clasificacion, id_ubicacion, porcentaje_ganancia, tipo_reserva, hora_inicio, hora_fin, dias_disponibles, estado, fecha_creacion, punto_encuentro, latitud_encuentro, longitud_encuentro, direccion_encuentro) VALUES
+('Senderismo en el Cotopaxi', 'Explora las faldas del volcán activo más alto.', 45.00, 35.00, '2026-12-31 23:59:59', 6, 12, 'MEDIO', 1, 1, 4, 1, 10, 'INSTANTANEA', '08:00:00', '18:00:00', '0,1,2,3,4,5,6', 'ACTIVA', '2025-01-20', 'Entrada principal del Parque Nacional Cotopaxi, frente al centro de interpretación.', -0.684444, -78.436944, 'Acceso Sur Parque Nacional Cotopaxi'),
+('Tour Histórico Quito', 'Recorrido por las iglesias y museos coloniales.', 25.00, 19.99, '2026-05-30 00:00:00', 4, 20, 'BAJO', 1, 2, 2, 1, 10, 'MANUAL', '09:00:00', '13:00:00', '1,2,3,4,5', 'ACTIVA', '2025-02-01', 'Plaza de la Independencia (Plaza Grande), junto al Monumento a los Próceres.', -0.220164, -78.512327, 'García Moreno y Chile, Quito'),
+('Avistamiento de Ballenas', 'Observa ballenas jorobadas en la costa de Manta.', 60.00, 49.90, '2026-08-15 12:00:00', 3, 15, 'BAJO', 4, 3, 9, 7, 10, 'INSTANTANEA', '07:00:00', '11:00:00', '0,5,6', 'ACTIVA', '2025-02-15', 'Puerto de Manta, Muelle Turístico #2.', -0.948281, -80.730335, 'Malecón de Manta'),
+('Escalada en Baños', 'Aventura extrema en las paredes de roca de Baños.', 35.00, NULL, NULL, 5, 8, 'ALTO', 1, 1, 6, 4, 10, 'MANUAL', '08:00:00', '14:00:00', '0,1,2,3,4,5,6', 'PAUSADA', '2025-03-05', 'Oficina de Turismo Extreme Baños, calle Luis A. Martínez y 16 de Diciembre.', -1.396389, -78.424722, 'Luis A. Martínez y 16 de Diciembre, Baños'),
+('Rafting en el Río Napo', 'Adrenalina en las aguas blancas de la Amazonía.', 55.00, NULL, NULL, 5, 8, 'ALTO', 4, 1, 6, 10, 10, 'INSTANTANEA', '09:00:00', '15:00:00', '0,1,2,3,4,5,6', 'ACTIVA', '2025-03-10', 'Puerto Misahuallí, Plaza Central cerca del muelle.', -1.033333, -77.666667, 'Plaza Central de Misahuallí');
 
 -- 5. ACTIVIDADES ALIMENTARIAS
-INSERT INTO actividades_alimentarias (titulo, descripcion, precio, precio_oferta, fecha_fin_oferta, duracion_horas, capacidad, id_anfitrion, id_categoria, id_ubicacion, porcentaje_ganancia, tipo_reserva, metodos_pago, hora_inicio, hora_fin, dias_disponibles, estado, fecha_creacion) VALUES
-('Cena Romántica en el Panecillo', 'Vistas increíbles de Quito con comida gourmet.', 80.00, 69.99, '2026-12-14 23:59:59', 3, 2, 1, 6, 1, 10, 'MANUAL', 'tarjeta,transferencia', '19:00:00', '22:00:00', '1,2,3,4,5,6', 'ACTIVA', '2025-01-25'),
-('Desayuno Típico Manabita', 'Bolón, tigrillo y café de pasar.', 12.00, 9.99, '2026-04-10 10:00:00', 1, 20, 1, 4, 7, 10, 'INSTANTANEA', 'efectivo', '07:30:00', '11:00:00', '0,1,2,3,4,5,6', 'ACTIVA', '2025-02-10'),
-('Buffet de Comida Amazónica', 'Maito de pescado y chontacuros.', 30.00, NULL, NULL, 2, 25, 4, 8, 9, 15, 'INSTANTANEA', 'efectivo', '12:00:00', '15:00:00', '0,6', 'ACTIVA', '2025-03-15');
+INSERT INTO actividades_alimentarias (titulo, descripcion, precio, precio_oferta, fecha_fin_oferta, duracion_horas, capacidad, id_anfitrion, id_categoria, id_ubicacion, porcentaje_ganancia, tipo_reserva, metodos_pago, hora_inicio, hora_fin, dias_disponibles, estado, fecha_creacion, punto_encuentro, latitud_encuentro, longitud_encuentro, direccion_encuentro) VALUES
+('Cena Romántica en el Panecillo', 'Vistas increíbles de Quito con comida gourmet.', 80.00, 69.99, '2026-12-14 23:59:59', 3, 2, 1, 6, 1, 10, 'MANUAL', 'tarjeta,transferencia', '19:00:00', '22:00:00', '1,2,3,4,5,6', 'ACTIVA', '2025-01-25', 'Mirador de la Virgen del Panecillo, entrada lateral del restaurante.', -0.23164, -78.518327, 'Cima del Panecillo, Quito'),
+('Desayuno Típico Manabita', 'Bolón, tigrillo y café de pasar.', 12.00, 9.99, '2026-04-10 10:00:00', 1, 20, 1, 4, 7, 10, 'INSTANTANEA', 'efectivo', '07:30:00', '11:00:00', '0,1,2,3,4,5,6', 'ACTIVA', '2025-02-10', 'Plaza Principal de Puerto Cayo, frente a las letras de la ciudad.', -0.948281, -80.730335, 'Parque Central de Puerto Cayo'),
+('Buffet de Comida Amazónica', 'Maito de pescado y chontacuros.', 30.00, NULL, NULL, 2, 25, 4, 8, 9, 15, 'INSTANTANEA', 'efectivo', '12:00:00', '15:00:00', '0,6', 'ACTIVA', '2025-03-15', 'Entrada al Malecón de Puyo, zona de comedores amazónicos.', -1.483333, -78.000000, 'Malecón Boayacu Puyo');
 
 -- 8. RESERVAS (Múltiples meses y estados)
 INSERT INTO reservas (tipo_actividad, id_actividad, id_turista, fecha_experiencia, cantidad_personas, cantidad_adultos, cantidad_ninos, cantidad_tercera_edad, total, descuento_aplicado, estado, fecha_solicitud) VALUES

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, MapPin, Clock, Users, Signal, Tag, Calendar, Star, Info, Image as ImageIcon, Plus, CheckCircle2, MessageSquare, User } from 'lucide-react';
+import { X, MapPin, Clock, Users, Signal, Tag, Calendar, Star, Info, Image as ImageIcon, Plus, CheckCircle2, MessageSquare, User, Flag } from 'lucide-react';
 import Map, { Marker, Source } from 'react-map-gl/mapbox';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../../contexts/CartContext';
@@ -21,6 +21,13 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
     longitude: -78.467834,
     zoom: 13,
     pitch: 50
+  });
+
+  const [meetingViewState, setMeetingViewState] = useState({
+    latitude: -0.180653,
+    longitude: -78.467834,
+    zoom: 14,
+    pitch: 0
   });
 
   const handleAddToCart = () => {
@@ -92,6 +99,14 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
         latitude: newLat,
         longitude: newLng,
       }));
+
+      if (activity.latitud_encuentro && activity.longitud_encuentro) {
+        setMeetingViewState(prev => ({
+          ...prev,
+          latitude: parseFloat(activity.latitud_encuentro),
+          longitude: parseFloat(activity.longitud_encuentro)
+        }));
+      }
     }
   }, [activity]);
 
@@ -277,8 +292,58 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
                     <div className="p-3 bg-primary/10 text-primary rounded-xl">
                       <MapPin className="w-5 h-5" />
                     </div>
-                    <span>{activity.location || `${activity.direccion}, ${activity.ciudad}, ${activity.provincia}`}</span>
+                    <span>{activity.location || [activity.direccion, activity.ciudad, activity.provincia].filter(Boolean).join(', ') || 'Ubicación no especificada'}</span>
                   </div>
+
+                  {/* Meeting Point Section */}
+                  {(activity.punto_encuentro || (activity.latitud_encuentro && activity.longitud_encuentro)) && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="p-8 bg-amber-50 rounded-[32px] border-2 border-amber-200 shadow-xl shadow-amber-500/5 space-y-6"
+                    >
+                      <h4 className="text-sm font-black text-amber-800 uppercase tracking-[0.2em] flex items-center gap-2">
+                        <CheckCircle2 className="w-5 h-5 text-amber-600" /> Punto de Encuentro Confirmado
+                      </h4>
+                      
+                      {activity.latitud_encuentro && activity.longitud_encuentro && (
+                        <div className="h-48 rounded-[24px] overflow-hidden border-2 border-amber-100 shadow-inner z-0">
+                          <Map
+                            {...meetingViewState}
+                            onMove={evt => setMeetingViewState(evt.viewState)}
+                            mapStyle="mapbox://styles/mapbox/streets-v12"
+                            mapboxAccessToken={MAPBOX_TOKEN}
+                            style={{ width: '100%', height: '100%' }}
+                          >
+                            <Marker latitude={parseFloat(activity.latitud_encuentro)} longitude={parseFloat(activity.longitud_encuentro)} anchor="bottom">
+                               <div className="w-8 h-8 bg-amber-500 rounded-full border-4 border-white shadow-lg flex items-center justify-center animate-bounce">
+                                  <Flag className="w-4 h-4 text-white" />
+                               </div>
+                            </Marker>
+                          </Map>
+                        </div>
+                      )}
+
+                      {activity.direccion_encuentro && (
+                        <div className="flex items-center gap-4 text-amber-800 font-bold bg-amber-500/10 p-4 rounded-2xl border border-amber-200 mt-4 mb-2">
+                           <MapPin className="w-5 h-5 flex-shrink-0 text-amber-600" />
+                           <span className="text-sm">{activity.direccion_encuentro}</span>
+                        </div>
+                      )}
+
+                      {activity.punto_encuentro && (
+                        <div className="p-6 bg-white/60 backdrop-blur-sm rounded-2xl border border-amber-100">
+                          <p className="text-amber-900 font-bold leading-relaxed">
+                            {activity.punto_encuentro}
+                          </p>
+                        </div>
+                      )}
+                      
+                      <p className="text-[10px] font-black text-amber-600/60 uppercase tracking-widest text-center italic">
+                        Solo tú y el anfitrión pueden ver esta información
+                      </p>
+                    </motion.div>
+                  )}
                 </div>
               </div>
 

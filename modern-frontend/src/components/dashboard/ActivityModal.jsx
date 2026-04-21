@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { X, MapPin, Camera, Info, Save, Layers, Clock, Users, Signal, Tag, Plus } from 'lucide-react';
+import { X, MapPin, Camera, Info, Save, Layers, Clock, Users, Signal, Tag, Plus, Flag } from 'lucide-react';
 import Map, { Marker, NavigationControl, Source } from 'react-map-gl/mapbox';
 import { motion, AnimatePresence } from 'framer-motion';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -60,6 +60,9 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
     portada: null,
     galeria: [],
     id_ubicacion: null,
+    punto_encuentro: '',
+    latitud_encuentro: null,
+    longitud_encuentro: null,
     // Tourist fields
     incluye_recorrido: true,
     incluye_transporte: false,
@@ -94,12 +97,20 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
   });
 
   const [position, setPosition] = useState({ lat: -0.180653, lng: -78.467834 });
+  const [meetingPosition, setMeetingPosition] = useState(null);
+  const [mapMode, setMapMode] = useState('LOCATION'); // 'LOCATION' or 'MEETING'
   const [showTerrain, setShowTerrain] = useState(true);
   const [viewState, setViewState] = useState({
     latitude: -0.180653,
     longitude: -78.467834,
     zoom: 13,
     pitch: 60
+  });
+  const [meetingViewState, setMeetingViewState] = useState({
+    latitude: -0.180653,
+    longitude: -78.467834,
+    zoom: 14,
+    pitch: 0
   });
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState(null);
@@ -138,17 +149,36 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
           ? (typeof initialData.dias_disponibles === 'string' 
               ? initialData.dias_disponibles.split(',').map(Number) 
               : initialData.dias_disponibles)
-          : [0, 1, 2, 3, 4, 5, 6]
+          : [0, 1, 2, 3, 4, 5, 6],
+        punto_encuentro: initialData.punto_encuentro || '',
+        latitud_encuentro: initialData.latitud_encuentro || null,
+        longitud_encuentro: initialData.longitud_encuentro || null,
+        direccion_encuentro: initialData.direccion_encuentro || ''
       };
       
       setFormData(normalizedData);
       setPreview(normalizedData.portada || normalizedData.image || null);
       
-      const lat = parseFloat(normalizedData.latitud);
-      const lng = parseFloat(normalizedData.longitud);
+      const lat = parseFloat(initialData.latitud || initialData.latitude);
+      const lng = parseFloat(initialData.longitud || initialData.longitude);
+
       if (!isNaN(lat) && !isNaN(lng)) {
         setPosition({ lat, lng });
         setViewState(prev => ({ ...prev, latitude: lat, longitude: lng }));
+      }
+
+      if (normalizedData.latitud_encuentro && normalizedData.longitud_encuentro) {
+        setMeetingPosition({ 
+          lat: parseFloat(normalizedData.latitud_encuentro), 
+          lng: parseFloat(normalizedData.longitud_encuentro) 
+        });
+        setMeetingViewState(prev => ({ 
+          ...prev, 
+          latitude: parseFloat(normalizedData.latitud_encuentro), 
+          longitude: parseFloat(normalizedData.longitud_encuentro) 
+        }));
+      } else if (!isNaN(lat) && !isNaN(lng)) {
+        setMeetingViewState(prev => ({ ...prev, latitude: lat, longitude: lng }));
       }
     } else if (isOpen) {
       setFormData({
@@ -167,8 +197,14 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
         porcentaje_ganancia: 10, tipo_reserva: 'INSTANTANEA',
         precio_oferta: '', fecha_fin_oferta: '',
         hora_inicio: '08:00', hora_fin: '18:00',
-        dias_disponibles: [0, 1, 2, 3, 4, 5, 6]
+        dias_disponibles: [0, 1, 2, 3, 4, 5, 6],
+        punto_encuentro: '',
+        latitud_encuentro: null,
+        longitud_encuentro: null,
+        direccion_encuentro: ''
       });
+      setMeetingPosition(null);
+      setMapMode('LOCATION');
       setPreview(null);
       setStep(1);
     }
@@ -244,6 +280,19 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
 
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
+
+    // Prevent submission if user just pressed Enter on Step 1
+    if (step === 1) {
+      setStep(2);
+      return;
+    }
+
+    if (!formData.titulo || !formData.descripcion || !formData.precio || !formData.capacidad || !formData.duracion_horas) {
+        setStep(1); // Go back to step 1 automatically to show errors
+        showToast('Debes llenar todos los datos básicos (Título, Precio, Capacidad y Duración) obligatoriamente.', 'error');
+        return;
+    }
+
     setLoading(true);
     const finalData = { 
       ...formData, 
@@ -252,7 +301,8 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
       url_imagen: formData.portada, // Mapping for backend
       galeria: formData.galeria,
       // Convert dias_disponibles to string for backend if needed (though repo handles it)
-      dias_disponibles: formData.dias_disponibles.join(',')
+      dias_disponibles: formData.dias_disponibles.join(','),
+      punto_encuentro: formData.punto_encuentro
     };
     await onSave(finalData);
     setLoading(false);
@@ -284,7 +334,8 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
 
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-md animate-fade-in">
-      <motion.div 
+      <motion.form 
+        onSubmit={handleSubmit}
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         className="bg-white w-full max-w-6xl max-h-[95vh] rounded-[48px] shadow-2xl relative flex flex-col overflow-hidden border border-white/20"
@@ -312,7 +363,7 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
             </div>
           </div>
           
-          <button onClick={onClose} className="p-4 bg-white text-slate-400 rounded-2xl hover:bg-red-50 hover:text-red-500 transition-all shadow-sm border border-slate-100">
+          <button type="button" onClick={onClose} className="p-4 bg-white text-slate-400 rounded-2xl hover:bg-red-50 hover:text-red-500 transition-all shadow-sm border border-slate-100">
             <X className="w-6 h-6" />
           </button>
         </div>
@@ -529,52 +580,54 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
                         </div>
                       </div>
 
-                      {/* Offer Fields */}
-                      <div className="p-6 bg-emerald-50 rounded-3xl border border-emerald-100 space-y-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Tag className="w-4 h-4 text-emerald-600" />
-                          <h4 className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">Oferta Especial</h4>
-                        </div>
-                        <div className="grid grid-cols-1 gap-4">
-                          <div className="space-y-1">
-                            <label className="text-[9px] font-black text-emerald-600/60 uppercase tracking-widest ml-1">Precio Rebajado</label>
-                            <input 
-                              type="number"
-                              placeholder="Ej: 29.99"
-                              value={formData.precio_oferta || ''}
-                              onChange={(e) => setFormData({...formData, precio_oferta: e.target.value})}
-                              className="w-full px-4 py-3 bg-white border border-emerald-100 rounded-2xl text-sm font-bold focus:border-emerald-500 outline-none transition-all"
-                            />
+                      {/* Offer Fields - Only visible on Edit */}
+                      {initialData && (
+                        <div className="p-6 bg-emerald-50 rounded-3xl border border-emerald-100 space-y-4">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Tag className="w-4 h-4 text-emerald-600" />
+                            <h4 className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">Oferta Especial</h4>
                           </div>
-                          <div className="space-y-1 relative">
-                            <label className="text-[9px] font-black text-emerald-600/60 uppercase tracking-widest ml-1">Fecha de Fin</label>
-                            <button 
-                              type="button"
-                              onClick={() => setShowCalendar(!showCalendar)}
-                              className="w-full px-4 py-3 bg-white border border-emerald-100 rounded-2xl text-sm font-bold flex items-center justify-between outline-none"
-                            >
-                              <span className={formData.fecha_fin_offer ? "text-slate-800" : "text-slate-300"}>
-                                {formData.fecha_fin_oferta ? formData.fecha_fin_oferta : "Seleccionar..."}
-                              </span>
-                              <ChevronDown className={`w-4 h-4 text-emerald-400 transition-transform ${showCalendar ? 'rotate-180' : ''}`} />
-                            </button>
+                          <div className="grid grid-cols-1 gap-4">
+                            <div className="space-y-1">
+                              <label className="text-[9px] font-black text-emerald-600/60 uppercase tracking-widest ml-1">Precio Rebajado</label>
+                              <input 
+                                type="number"
+                                placeholder="Ej: 29.99"
+                                value={formData.precio_oferta || ''}
+                                onChange={(e) => setFormData({...formData, precio_oferta: e.target.value})}
+                                className="w-full px-4 py-3 bg-white border border-emerald-100 rounded-2xl text-sm font-bold focus:border-emerald-500 outline-none transition-all"
+                              />
+                            </div>
+                            <div className="space-y-1 relative">
+                              <label className="text-[9px] font-black text-emerald-600/60 uppercase tracking-widest ml-1">Fecha de Fin</label>
+                              <button 
+                                type="button"
+                                onClick={() => setShowCalendar(!showCalendar)}
+                                className="w-full px-4 py-3 bg-white border border-emerald-100 rounded-2xl text-sm font-bold flex items-center justify-between outline-none"
+                              >
+                                <span className={formData.fecha_fin_oferta ? "text-slate-800" : "text-slate-300"}>
+                                  {formData.fecha_fin_oferta ? formData.fecha_fin_oferta : "Seleccionar..."}
+                                </span>
+                                <ChevronDown className={`w-4 h-4 text-emerald-400 transition-transform ${showCalendar ? 'rotate-180' : ''}`} />
+                              </button>
 
-                            <AnimatePresence>
-                              {showCalendar && (
-                                <div className="absolute left-0 top-full mt-2 z-[100] shadow-2xl">
-                                  <CustomCalendar 
-                                    selectedDate={formData.fecha_fin_oferta}
-                                    onSelect={(date) => {
-                                      setFormData({ ...formData, fecha_fin_oferta: date });
-                                      setShowCalendar(false);
-                                    }}
-                                  />
-                                </div>
-                              )}
-                            </AnimatePresence>
+                              <AnimatePresence>
+                                {showCalendar && (
+                                  <div className="absolute left-0 top-full mt-2 z-[100] shadow-2xl">
+                                    <CustomCalendar 
+                                      selectedDate={formData.fecha_fin_oferta}
+                                      onSelect={(date) => {
+                                        setFormData({ ...formData, fecha_fin_oferta: date });
+                                        setShowCalendar(false);
+                                      }}
+                                    />
+                                  </div>
+                                )}
+                              </AnimatePresence>
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      )}
 
                       <div className="space-y-6 pt-6 border-t border-slate-100">
                         <div className="flex items-center justify-between">
@@ -583,7 +636,7 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
                             <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Duración (H)</span>
                           </div>
                           <input 
-                            type="number" value={formData.duracion_horas || ''}
+                            type="number" required value={formData.duracion_horas || ''}
                             onChange={(e) => setFormData({...formData, duracion_horas: e.target.value})}
                             className="w-16 bg-white p-2 rounded-xl text-center font-black border border-slate-100 focus:border-primary transition-all outline-none"
                           />
@@ -668,8 +721,7 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
                           onMove={evt => setViewState(evt.viewState)}
                           onClick={async (e) => {
                             const { lng, lat } = e.lngLat;
-                            const newPos = { lat, lng };
-                            setPosition(newPos);
+                            setPosition({ lat, lng });
                             const data = await reverseGeocode(lat, lng);
                             if (data) handleLocationFound(data);
                           }}
@@ -719,7 +771,7 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
                           </button>
                         </div>
                         <div className="absolute bottom-4 left-4 right-4 bg-white/80 backdrop-blur-md p-3 rounded-2xl text-[10px] font-black uppercase text-center text-slate-500 shadow-lg pointer-events-none">
-                          Haz clic en el mapa para marcar el punto exacto
+                          Haz clic en el mapa para marcar la ubicación geográfica de la actividad
                         </div>
                       </div>
                       
@@ -745,6 +797,61 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
                         onChange={(e) => setFormData({...formData, direccion: e.target.value})}
                         className="w-full p-4 rounded-2xl bg-slate-50 border border-slate-100 outline-none font-bold text-sm focus:bg-white transition-all shadow-sm"
                       />
+                      <div className="space-y-4 pt-4 border-t border-slate-100">
+                        <label className="text-[10px] font-black text-amber-500 uppercase tracking-widest ml-1 flex items-center gap-2">
+                          <Flag className="w-3 h-3" /> Punto de Encuentro (Visible solo tras el pago)
+                        </label>
+                        
+                        <div className="h-56 rounded-[32px] overflow-hidden border-4 border-amber-50 shadow-inner relative">
+                          <Map
+                            {...meetingViewState}
+                            onMove={evt => setMeetingViewState(evt.viewState)}
+                            onClick={async (e) => {
+                              const { lng, lat } = e.lngLat;
+                              setMeetingPosition({ lat, lng });
+                              setFormData(prev => ({ ...prev, latitud_encuentro: lat, longitud_encuentro: lng }));
+                              const data = await reverseGeocode(lat, lng);
+                              if (data && data.address) {
+                                const city = data.address.city || data.address.town || data.address.village || data.address.suburb || '';
+                                const road = data.address.road || '';
+                                const houseNumber = data.address.house_number || '';
+                                let fullAddress = `${road} ${houseNumber}`.trim();
+                                if (!fullAddress) fullAddress = city || 'Ubicación seleccionada';
+                                setFormData(prev => ({ ...prev, direccion_encuentro: fullAddress }));
+                              }
+                            }}
+                            mapStyle="mapbox://styles/mapbox/streets-v12"
+                            mapboxAccessToken={MAPBOX_TOKEN}
+                            style={{ width: '100%', height: '100%' }}
+                          >
+                            <NavigationControl position="top-right" />
+                            {meetingPosition && (
+                              <Marker latitude={meetingPosition.lat} longitude={meetingPosition.lng} anchor="bottom">
+                                <div className="w-8 h-8 bg-amber-500 rounded-full border-4 border-white shadow-lg animate-bounce flex items-center justify-center">
+                                  <Flag className="w-4 h-4 text-white" />
+                                </div>
+                              </Marker>
+                            )}
+                          </Map>
+                          <div className="absolute bottom-4 left-4 right-4 bg-white/80 backdrop-blur-md p-3 rounded-2xl text-[10px] font-black uppercase text-center text-amber-600 shadow-lg pointer-events-none">
+                            Haz clic para establecer el punto de encuentro exacto
+                          </div>
+                        </div>
+
+                        <textarea 
+                          rows="3"
+                          placeholder="Instrucciones precisas de dónde encontrarse (ej: En la puerta principal del hotel X, frente a la estatua Y)" 
+                          value={formData.punto_encuentro || ''}
+                          onChange={(e) => setFormData({...formData, punto_encuentro: e.target.value})}
+                          className="w-full p-4 rounded-2xl bg-amber-50/30 border border-amber-100 outline-none font-bold text-sm focus:border-amber-400 transition-all shadow-sm resize-none"
+                        ></textarea>
+                        
+                        <input 
+                          type="text" placeholder="Dirección del punto de encuentro" value={formData.direccion_encuentro || ''}
+                          onChange={(e) => setFormData({...formData, direccion_encuentro: e.target.value})}
+                          className="w-full p-4 rounded-2xl bg-amber-50/50 border border-amber-100 outline-none font-bold text-sm focus:bg-white transition-all shadow-sm text-amber-900 placeholder:text-amber-300"
+                        />
+                      </div>
                     </div>
                   </div>
 
@@ -805,6 +912,7 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
                           <div key={idx} className="relative w-24 h-24 rounded-2xl overflow-hidden group border border-slate-100">
                             <img src={img} className="w-full h-full object-cover" alt={`Gallery ${idx}`} />
                             <button 
+                              type="button"
                               onClick={() => removeGalleryImage(idx)}
                               className="absolute inset-0 bg-red-500/80 text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
                             >
@@ -814,6 +922,7 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
                         ))}
                         {formData.galeria.length < 10 && (
                           <button 
+                            type="button"
                             onClick={() => document.getElementById('gallery-upload').click()}
                             className="w-24 h-24 rounded-2xl border-2 border-dashed border-slate-200 flex items-center justify-center text-slate-300 hover:border-primary hover:text-primary transition-all bg-slate-50"
                           >
@@ -851,8 +960,7 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
               </button>
             ) : (
               <button 
-                type="button" 
-                onClick={handleSubmit}
+                type="submit" 
                 disabled={loading}
                 className="bg-primary hover:bg-primary-dark text-white px-12 py-4 rounded-3xl font-black text-xs uppercase tracking-[0.2em] transition-all shadow-xl shadow-primary/20 flex items-center gap-2 disabled:opacity-50"
               >
@@ -861,7 +969,7 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
             )}
           </div>
         </div>
-      </motion.div>
+      </motion.form>
     </div>
   );
 };

@@ -300,7 +300,7 @@ const Home = () => {
   const experienciasData = useMemo(() => activities.filter(a => a.tipo === 'TURISTICA'), [activities]);
   const serviciosData = useMemo(() => activities.filter(a => a.tipo === 'ALIMENTARIA'), [activities]);
 
-  const fetchActivities = async (filters = {}) => {
+  const fetchActivities = async (filters = {}, skipModal = false) => {
     try {
       setLoading(true);
       const params = new URLSearchParams();
@@ -332,7 +332,7 @@ const Home = () => {
         setActivities(data);
         
         // Custom notification for empty location results
-        if (data.length === 0 && filters.lat && filters.lng) {
+        if (data.length === 0 && filters.lat && filters.lng && !skipModal) {
            const currentRadius = filters.radius || 10;
            setInfoModal({
               isOpen: true,
@@ -391,7 +391,7 @@ const Home = () => {
               )
            });
         }
-
+        return data;
       } else {
         console.error('Failed to fetch activities');
       }
@@ -437,17 +437,51 @@ const Home = () => {
               setSearchQuery('Mi Ubicación Actual');
             }
 
-            // Automáticamente dispara la búsqueda con la nueva ubicación
-            fetchActivities({
-               city: foundCity,
-               province: foundProvince,
-               country: foundCountry,
-               lat: latitude, 
-               lng: longitude, 
-               radius, 
-               adults, 
-               childrenCount
-            });
+            // Búsqueda secuencial
+            const radii = [10, 30, 50];
+            let resultsFound = false;
+
+            for (const r of radii) {
+              const results = await fetchActivities({
+                 city: foundCity,
+                 province: foundProvince,
+                 country: foundCountry,
+                 lat: latitude, 
+                 lng: longitude, 
+                 radius: r, 
+                 adults, 
+                 childrenCount
+              }, true); // skipModal = true
+
+              if (results && results.length > 0) {
+                setRadius(r);
+                setInfoModal({
+                  isOpen: true,
+                  title: '¡Resultados encontrados!',
+                  content: (
+                    <div className="flex flex-col gap-4 items-center justify-center py-2 text-center">
+                      <p className="text-slate-600">Se encontraron experiencias o servicios a <span className="font-bold text-slate-800">{r} km</span> de tu ubicación.</p>
+                      <button onClick={() => setInfoModal({ isOpen: false, title: '', content: '' })} className="px-6 py-2 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-all shadow-sm text-sm">Explorar</button>
+                    </div>
+                  )
+                });
+                resultsFound = true;
+                break;
+              }
+            }
+
+            if (!resultsFound) {
+              setInfoModal({
+                isOpen: true,
+                title: 'Sin resultados',
+                content: (
+                   <div className="flex flex-col gap-4 items-center justify-center py-2 text-center">
+                      <p className="text-slate-600">No hay resultados disponibles en el área (hasta 50 km).</p>
+                      <button onClick={() => setInfoModal({ isOpen: false, title: '', content: '' })} className="px-6 py-2 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-all shadow-sm text-sm">Cerrar</button>
+                   </div>
+                )
+              });
+            }
 
           } catch (err) {
             console.error("Reverse geocoding error:", err);
@@ -591,24 +625,6 @@ const Home = () => {
                   >
                     {isLocating ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Navigation className="w-5 h-5" />}
                   </button>
-                  
-                  <select
-                    value={radius}
-                    onChange={(e) => {
-                       const newRadius = Number(e.target.value);
-                       setRadius(newRadius);
-                       // Si ya tenemos coordenadas de ubicación, auto-buscar al cambiar de radio
-                       if (lat && lng) {
-                          fetchActivities({ city, province, country, lat, lng, radius: newRadius, adults, childrenCount });
-                       }
-                    }}
-                    className="py-3 px-2 rounded-xl border border-slate-100 bg-slate-50 outline-none text-slate-700 text-xs font-bold shrink-0 no-appearance"
-                    title="Radio de búsqueda"
-                  >
-                    <option value={10}>10 km</option>
-                    <option value={30}>30 km</option>
-                    <option value={50}>50 km</option>
-                  </select>
                 </div>
               </div>
             </div>

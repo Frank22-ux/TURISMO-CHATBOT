@@ -18,13 +18,16 @@ import {
     ArrowUpRight,
     Package,
     Power,
-    FileText
+    FileText,
+    Eye,
+    X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import Map, { Marker, Popup, NavigationControl, FullscreenControl } from 'react-map-gl/mapbox';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import * as XLSX from 'xlsx';
+import DocumentViewerModal from '../components/DocumentViewerModal';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
@@ -38,6 +41,11 @@ const AdminDashboard = () => {
     const [recentActivity, setRecentActivity] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedLocation, setSelectedLocation] = useState(null);
+    const [documentModal, setDocumentModal] = useState({
+        isOpen: false,
+        hostId: null,
+        hostName: ''
+    });
 
     // Filtros de usuario
     const [userSearchTerm, setUserSearchTerm] = useState('');
@@ -83,6 +91,32 @@ const AdminDashboard = () => {
     };
 
 
+
+    const openDocumentModal = (userId, userName) => {
+        setDocumentModal({
+            isOpen: true,
+            hostId: userId,
+            hostName: userName
+        });
+    };
+
+    const closeDocumentModal = () => {
+        setDocumentModal({
+            isOpen: false,
+            hostId: null,
+            hostName: ''
+        });
+    };
+
+    const handleVerifyFromModal = async (userId) => {
+        try {
+            const token = sessionStorage.getItem('token');
+            await axios.patch(`http://localhost:3000/api/admin/users/${userId}/verification`, { verificado: true }, { headers: { Authorization: `Bearer ${token}` } });
+            setUsers(users.map(u => u.id_usuario === userId ? { ...u, verificado: true } : u));
+        } catch (error) {
+            alert("Error al actualizar verificación");
+        }
+    };
 
     const toggleVerification = async (userId, currentVerif) => {
         try {
@@ -591,16 +625,30 @@ const AdminDashboard = () => {
                                                     <td className="px-6 py-5">
                                                         {u.rol === 'ANFITRION' ? (
                                                             <div className="flex items-center gap-2">
-                                                                <button 
-                                                                    onClick={() => toggleVerification(u.id_usuario, u.verificado)}
-                                                                    title={u.verificado ? "Quitar verificación" : "Otorgar verificación (Click aquí)"}
-                                                                    className={`w-auto px-3 py-1.5 rounded-lg flex items-center gap-2 transition-all ${u.verificado ? 'bg-emerald-50 text-emerald-500 shadow-md shadow-emerald-200 hover:bg-red-50 hover:text-red-500' : 'bg-slate-100 text-slate-500 hover:bg-emerald-500 hover:text-white border border-slate-200'}`}
-                                                                >
-                                                                    <ShieldCheck className="w-4 h-4" />
-                                                                    <span className="text-[10px] font-black uppercase">
-                                                                        {u.verificado ? 'Verificado' : 'Verificar'}
-                                                                    </span>
-                                                                </button>
+                                                                {u.verificado ? (
+                                                                    <div className="flex items-center gap-2">
+                                                                        <div className="px-3 py-1.5 bg-emerald-50 text-emerald-500 rounded-lg flex items-center gap-2 shadow-md shadow-emerald-200">
+                                                                            <ShieldCheck className="w-4 h-4" />
+                                                                            <span className="text-[10px] font-black uppercase">Verificado</span>
+                                                                        </div>
+                                                                        <button 
+                                                                            onClick={() => toggleVerification(u.id_usuario, u.verificado)}
+                                                                            title="Quitar verificación"
+                                                                            className="w-8 h-8 flex items-center justify-center bg-red-50 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-colors"
+                                                                        >
+                                                                            <X className="w-4 h-4" />
+                                                                        </button>
+                                                                    </div>
+                                                                ) : (
+                                                                    <button 
+                                                                        onClick={() => openDocumentModal(u.id_usuario, u.nombre)}
+                                                                        title="Ver Documentos para Verificar"
+                                                                        className="w-auto px-3 py-1.5 rounded-lg flex items-center gap-2 transition-all bg-indigo-50 text-indigo-500 hover:bg-indigo-500 hover:text-white border border-indigo-200"
+                                                                    >
+                                                                        <Eye className="w-4 h-4" />
+                                                                        <span className="text-[10px] font-black uppercase">Verificar</span>
+                                                                    </button>
+                                                                )}
                                                                 
                                                                 {u.url_documento_legal_frontal && (
                                                                     <a 
@@ -851,7 +899,7 @@ const AdminDashboard = () => {
                                             
                                             return (
                                             <Marker
-                                                key={`${act.tipo}-${act.id_actividad}`}
+                                                key={act.id_actividad}
                                                 longitude={parseFloat(act.longitud) + jitterLng}
                                                 latitude={parseFloat(act.latitud) + jitterLat}
                                                 anchor="bottom"
@@ -892,6 +940,15 @@ const AdminDashboard = () => {
                     </div>
                 </AnimatePresence>
             </main>
+
+            {/* Modal de Visualización de Documentos */}
+            <DocumentViewerModal
+                isOpen={documentModal.isOpen}
+                onClose={closeDocumentModal}
+                hostId={documentModal.hostId}
+                hostName={documentModal.hostName}
+                onVerify={handleVerifyFromModal}
+            />
         </div>
     );
 };

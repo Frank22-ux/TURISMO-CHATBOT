@@ -210,6 +210,10 @@ CREATE TABLE actividades_turisticas (
     id_categoria INT NOT NULL,
     id_clasificacion INT NOT NULL,
     id_ubicacion INT NOT NULL,
+    punto_encuentro TEXT,
+    latitud_encuentro NUMERIC(10,8),
+    longitud_encuentro NUMERIC(11,8),
+    direccion_encuentro VARCHAR(255),
 
     FOREIGN KEY (id_anfitrion) REFERENCES usuarios(id_usuario),
     FOREIGN KEY (id_categoria) REFERENCES categorias_turisticas(id_categoria),
@@ -265,6 +269,10 @@ CREATE TABLE actividades_alimentarias (
     id_anfitrion INT NOT NULL,
     id_categoria INT NOT NULL,
     id_ubicacion INT NOT NULL,
+    punto_encuentro TEXT,
+    latitud_encuentro NUMERIC(10,8),
+    longitud_encuentro NUMERIC(11,8),
+    direccion_encuentro VARCHAR(255),
 
     FOREIGN KEY (id_anfitrion) REFERENCES usuarios(id_usuario),
     FOREIGN KEY (id_categoria) REFERENCES categorias_alimentarias(id_categoria),

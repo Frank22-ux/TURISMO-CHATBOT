@@ -186,6 +186,7 @@ const findByHost = async (hostId) => {
             at.titulo as title, 
             at.precio as price, 
             u.pais, u.ciudad, u.provincia, u.direccion, u.latitud, u.longitud,
+            at.punto_encuentro,
             u.ciudad || ', ' || COALESCE(u.provincia, '') || ', ' || u.pais as location,
             ip.url_imagen as image
         FROM actividades_turisticas at
@@ -213,7 +214,7 @@ const createActivity = async (activityData) => {
     const { 
         titulo, descripcion, precio, duracion_hours, capacidad, 
         nivel_dificultad, id_anfitrion, id_categoria, id_clasificacion, id_ubicacion,
-        hora_inicio, hora_fin, dias_disponibles
+        hora_inicio, hora_fin, dias_disponibles, punto_encuentro, direccion_encuentro
     } = activityData;
 
     const query = `
@@ -221,9 +222,10 @@ const createActivity = async (activityData) => {
             titulo, descripcion, precio, duracion_horas, capacidad, 
             nivel_dificultad, id_anfitrion, id_categoria, id_clasificacion, id_ubicacion,
             porcentaje_ganancia, tipo_reserva, incluye_recorrido, incluye_transporte, requiere_equipo,
-            hora_inicio, hora_fin, dias_disponibles
+            hora_inicio, hora_fin, dias_disponibles, punto_encuentro,
+            latitud_encuentro, longitud_encuentro, direccion_encuentro
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
         RETURNING id_actividad
     `;
     
@@ -237,7 +239,11 @@ const createActivity = async (activityData) => {
         activityData.requiere_equipo || false,
         hora_inicio || '08:00:00',
         hora_fin || '18:00:00',
-        dias_disponibles || '0,1,2,3,4,5,6'
+        dias_disponibles || '0,1,2,3,4,5,6',
+        punto_encuentro || null,
+        activityData.latitud_encuentro || null,
+        activityData.longitud_encuentro || null,
+        direccion_encuentro || null
     ]);
     return rows[0].id_actividad;
 };
@@ -277,6 +283,8 @@ const findFullById = async (id) => {
                 'T-' || at.id_actividad as id,
                 'TURISTICA' as tipo,
                 u.pais, u.ciudad, u.direccion, u.latitud, u.longitud, u.provincia,
+                u.ciudad || ', ' || COALESCE(u.provincia, '') || ', ' || u.pais as location,
+                at.punto_encuentro, at.latitud_encuentro, at.longitud_encuentro,
                 u2.nombre as nombre_anfitrion,
                 ip.url_imagen as portada,
                 (SELECT json_agg(url_imagen) FROM imagenes_galeria WHERE id_actividad = at.id_actividad AND tipo_actividad = 'TURISTICA') as galeria
@@ -302,6 +310,8 @@ const findFullById = async (id) => {
                 'A-' || aa.id_actividad as id,
                 'ALIMENTARIA' as tipo,
                 u.pais, u.ciudad, u.direccion, u.latitud, u.longitud, u.provincia,
+                u.ciudad || ', ' || COALESCE(u.provincia, '') || ', ' || u.pais as location,
+                aa.punto_encuentro, aa.latitud_encuentro, aa.longitud_encuentro,
                 u2.nombre as nombre_anfitrion,
                 ip.url_imagen as portada,
                 (SELECT json_agg(url_imagen) FROM imagenes_galeria WHERE id_actividad = aa.id_actividad AND tipo_actividad = 'ALIMENTARIA') as galeria
@@ -342,7 +352,8 @@ const updateActivity = async (id, data) => {
         nivel_dificultad, id_categoria, id_clasificacion,
         porcentaje_ganancia, tipo_reserva,
         incluye_recorrido, incluye_transporte, requiere_equipo,
-        hora_inicio, hora_fin, dias_disponibles
+        hora_inicio, hora_fin, dias_disponibles, punto_encuentro,
+        latitud_encuentro, longitud_encuentro, direccion_encuentro
     } = data;
     const query = `
         UPDATE actividades_turisticas
@@ -351,8 +362,9 @@ const updateActivity = async (id, data) => {
             porcentaje_ganancia = $9, tipo_reserva = $10,
             incluye_recorrido = $11, incluye_transporte = $12, requiere_equipo = $13,
             precio_oferta = $14, fecha_fin_oferta = $15,
-            hora_inicio = $16, hora_fin = $17, dias_disponibles = $18
-        WHERE id_actividad = $19
+            hora_inicio = $16, hora_fin = $17, dias_disponibles = $18,
+            punto_encuentro = $19, latitud_encuentro = $20, longitud_encuentro = $21, direccion_encuentro = $22
+        WHERE id_actividad = $23
     `;
     await db.query(query, [
         titulo, descripcion, precio, duracion_horas, capacidad, 
@@ -364,6 +376,10 @@ const updateActivity = async (id, data) => {
         hora_inicio || '08:00:00',
         hora_fin || '18:00:00',
         dias_disponibles || '0,1,2,3,4,5,6',
+        punto_encuentro || null,
+        data.latitud_encuentro || null,
+        data.longitud_encuentro || null,
+        direccion_encuentro || null,
         id
     ]);
 };
@@ -410,6 +426,7 @@ const updateBulkOffers = async (ids, type, offerPrice, expirationDate, percentag
     }
     await db.query(query, params);
 };
+
 const getAvailability = async (id, type, date) => {
     const numericId = id.includes('-') ? id.split('-')[1] : id;
     const table = type === 'TURISTICA' ? 'actividades_turisticas' : 'actividades_alimentarias';

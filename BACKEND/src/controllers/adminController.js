@@ -261,6 +261,32 @@ const updateReviewVisibility = async (req, res) => {
     }
 };
 
+const getHostDocuments = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const query = `
+            SELECT 
+                u.nombre,
+                u.email,
+                pa.url_documento_legal_frontal,
+                pa.url_documento_legal_posterior,
+                pa.identificacion
+            FROM usuarios u
+            LEFT JOIN perfil_anfitrion pa ON u.id_usuario = pa.id_anfitrion
+            WHERE u.id_usuario = $1 AND u.rol = 'ANFITRION'
+        `;
+        const result = await db.query(query, [id]);
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: 'Anfitrión no encontrado' });
+        }
+        
+        res.status(200).json(result.rows[0]);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     getGlobalStats,
     getAllUsers,
@@ -271,5 +297,6 @@ module.exports = {
     getRecentActivity,
     getFinancialReport,
     getAllReviews,
-    updateReviewVisibility
+    updateReviewVisibility,
+    getHostDocuments
 };

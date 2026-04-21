@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const adminController = require('../controllers/adminController');
-const authMiddleware = require('../middlewares/authMiddleware');
+const { authMiddleware } = require('../middlewares/authMiddleware');
 
 // Middleware to check if user is ADMIN
 const isAdmin = (req, res, next) => {
@@ -18,6 +18,7 @@ router.get('/activities', authMiddleware, isAdmin, adminController.getAllActivit
 router.get('/recent-activity', authMiddleware, isAdmin, adminController.getRecentActivity);
 router.get('/financial-report', authMiddleware, isAdmin, adminController.getFinancialReport);
 router.get('/reviews', authMiddleware, isAdmin, adminController.getAllReviews);
+router.get('/hosts/:id/documents', authMiddleware, isAdmin, adminController.getHostDocuments);
 
 router.patch('/users/:id/status', authMiddleware, isAdmin, adminController.updateUserStatus);
 router.patch('/users/:id/verification', authMiddleware, isAdmin, adminController.updateVerification);
