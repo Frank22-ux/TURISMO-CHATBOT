@@ -90,7 +90,7 @@ const ActivityCard = ({ activity, onOpenDetail, onOpenBooking }) => (
         </div>
         <button 
           onClick={() => onOpenBooking(activity)}
-          className="w-full py-3 rounded-2xl bg-primary hover:bg-primary-dark text-white font-black text-sm transition-all shadow-lg shadow-primary/10 hover:shadow-primary/30 flex items-center justify-center gap-2 active:scale-95"
+          className="w-full px-6 py-3 rounded-xl bg-primary hover:bg-primary-dark text-white font-bold text-sm transition-all shadow-lg shadow-primary/10 hover:shadow-primary/30 flex items-center justify-center gap-2 active:scale-95"
         >
           Reservar Ahora
         </button>
@@ -141,7 +141,7 @@ const Home = () => {
                 setInfoModal({ isOpen: false, title: '', content: '' });
                 navigate('/login');
               }}
-              className="px-8 py-3 bg-primary text-white font-bold rounded-2xl hover:bg-primary-dark transition-all shadow-lg text-sm w-3/4"
+              className="px-6 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-all shadow-lg text-sm w-full sm:w-auto"
             >
               Ingresar / Registrarse
             </button>
@@ -348,21 +348,21 @@ const Home = () => {
                              setInfoModal({ isOpen: false, title: '', content: '' });
                              setRadius(20);
                              fetchActivities({ ...filters, radius: 20 });
-                         }} className="px-5 py-2.5 bg-secondary/10 text-secondary font-bold rounded-xl hover:bg-secondary hover:text-white transition-all shadow-sm text-sm">20 km</button>
+                         }} className="px-6 py-3 bg-secondary/10 text-secondary font-bold rounded-xl hover:bg-secondary hover:text-white transition-all shadow-sm text-sm">20 km</button>
                        )}
                        {currentRadius < 30 && (
                          <button onClick={() => {
                              setInfoModal({ isOpen: false, title: '', content: '' });
                              setRadius(30);
                              fetchActivities({ ...filters, radius: 30 });
-                         }} className="px-5 py-2.5 bg-secondary/10 text-secondary font-bold rounded-xl hover:bg-secondary hover:text-white transition-all shadow-sm text-sm">30 km</button>
+                         }} className="px-6 py-3 bg-secondary/10 text-secondary font-bold rounded-xl hover:bg-secondary hover:text-white transition-all shadow-sm text-sm">30 km</button>
                        )}
                        {currentRadius < 50 && (
                          <button onClick={() => {
                              setInfoModal({ isOpen: false, title: '', content: '' });
                              setRadius(50);
                              fetchActivities({ ...filters, radius: 50 });
-                         }} className="px-5 py-2.5 bg-secondary/10 text-secondary font-bold rounded-xl hover:bg-secondary hover:text-white transition-all shadow-sm text-sm">50 km</button>
+                         }} className="px-6 py-3 bg-secondary/10 text-secondary font-bold rounded-xl hover:bg-secondary hover:text-white transition-all shadow-sm text-sm">50 km</button>
                        )}
                        <button onClick={() => {
                            setInfoModal({ isOpen: false, title: '', content: '' });
@@ -370,7 +370,7 @@ const Home = () => {
                            setLat(null);
                            setLng(null);
                            fetchActivities({ ...filters, lat: null, lng: null, searchQuery: '', limit: null });
-                       }} className="px-6 py-2.5 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-all shadow-sm text-sm">Ver todas</button>
+                       }} className="px-6 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-all shadow-sm text-sm">Ver todas</button>
                     </div>
                  </div>
               )
@@ -387,7 +387,7 @@ const Home = () => {
                         setInfoModal({ isOpen: false, title: '', content: '' });
                         setSearchQuery('');
                         fetchActivities({ ...filters, searchQuery: '' });
-                    }} className="px-6 py-2.5 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-all shadow-sm text-sm">Explora otras opciones</button>
+                    }} className="px-6 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-all shadow-sm text-sm">Explora otras opciones</button>
                  </div>
               )
            });
@@ -462,7 +462,7 @@ const Home = () => {
                   content: (
                     <div className="flex flex-col gap-4 items-center justify-center py-2 text-center">
                       <p className="text-slate-600">Se encontraron experiencias o servicios a <span className="font-bold text-slate-800">{r} km</span> de tu ubicación.</p>
-                      <button onClick={() => setInfoModal({ isOpen: false, title: '', content: '' })} className="px-6 py-2 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-all shadow-sm text-sm">Explorar</button>
+                      <button onClick={() => setInfoModal({ isOpen: false, title: '', content: '' })} className="px-6 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-all shadow-sm text-sm">Explorar</button>
                     </div>
                   )
                 });
@@ -478,7 +478,6 @@ const Home = () => {
                 content: (
                    <div className="flex flex-col gap-4 items-center justify-center py-2 text-center">
                       <p className="text-slate-600">No hay resultados disponibles en el área (hasta 50 km).</p>
-                      <button onClick={() => setInfoModal({ isOpen: false, title: '', content: '' })} className="px-6 py-2 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-all shadow-sm text-sm">Cerrar</button>
                    </div>
                 )
               });
@@ -682,7 +681,7 @@ const Home = () => {
               </button>
               <button 
                  onClick={handleSearch}
-                 className="flex-1 xl:w-auto bg-primary hover:bg-primary-dark text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg hover:shadow-primary/30 flex items-center justify-center gap-2 border border-primary/20 hover:border-primary/50"
+                 className="flex-1 xl:w-auto bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-xl font-bold transition-all shadow-lg hover:shadow-primary/30 flex items-center justify-center gap-2 border border-primary/20 hover:border-primary/50"
                >
                  <Search className="w-4 h-4" /> Buscar
               </button>
@@ -794,7 +793,7 @@ const Home = () => {
                         setSearchParams({ category: 'experiencias' });
                         fetchActivities({ ...{searchQuery, lat, lng, radius, adults, childrenCount}, limit: null });
                       }}
-                      className="px-8 py-3 bg-secondary/10 text-secondary font-bold rounded-2xl hover:bg-secondary hover:text-white transition-all shadow-sm flex items-center gap-2"
+                      className="px-6 py-3 bg-secondary/10 text-secondary font-bold rounded-xl hover:bg-secondary hover:text-white transition-all shadow-sm flex items-center gap-2"
                     >
                       Ver todas las Experiencias <ArrowRight className="w-4 h-4" />
                     </button>
