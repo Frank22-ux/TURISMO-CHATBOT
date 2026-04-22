@@ -3,9 +3,10 @@ const db = require('../config/database');
 const findByHost = async (hostId) => {
     const query = `
         SELECT 
-            aa.id_actividad, 
-            aa.titulo, 
-            aa.precio, 
+            aa.*,
+            'A-' || aa.id_actividad as id, 
+            aa.titulo as title,
+            aa.precio as price, 
             aa.estado,
             u.ciudad,
             u.provincia,
@@ -22,19 +23,23 @@ const findByHost = async (hostId) => {
 };
 
 const findFullById = async (id) => {
+    const numericId = typeof id === 'string' && id.includes('-') ? id.split('-')[1] : id;
     const query = `
         SELECT 
             aa.*, 
+            'A-' || aa.id_actividad as id,
             u.pais, u.ciudad, u.direccion, u.latitud, u.longitud, u.provincia,
+            u.ciudad || ', ' || COALESCE(u.provincia, '') || ', ' || u.pais as location,
             ip.url_imagen as portada,
-            (SELECT json_agg(url_imagen) FROM imagenes_galeria WHERE id_actividad = aa.id_actividad AND tipo_actividad = 'ALIMENTARIA') as galeria
+            (SELECT json_agg(url_imagen) FROM imagenes_galeria WHERE id_actividad = aa.id_actividad AND tipo_actividad = 'ALIMENTARIA') as galeria,
+            COALESCE((SELECT AVG(puntuacion) FROM valoraciones WHERE id_actividad = aa.id_actividad AND tipo_actividad = 'ALIMENTARIA'), 0) as avg_rating
         FROM actividades_alimentarias aa
         JOIN ubicaciones u ON aa.id_ubicacion = u.id_ubicacion
         LEFT JOIN imagen_portada ip ON aa.id_actividad = ip.id_actividad AND ip.tipo_actividad = 'ALIMENTARIA'
         WHERE aa.id_actividad = $1
     `;
     try {
-        const { rows } = await db.query(query, [id]);
+        const { rows } = await db.query(query, [numericId]);
         return rows[0];
     } catch (error) {
         console.error('DATABASE ERROR in findFullById:', error);
@@ -114,16 +119,19 @@ const createGalleryImage = async (serviceId, imageUrl) => {
 };
 
 const findById = async (id) => {
-    const { rows } = await db.query('SELECT * FROM actividades_alimentarias WHERE id_actividad = $1', [id]);
+    const numericId = typeof id === 'string' && id.includes('-') ? id.split('-')[1] : id;
+    const { rows } = await db.query('SELECT * FROM actividades_alimentarias WHERE id_actividad = $1', [numericId]);
     return rows[0];
 };
 
 const deleteService = async (id) => {
-    await db.query('DELETE FROM actividades_alimentarias WHERE id_actividad = $1', [id]);
+    const numericId = typeof id === 'string' && id.includes('-') ? id.split('-')[1] : id;
+    await db.query('DELETE FROM actividades_alimentarias WHERE id_actividad = $1', [numericId]);
 };
 
 const updateStatus = async (id, status) => {
-    await db.query('UPDATE actividades_alimentarias SET estado = $1 WHERE id_actividad = $2', [status, id]);
+    const numericId = typeof id === 'string' && id.includes('-') ? id.split('-')[1] : id;
+    await db.query('UPDATE actividades_alimentarias SET estado = $1 WHERE id_actividad = $2', [status, numericId]);
 };
 
 const updateService = async (id, data) => {
@@ -136,6 +144,7 @@ const updateService = async (id, data) => {
         porcentaje_ganancia, tipo_reserva,
         hora_inicio, hora_fin, dias_disponibles
     } = data;
+    const numericId = typeof id === 'string' && id.includes('-') ? id.split('-')[1] : id;
     const query = `
         UPDATE actividades_alimentarias
         SET titulo = $1, descripcion = $2, precio = $3, duracion_horas = $4, 
@@ -154,7 +163,7 @@ const updateService = async (id, data) => {
     try {
         await db.query(query, [
             titulo, descripcion, precio, duracion_horas, capacidad, id_categoria,
-            menu_vegano, menu_vegetariano, menu_sin_gluten, permite_mascotas, wifi, id,
+            menu_vegano, menu_vegetariano, menu_sin_gluten, permite_mascotas, wifi, numericId,
             servicio_local, servicio_para_llevar, servicio_delivery, nivel_picante,
             accesibilidad_silla_ruedas, accesibilidad_adultos_mayores, estacionamiento,
             metodos_pago, descuentos_promociones, musica_en_vivo, zona_infantil, eventos_privados,

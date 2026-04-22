@@ -294,7 +294,11 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
                   <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 flex flex-col items-center text-center gap-2">
                     <Star className="w-6 h-6 text-amber-500" />
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Rating</p>
-                    <p className="font-bold text-slate-800">4.9/5</p>
+                    <p className="font-bold text-slate-800">
+                      {activity.avg_rating && parseFloat(activity.avg_rating) > 0 
+                        ? `${parseFloat(activity.avg_rating).toFixed(1)}/5` 
+                        : 'Nuevo'}
+                    </p>
                   </div>
                 </div>
 

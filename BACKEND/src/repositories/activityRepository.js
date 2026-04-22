@@ -182,7 +182,7 @@ const findByHost = async (hostId) => {
     const query = `
         SELECT 
             at.*,
-            at.id_actividad as id, 
+            'T-' || at.id_actividad as id, 
             at.titulo as title, 
             at.precio as price, 
             u.pais, u.ciudad, u.provincia, u.direccion, u.latitud, u.longitud,
@@ -287,7 +287,8 @@ const findFullById = async (id) => {
                 at.punto_encuentro, at.latitud_encuentro, at.longitud_encuentro,
                 u2.nombre as nombre_anfitrion,
                 ip.url_imagen as portada,
-                (SELECT json_agg(url_imagen) FROM imagenes_galeria WHERE id_actividad = at.id_actividad AND tipo_actividad = 'TURISTICA') as galeria
+                (SELECT json_agg(url_imagen) FROM imagenes_galeria WHERE id_actividad = at.id_actividad AND tipo_actividad = 'TURISTICA') as galeria,
+                COALESCE((SELECT AVG(puntuacion) FROM valoraciones WHERE id_actividad = at.id_actividad AND tipo_actividad = 'TURISTICA'), 0) as avg_rating
             FROM actividades_turisticas at
             JOIN ubicaciones u ON at.id_ubicacion = u.id_ubicacion
             LEFT JOIN usuarios u2 ON at.id_anfitrion = u2.id_usuario
@@ -314,10 +315,11 @@ const findFullById = async (id) => {
                 aa.punto_encuentro, aa.latitud_encuentro, aa.longitud_encuentro,
                 u2.nombre as nombre_anfitrion,
                 ip.url_imagen as portada,
-                (SELECT json_agg(url_imagen) FROM imagenes_galeria WHERE id_actividad = aa.id_actividad AND tipo_actividad = 'ALIMENTARIA') as galeria
+                (SELECT json_agg(url_imagen) FROM imagenes_galeria WHERE id_actividad = aa.id_actividad AND tipo_actividad = 'ALIMENTARIA') as galeria,
+                COALESCE((SELECT AVG(puntuacion) FROM valoraciones WHERE id_actividad = aa.id_actividad AND tipo_actividad = 'ALIMENTARIA'), 0) as avg_rating
             FROM actividades_alimentarias aa
-            JOIN ubicaciones u ON aa.id_ubicacion = u.id_ubicacion
-            JOIN usuarios u2 ON aa.id_anfitrion = u2.id_usuario
+            LEFT JOIN ubicaciones u ON aa.id_ubicacion = u.id_ubicacion
+            LEFT JOIN usuarios u2 ON aa.id_anfitrion = u2.id_usuario
             LEFT JOIN imagen_portada ip ON aa.id_actividad = ip.id_actividad AND ip.tipo_actividad = 'ALIMENTARIA'
             WHERE aa.id_actividad = $1
         `;
@@ -347,6 +349,7 @@ const updateStatus = async (id, status) => {
 };
 
 const updateActivity = async (id, data) => {
+    const numericId = typeof id === 'string' && id.includes('-') ? id.split('-')[1] : id;
     const { 
         titulo, descripcion, precio, duracion_horas, capacidad, 
         nivel_dificultad, id_categoria, id_clasificacion,
@@ -380,7 +383,7 @@ const updateActivity = async (id, data) => {
         data.latitud_encuentro || null,
         data.longitud_encuentro || null,
         direccion_encuentro || null,
-        id
+        numericId
     ]);
 };
 
