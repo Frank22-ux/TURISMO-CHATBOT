@@ -15,6 +15,15 @@ const Map = MAPBOX_TOKEN ? MapboxMap : ({ children, style, className }) => (
 );
 
 const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
+  // Helper para asegurar que las URLs sean absolutas
+  const getImageUrl = (url) => {
+    if (!url) return "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80";
+    if (url.startsWith('http') || url.startsWith('data:')) return url;
+    // Evitar concatenar si API_BASE no está definido
+    if (!API_BASE) return url;
+    return `${API_BASE}${url.startsWith('/') ? '' : '/'}${url}`;
+  };
+
   const [activeImage, setActiveImage] = useState(null);
   const [position, setPosition] = useState({ lat: -0.180653, lng: -78.467834 });
   const [showTerrain, setShowTerrain] = useState(true);
@@ -97,7 +106,12 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
 
   useEffect(() => {
     if (activity) {
-      setActiveImage(activity.image || activity.portada || "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80");
+      console.log('Experience Detail Loaded:', activity);
+      
+      // Normalización de imagen principal con URL absoluta
+      const mainImgRaw = activity.portada || activity.image || activity.coverImage || "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80";
+      setActiveImage(getImageUrl(mainImgRaw));
+
       const newLat = parseFloat(activity.latitud) || -0.180653;
       const newLng = parseFloat(activity.longitud) || -78.467834;
       setPosition({ lat: newLat, lng: newLng });
@@ -119,9 +133,23 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
 
   if (!isOpen || !activity) return null;
 
-  const gallery = Array.isArray(activity.galeria) ? activity.galeria : [];
-  const hasGallery = gallery.length > 0;
-  const allImages = [activity.image || activity.portada, ...gallery].filter(Boolean);
+  const rawGallery = Array.isArray(activity.galeria) ? activity.galeria : 
+                     Array.isArray(activity.gallery) ? activity.gallery :
+                     Array.isArray(activity.images) ? activity.images : [];
+  
+  const mainImageRaw = activity.portada || activity.image || activity.coverImage;
+  
+  // Eliminar duplicados, valores nulos y asegurar URLs absolutas
+  const allImages = [...new Set([mainImageRaw, ...rawGallery])]
+    .filter(Boolean)
+    .map(getImageUrl);
+  
+  if (allImages.length === 0) {
+    allImages.push("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80");
+  }
+
+  const gallery = allImages;
+  const hasGallery = gallery.length > 1;
 
   const isActive = activity.estado === 'ACTIVA';
 
