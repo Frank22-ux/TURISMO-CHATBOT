@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { API_BASE } from '../../config/api';
+import { API_BASE } from '../config/api';
 import { Shield, Lock, ArrowRight, AlertCircle, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 

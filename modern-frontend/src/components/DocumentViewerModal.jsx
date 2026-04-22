@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { API_BASE } from '../../config/api';
+import { API_BASE } from '../config/api';
 import { X, FileText, Download, AlertCircle, CheckCircle, ShieldCheck, Eye } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';

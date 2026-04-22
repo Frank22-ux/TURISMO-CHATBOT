@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { API_BASE } from '../../config/api';
+import { API_BASE } from '../config/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Calendar, Users, Minus, Plus, CreditCard, ChevronRight, Clock, Shield, Star, CheckCircle2, ChevronLeft, MessageSquare, Trash2, Sparkle, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
