@@ -383,7 +383,7 @@ const AdminDashboard = () => {
                         </div>
                     </div>
 
-                    <nav className="flex flex-row md:flex-col gap-2 overflow-x-auto custom-scrollbar pb-2 md:pb-0">
+                    <nav className="flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-x-hidden md:overflow-y-auto custom-scrollbar pb-2 md:pb-0">
                         {[
                             { id: 'overview', label: 'Vista General', icon: TrendingUp },
                             { id: 'users', label: 'Gestión Usuarios', icon: Users },
