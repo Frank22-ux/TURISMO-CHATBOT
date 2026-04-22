@@ -38,7 +38,10 @@ const Map = MAPBOX_TOKEN ? MapboxMap : ({ children, style, className }) => (
     </div>
 );
 
+import { useNavigate } from 'react-router-dom';
+
 const AdminDashboard = () => {
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('overview');
     const [stats, setStats] = useState(null);
     const [users, setUsers] = useState([]);
@@ -302,7 +305,7 @@ const AdminDashboard = () => {
 
     const handleLogout = () => {
         sessionStorage.clear();
-        window.location.href = '/login';
+        navigate('/login');
     };
 
     const filteredUsers = users.filter(u => {
@@ -356,21 +359,31 @@ const AdminDashboard = () => {
     ];
 
     return (
-        <div className="flex min-h-screen bg-[#F8FAFC]">
+        <div className="flex flex-col md:flex-row min-h-screen bg-[#F8FAFC]">
             {/* Sidebar Navigation */}
-            <aside className="w-80 bg-white border-r border-slate-100 flex flex-col sticky top-0 h-screen">
-                <div className="p-10">
-                    <div className="flex items-center gap-3 mb-12">
-                        <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200">
-                            <ShieldCheck className="text-white w-7 h-7" />
+            <aside className="w-full md:w-80 bg-white border-b md:border-b-0 md:border-r border-slate-100 flex flex-col sticky top-0 h-auto md:h-screen z-20 shadow-sm md:shadow-none">
+                <div className="p-4 md:p-10">
+                    <div className="flex items-center justify-between mb-4 md:mb-12">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 md:w-12 md:h-12 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200">
+                                <ShieldCheck className="text-white w-5 h-5 md:w-7 md:h-7" />
+                            </div>
+                            <div>
+                                <h1 className="text-lg md:text-xl font-black text-slate-800 leading-none">Admin Panel</h1>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 text-primary hidden md:block">Sistema Central</p>
+                            </div>
                         </div>
-                        <div>
-                            <h1 className="text-xl font-black text-slate-800 leading-none">Admin Panel</h1>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 text-primary">Sistema Central</p>
+                        <div className="flex md:hidden items-center">
+                            <button 
+                                onClick={handleLogout}
+                                className="p-2 bg-red-50 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all"
+                            >
+                                <Power className="w-5 h-5" />
+                            </button>
                         </div>
                     </div>
 
-                    <nav className="space-y-2">
+                    <nav className="flex flex-row md:flex-col gap-2 overflow-x-auto custom-scrollbar pb-2 md:pb-0">
                         {[
                             { id: 'overview', label: 'Vista General', icon: TrendingUp },
                             { id: 'users', label: 'Gestión Usuarios', icon: Users },
@@ -382,20 +395,20 @@ const AdminDashboard = () => {
                             <button
                                 key={item.id}
                                 onClick={() => setActiveTab(item.id)}
-                                className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-[11px] font-black uppercase tracking-brand transition-all duration-300 ${
+                                className={`flex-shrink-0 flex items-center gap-2 md:gap-4 px-4 py-3 md:px-6 md:py-4 rounded-xl md:rounded-2xl text-[10px] md:text-[11px] font-black uppercase tracking-brand transition-all duration-300 ${
                                     activeTab === item.id 
-                                    ? 'bg-slate-900 text-white shadow-xl shadow-slate-200 translate-x-2' 
+                                    ? 'bg-slate-900 text-white shadow-xl shadow-slate-200 md:translate-x-2' 
                                     : 'text-slate-400 hover:bg-slate-50 hover:text-slate-600'
                                 }`}
                             >
-                                <item.icon className={`w-5 h-5 ${activeTab === item.id ? 'text-primary' : ''}`} />
-                                {item.label}
+                                <item.icon className={`w-4 h-4 md:w-5 md:h-5 ${activeTab === item.id ? 'text-primary' : ''}`} />
+                                <span className="whitespace-nowrap">{item.label}</span>
                             </button>
                         ))}
                     </nav>
                 </div>
 
-                <div className="mt-auto p-8 border-t border-slate-50">
+                <div className="mt-auto p-8 border-t border-slate-50 hidden md:block">
                     <button 
                         onClick={handleLogout}
                         className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-red-50 text-red-500 rounded-2xl text-[11px] font-black uppercase hover:bg-red-500 hover:text-white transition-all group"
@@ -407,8 +420,8 @@ const AdminDashboard = () => {
             </aside>
 
             {/* Main Content Area */}
-            <main className="flex-1 p-12 overflow-y-auto">
-                <header className="flex justify-between items-center mb-12">
+            <main className="flex-1 p-4 md:p-12 overflow-y-auto w-full">
+                <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-12 gap-4 md:gap-0">
                     <div>
                         <h2 className="text-3xl font-black text-slate-800 tracking-tight">
                             {activeTab === 'overview' ? 'Dashboard de Control' : 

@@ -59,11 +59,11 @@ const DashboardHost = () => {
   if (!user) return <div className="h-screen flex items-center justify-center font-bold text-primary animate-pulse text-2xl">Cargando...</div>;
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] flex">
+    <div className="min-h-screen bg-[#f8fafc] flex flex-col md:flex-row">
       <SidebarHost activeSection={activeSection} setActiveSection={setActiveSection} />
       
-      <main className="flex-1 p-10 overflow-auto">
-        <header className="flex justify-between items-center mb-10">
+      <main className="flex-1 p-4 md:p-10 overflow-auto w-full">
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-10 gap-4 md:gap-0">
           <div>
             <h2 className="text-sm font-bold text-slate-400 uppercase tracking-[0.2em]">Panel de Anfitrión</h2>
             <div className="flex items-center gap-2">
@@ -72,10 +72,10 @@ const DashboardHost = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4 md:gap-6 mt-4 md:mt-0">
             <NotificationBell role="ANFITRION" onNavigate={(section) => setActiveSection(section)} />
 
-            <div className="flex items-center gap-4 bg-white p-2 pr-6 rounded-2xl border border-slate-100 shadow-sm">
+            <div className="flex items-center gap-3 md:gap-4 bg-white p-2 pr-4 md:pr-6 rounded-2xl border border-slate-100 shadow-sm">
               <div className="w-12 h-12 rounded-xl bg-primary-dark flex items-center justify-center text-white font-black text-xl shadow-lg overflow-hidden">
                 {user.url_foto_perfil ? (
                   <img src={user.url_foto_perfil} alt="Avatar" className="w-full h-full object-cover" />
