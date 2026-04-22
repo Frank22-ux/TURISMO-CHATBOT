@@ -70,8 +70,8 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          receiverId: activity.id_anfitrion,
-          content: mensajePlantilla
+          id_receptor: activity.id_anfitrion,
+          contenido: mensajePlantilla
         })
       });
       
