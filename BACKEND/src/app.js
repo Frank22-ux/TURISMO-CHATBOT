@@ -13,22 +13,34 @@ const adminRoutes = require('./routes/adminRoutes');
 
 const app = express();
 
-// CORS — allow Vercel frontend and local dev
+// CORS — explicitly allow Vercel frontend and local dev environments
 const allowedOrigins = [
-    process.env.FRONTEND_URL,          // e.g. https://turismo-istpet.vercel.app
-    'http://localhost:5173',            // Vite dev server
+    // Production frontend on Vercel (hardcoded as safe fallback)
+    'https://turismo-chatbot.vercel.app',
+    // Also allow any custom domain set via env var in Render dashboard
+    process.env.FRONTEND_URL,
+    // Local development
+    'http://localhost:5173',
     'http://localhost:3000',
-].filter(Boolean);
+].filter(Boolean); // Remove undefined/null entries
 
-app.use(cors({
+const corsOptions = {
     origin: (origin, callback) => {
-        // Allow requests with no origin (curl, Postman, server-to-server)
+        // Allow requests with no origin: curl, Postman, Render health checks
         if (!origin) return callback(null, true);
         if (allowedOrigins.includes(origin)) return callback(null, true);
-        callback(new Error(`CORS blocked for origin: ${origin}`));
+        console.warn(`[CORS] Blocked request from origin: ${origin}`);
+        callback(new Error(`CORS policy: origin ${origin} not allowed`));
     },
     credentials: true,
-}));
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+};
+
+// Apply CORS globally — must run BEFORE route handlers
+app.use(cors(corsOptions));
+// Handle preflight OPTIONS requests for all routes
+app.options('*', cors(corsOptions));
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
