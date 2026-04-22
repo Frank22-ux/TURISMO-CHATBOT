@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { API_BASE } from '../../config/api';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Send, Paperclip, MoreHorizontal, Info, User, Check, CheckCheck, MessageSquare, Trash2, Edit, Archive, UserCircle, X, Phone, Globe } from 'lucide-react';
+import { Search, Send, Paperclip, MoreHorizontal, Info, User, Check, CheckCheck, MessageSquare, Trash2, Edit, Archive, UserCircle, X, Phone, Globe, ChevronLeft } from 'lucide-react';
 import ConfirmModal from './ConfirmModal';
 
 const MessagingSection = ({ initialHostId, initialHostName }) => {
@@ -205,9 +205,9 @@ const MessagingSection = ({ initialHostId, initialHostName }) => {
   if (loading) return <div className="p-20 text-center animate-pulse text-primary font-bold">Iniciando mensajería...</div>;
 
   return (
-    <div className="h-[calc(100vh-180px)] bg-white rounded-[40px] border border-slate-50 shadow-sm overflow-hidden flex animate-fade-in">
+    <div className="h-[calc(100vh-120px)] md:h-[calc(100vh-180px)] bg-white rounded-3xl md:rounded-[40px] border border-slate-50 shadow-sm overflow-hidden flex animate-fade-in relative">
       {/* Sidebar: Conv List */}
-      <div className="w-1/3 border-r border-slate-50 flex flex-col">
+      <div className={`${activeChat ? 'hidden md:flex' : 'flex'} w-full md:w-1/3 lg:w-96 border-r border-slate-50 flex-col`}>
         <div className="p-8 border-b border-slate-50">
           <h3 className="text-xl font-display font-black text-slate-800 mb-6">Mensajes</h3>
           <div className="relative">
@@ -234,12 +234,12 @@ const MessagingSection = ({ initialHostId, initialHostName }) => {
                   activeChat?.id_receptor === conv.id_receptor ? 'bg-primary/5 border border-primary/10 shadow-sm' : 'hover:bg-slate-50 border border-transparent'
                 }`}
               >
-                <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center text-white font-black text-lg shadow-sm">
+                <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center text-white font-black text-lg shadow-sm shrink-0">
                   {((conv.nombre_otro || 'U')[0] || 'U').toUpperCase()}
                 </div>
-                <div className="flex-1 text-left">
+                <div className="flex-1 text-left overflow-hidden">
                   <div className="flex justify-between items-center mb-1">
-                    <p className="font-bold text-slate-800 text-sm">{conv.nombre_otro || 'Usuario'}</p>
+                    <p className="font-bold text-slate-800 text-sm truncate pr-2">{conv.nombre_otro || 'Usuario'}</p>
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{conv.ultimo_tiempo}</span>
                   </div>
                   <p className="text-xs text-slate-400 line-clamp-1">{conv.ultimo_mensaje}</p>
@@ -251,17 +251,23 @@ const MessagingSection = ({ initialHostId, initialHostName }) => {
       </div>
 
       {/* Main Chat Window */}
-      <div className="flex-1 flex flex-col relative">
+      <div className={`${activeChat ? 'flex' : 'hidden md:flex'} flex-1 flex-col relative bg-white`}>
         {activeChat ? (
           <>
             {/* Chat Header */}
-            <div className="p-6 border-b border-slate-50 flex justify-between items-center bg-white/80 backdrop-blur-md sticky top-0 z-10">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white font-black">
+            <div className="p-4 md:p-6 border-b border-slate-50 flex justify-between items-center bg-white/80 backdrop-blur-md sticky top-0 z-10">
+              <div className="flex items-center gap-3 md:gap-4">
+                <button 
+                  onClick={() => setActiveChat(null)}
+                  className="md:hidden p-2 -ml-2 rounded-xl text-slate-400 hover:bg-slate-100 transition-all"
+                >
+                  <ChevronLeft className="w-6 h-6" />
+                </button>
+                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-primary flex items-center justify-center text-white font-black shadow-sm shrink-0">
                   {(activeChat.nombre_otro || 'U')[0]}
                 </div>
-                <div>
-                  <p className="font-black text-slate-800 leading-tight">{activeChat.nombre_otro || 'Usuario'}</p>
+                <div className="overflow-hidden">
+                  <p className="font-black text-slate-800 leading-tight truncate">{activeChat.nombre_otro || 'Usuario'}</p>
                   <div className="flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
                     <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">En línea</span>
@@ -308,7 +314,7 @@ const MessagingSection = ({ initialHostId, initialHostName }) => {
               {/* Messages */}
               <div 
                 ref={scrollRef} 
-                className={`flex-1 overflow-auto p-10 space-y-6 bg-slate-50/30 transition-all ${showInfo ? 'mr-0 lg:mr-4' : ''}`}
+                className={`flex-1 overflow-auto p-4 md:p-10 space-y-4 md:space-y-6 bg-slate-50/50 transition-all ${showInfo ? 'mr-0 lg:mr-4' : ''}`}
                 onClick={() => {
                   setShowChatMenu(false);
                   setEditingMsgId(null);
@@ -319,8 +325,8 @@ const MessagingSection = ({ initialHostId, initialHostName }) => {
                   const isEditing = editingMsgId === msg.id_mensaje;
                   
                   return (
-                    <div key={msg.id_mensaje || i} className={`flex ${isMe ? 'justify-end' : 'justify-start'} animate-fade-in-up group relative`}>
-                      <div className={`max-w-[70%] relative ${isMe ? 'items-end' : 'items-start'}`}>
+                    <div key={msg.id_mensaje || i} className={`flex ${isMe ? 'justify-end' : 'justify-start'} animate-fade-in-up group relative w-full`}>
+                      <div className={`max-w-[85%] md:max-w-[70%] relative flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
                         {isMe && !isEditing && (
                           <div className="absolute -left-12 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all flex gap-1">
                             <button 
@@ -341,10 +347,10 @@ const MessagingSection = ({ initialHostId, initialHostName }) => {
                           </div>
                         )}
                         
-                        <div className={`p-5 rounded-[24px] ${
+                        <div className={`p-4 md:p-5 rounded-[20px] md:rounded-[24px] ${
                           isMe 
-                          ? 'bg-primary text-white rounded-tr-none shadow-xl shadow-primary/20' 
-                          : 'bg-white text-slate-700 rounded-tl-none border border-slate-50 shadow-sm'
+                          ? 'bg-primary text-white rounded-tr-sm shadow-md shadow-primary/20' 
+                          : 'bg-white text-slate-700 rounded-tl-sm border border-slate-100 shadow-sm'
                         }`}>
                           {isEditing ? (
                             <form onSubmit={handleEditMessage} className="space-y-2">
@@ -383,9 +389,15 @@ const MessagingSection = ({ initialHostId, initialHostName }) => {
                     initial={{ x: 300, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
                     exit={{ x: 300, opacity: 0 }}
-                    className="w-80 border-l border-slate-50 bg-white p-8 flex flex-col items-center text-center overflow-auto"
+                    className="absolute inset-0 md:relative md:w-80 border-l border-slate-50 bg-white p-6 md:p-8 flex flex-col items-center text-center overflow-auto z-20"
                   >
-                    <div className="w-24 h-24 rounded-[32px] bg-primary flex items-center justify-center text-white text-3xl font-black shadow-xl shadow-primary/20 mb-6">
+                    <button 
+                      onClick={() => setShowInfo(false)}
+                      className="md:hidden absolute top-6 right-6 p-2 bg-slate-50 text-slate-400 rounded-full hover:bg-slate-100"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                    <div className="w-20 h-20 md:w-24 md:h-24 rounded-[24px] md:rounded-[32px] bg-primary flex items-center justify-center text-white text-3xl font-black shadow-xl shadow-primary/20 mb-4 md:mb-6 mt-4 md:mt-0 shrink-0">
                       {(activeChat.nombre_otro || 'U')[0]}
                     </div>
                     <h4 className="text-xl font-black text-slate-800 mb-1">{activeChat.nombre_otro || 'Usuario'}</h4>
@@ -425,21 +437,21 @@ const MessagingSection = ({ initialHostId, initialHostName }) => {
             </div>
 
             {/* Input */}
-            <form onSubmit={handleSendMessage} className="p-8 border-t border-slate-50 bg-white">
-              <div className="bg-slate-100 p-2 rounded-[28px] flex items-center gap-2 border border-slate-100 focus-within:ring-4 focus-within:ring-primary/5 focus-within:border-primary transition-all">
-                <button type="button" className="p-3 text-slate-400 hover:text-primary transition-all"><Paperclip className="w-5 h-5" /></button>
+            <form onSubmit={handleSendMessage} className="p-3 md:p-8 border-t border-slate-50 bg-white">
+              <div className="bg-slate-50 p-1.5 md:p-2 rounded-[24px] md:rounded-[28px] flex items-center gap-2 border border-slate-100 focus-within:ring-4 focus-within:ring-primary/5 focus-within:border-primary transition-all">
+                <button type="button" className="p-2 md:p-3 text-slate-400 hover:text-primary transition-all hidden sm:block"><Paperclip className="w-5 h-5" /></button>
                 <input 
                   type="text" 
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
-                  placeholder="Escribe un mensaje aquí..." 
-                  className="flex-1 bg-transparent border-none outline-none text-sm p-2 font-medium"
+                  placeholder="Mensaje..." 
+                  className="flex-1 bg-transparent border-none outline-none text-sm p-2 md:p-2 font-medium ml-2 md:ml-0"
                 />
                 <button 
                   type="submit"
-                  className="bg-primary text-white p-4 rounded-2xl shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
+                  className="bg-primary text-white p-3 md:p-4 rounded-[18px] md:rounded-2xl shadow-md shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
                 >
-                  <Send className="w-5 h-5" />
+                  <Send className="w-4 h-4 md:w-5 md:h-5" />
                 </button>
               </div>
             </form>
