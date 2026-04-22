@@ -53,7 +53,9 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/admin', adminRoutes);
 
 // ─── 404 for unknown API routes ────────────────────────────────────────────────
-app.use('/api/*', (req, res) => {
+// NOTE: Express v5 + path-to-regexp v8 no longer accepts bare wildcards like '/api/*'
+// Use '/api/' (trailing slash) as the catch-all prefix instead.
+app.use('/api/', (req, res) => {
     res.status(404).json({ message: `Route ${req.method} ${req.originalUrl} not found` });
 });
 
