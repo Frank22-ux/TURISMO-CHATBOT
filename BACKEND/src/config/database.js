@@ -1,29 +1,35 @@
 const { Pool } = require('pg');
-const path = require('path');
 
-// Load .env ONLY if variables are not already set (override:false means Render's
-// dashboard environment variables always take priority over any .env file in the repo).
-require('dotenv').config({
-  path: path.join(__dirname, '../../.env'),
-  override: false,
-});
+// NOTE: dotenv is loaded in server.js BEFORE this module is required.
+// Do NOT call dotenv.config() here — it would run before server.js can load it
+// with the correct path, causing DATABASE_URL to be undefined on Render.
 
-// ─── Root cause of ENOTFOUND "base" ──────────────────────────────────────────
-// When DATABASE_URL is absent and DB_HOST is undefined, the 'pg' driver reads
-// the PGHOST system environment variable. On Render's container environment that
-// variable is "base" (the internal Docker service name), producing ENOTFOUND.
+// ─── CRITICAL: This is the only DB configuration for production ───────────────
+// If DATABASE_URL is missing on Render → pg reads PGHOST from the Docker
+// environment which defaults to "base" → getaddrinfo ENOTFOUND base
 //
-// Fix: check DATABASE_URL first. If present, always use it (works in both Render
-// and local-vs-Supabase dev). Only fall back to individual params when DATABASE_URL
-// is completely absent (purely local PostgreSQL).
+// Solution: DATABASE_URL MUST be set in Render's Environment Variables dashboard.
+// The .env file is in .gitignore and is NOT deployed to Render.
 // ─────────────────────────────────────────────────────────────────────────────
 
 const DATABASE_URL = process.env.DATABASE_URL;
+const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+
+// Fail fast in production: better to crash with a clear message than to
+// silently connect to the wrong host and return cryptic 500 errors.
+if (IS_PRODUCTION && !DATABASE_URL) {
+  console.error('═══════════════════════════════════════════════════════');
+  console.error('  FATAL: DATABASE_URL is not set in Render environment!');
+  console.error('  Go to Render Dashboard → Environment → Add:');
+  console.error('  DATABASE_URL = postgresql://user:pass@host:5432/db');
+  console.error('═══════════════════════════════════════════════════════');
+  process.exit(1);
+}
 
 let poolConfig;
 
 if (DATABASE_URL) {
-  // Production (Render + Supabase) OR local dev pointing at Supabase
+  // Render (Supabase) or local dev against Supabase
   poolConfig = {
     connectionString: DATABASE_URL,
     ssl: { rejectUnauthorized: false },
@@ -31,39 +37,34 @@ if (DATABASE_URL) {
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 5000,
   };
-  console.log('[DB] Using DATABASE_URL connection string');
+  const safeUrl = DATABASE_URL.replace(/:([^:@]+)@/, ':***@');
+  console.log('[DB] Mode: DATABASE_URL →', safeUrl);
 } else {
-  // Purely local PostgreSQL (no DATABASE_URL in env at all)
+  // Local-only PostgreSQL (DATABASE_URL not set at all)
   poolConfig = {
-    user: process.env.DB_USER,
+    user: process.env.DB_USER || 'postgres',
     host: process.env.DB_HOST || 'localhost',
-    database: process.env.DB_NAME,
-    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME || 'turismo_istpet',
+    password: process.env.DB_PASSWORD || '',
     port: parseInt(process.env.DB_PORT) || 5432,
   };
-  console.log('[DB] Using local PostgreSQL config (DB_HOST:', poolConfig.host, ')');
+  console.log('[DB] Mode: local →', poolConfig.host, '/', poolConfig.database);
 }
 
 const pool = new Pool(poolConfig);
 
 pool.on('error', (err) => {
-  // Log but do NOT exit — let the pool recover from transient errors
-  console.error('[DB] Unexpected error on idle client:', err.message);
+  console.error('[DB] Idle client error:', err.message);
 });
 
-// Verify the connection works on startup so deployment logs show clear status
-pool.query('SELECT 1').then(() => {
-  console.log('[DB] Connection verified successfully');
-}).catch((err) => {
-  console.error('[DB] Connection test FAILED:', err.message);
-  // Log the config being used (without password) for debugging
-  if (DATABASE_URL) {
-    const safeUrl = DATABASE_URL.replace(/:([^:@]+)@/, ':***@');
-    console.error('[DB] CONNECTION_STRING (redacted):', safeUrl);
-  } else {
-    console.error('[DB] Host:', poolConfig.host, '| DB:', poolConfig.database);
-  }
-});
+pool.query('SELECT 1')
+  .then(() => console.log('[DB] Connection OK ✓'))
+  .catch((err) => {
+    console.error('[DB] Connection FAILED ✗', err.message);
+    if (!DATABASE_URL) {
+      console.error('[DB] Hint: DATABASE_URL is not set. Set it in Render Dashboard.');
+    }
+  });
 
 module.exports = {
   query: (text, params) => pool.query(text, params),
