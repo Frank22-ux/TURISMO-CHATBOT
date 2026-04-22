@@ -17,11 +17,15 @@ const Map = MAPBOX_TOKEN ? MapboxMap : ({ children, style, className }) => (
 const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
   // Helper para asegurar que las URLs sean absolutas
   const getImageUrl = (url) => {
-    if (!url) return "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80";
+    if (!url) return null;
+    // Si ya es una URL completa o base64, no modificar
     if (url.startsWith('http') || url.startsWith('data:')) return url;
-    // Evitar concatenar si API_BASE no está definido
-    if (!API_BASE) return url;
-    return `${API_BASE}${url.startsWith('/') ? '' : '/'}${url}`;
+    
+    // Usar la variable de entorno directamente como solicita el usuario
+    const baseUrl = import.meta.env.VITE_API_URL || '';
+    if (!baseUrl) return url;
+    
+    return `${baseUrl}/${url.replace(/^\//, '')}`;
   };
 
   const [activeImage, setActiveImage] = useState(null);
@@ -106,11 +110,18 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
 
   useEffect(() => {
     if (activity) {
-      console.log('Experience Detail Loaded:', activity);
+      console.log("EXPERIENCE:", activity);
       
-      // Normalización de imagen principal con URL absoluta
-      const mainImgRaw = activity.portada || activity.image || activity.coverImage || "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80";
-      setActiveImage(getImageUrl(mainImgRaw));
+      // Mapeo exacto solicitado por el usuario
+      const coverRaw = activity.coverImage || activity.image || activity.portada || null;
+      const galleryRaw = activity.images || activity.gallery || activity.galeria || [];
+      
+      console.log("COVER RAW:", coverRaw);
+      console.log("GALLERY RAW:", galleryRaw);
+
+      // Inicializar imagen activa
+      const initialImg = getImageUrl(coverRaw) || (galleryRaw.length > 0 ? getImageUrl(galleryRaw[0]) : "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80");
+      setActiveImage(initialImg);
 
       const newLat = parseFloat(activity.latitud) || -0.180653;
       const newLng = parseFloat(activity.longitud) || -78.467834;
@@ -133,23 +144,22 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
 
   if (!isOpen || !activity) return null;
 
-  const rawGallery = Array.isArray(activity.galeria) ? activity.galeria : 
+  const coverRaw = activity.coverImage || activity.image || activity.portada || null;
+  const galleryRaw = Array.isArray(activity.images) ? activity.images : 
                      Array.isArray(activity.gallery) ? activity.gallery :
-                     Array.isArray(activity.images) ? activity.images : [];
+                     Array.isArray(activity.galeria) ? activity.galeria : [];
   
-  const mainImageRaw = activity.portada || activity.image || activity.coverImage;
-  
-  // Eliminar duplicados, valores nulos y asegurar URLs absolutas
-  const allImages = [...new Set([mainImageRaw, ...rawGallery])]
+  // Construir lista de todas las imágenes únicas y válidas
+  const allImages = [...new Set([coverRaw, ...galleryRaw])]
     .filter(Boolean)
-    .map(getImageUrl);
+    .map(getImageUrl)
+    .filter(Boolean);
   
-  if (allImages.length === 0) {
-    allImages.push("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80");
-  }
-
-  const gallery = allImages;
-  const hasGallery = gallery.length > 1;
+  // Si no hay ninguna imagen, usar el placeholder general
+  const placeholder = "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80";
+  
+  const displayImages = allImages.length > 0 ? allImages : [placeholder];
+  const hasGallery = displayImages.length > 1;
 
   const isActive = activity.estado === 'ACTIVA';
 
@@ -204,9 +214,9 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
               <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-black/30" />
               
               {/* Gallery Thumbnails Overlay */}
-              {allImages.length > 1 && (
+              {hasGallery && (
                 <div className="absolute bottom-32 left-10 right-10 flex gap-3 overflow-x-auto pb-4 no-scrollbar">
-                  {allImages.map((img, idx) => (
+                  {displayImages.map((img, idx) => (
                     <motion.button
                       key={idx}
                       whileHover={{ scale: 1.05 }}
