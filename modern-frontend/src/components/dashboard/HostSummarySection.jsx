@@ -1,4 +1,5 @@
 import { Eye, DollarSign, Star, ShoppingBag, Plus, ArrowRight, Clock, User, Calendar } from 'lucide-react';
+import { API_BASE } from '../../config/api';
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import ActivityModal from './ActivityModal';
@@ -19,7 +20,7 @@ const HostSummarySection = ({ user }) => {
     const fetchStats = async () => {
       try {
         const token = sessionStorage.getItem('token');
-        const response = await fetch('http://localhost:3000/api/host/dashboard-stats', {
+        const response = await fetch(`${API_BASE}/api/host/dashboard-stats`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await response.json();
@@ -43,8 +44,8 @@ const HostSummarySection = ({ user }) => {
     try {
       const token = sessionStorage.getItem('token');
       const url = modalType === 'EXPERIENCE' 
-        ? 'http://localhost:3000/api/host/activities'
-        : 'http://localhost:3000/api/host/services';
+        ? `${API_BASE}/api/host/activities`
+        : `${API_BASE}/api/host/services`;
 
       const response = await fetch(url, {
         method: 'POST',

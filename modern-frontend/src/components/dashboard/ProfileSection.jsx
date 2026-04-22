@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { API_BASE } from '../../config/api';
 import { Camera, Pencil, Save, User, Mail, Phone, Calendar, Globe, Shield, Activity, Plus, X, Check, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -41,7 +42,7 @@ const ProfileSection = ({ isHost = false, onUpdateProfile }) => {
       try {
         const token = sessionStorage.getItem('token');
         const endpoint = isHost ? '/api/host/profile' : '/api/tourist/profile';
-        const response = await fetch(`http://localhost:3000${endpoint}`, {
+        const response = await fetch(`${API_BASE}${endpoint}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await response.json();
@@ -101,7 +102,7 @@ const ProfileSection = ({ isHost = false, onUpdateProfile }) => {
     try {
       const token = sessionStorage.getItem('token');
       const endpoint = isHost ? '/api/host/profile' : '/api/tourist/profile';
-      const response = await fetch(`http://localhost:3000${endpoint}`, {
+      const response = await fetch(`${API_BASE}${endpoint}`, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',
@@ -133,7 +134,7 @@ const ProfileSection = ({ isHost = false, onUpdateProfile }) => {
     setSavingPassword(true);
     try {
       const token = sessionStorage.getItem('token');
-      const response = await fetch('http://localhost:3000/api/auth/change-password', {
+      const response = await fetch(`${API_BASE}/api/auth/change-password`, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',

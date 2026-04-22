@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { API_BASE } from '../../config/api';
 import { Shield, Lock, ArrowRight, AlertCircle, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -21,7 +22,7 @@ const ForcePasswordChangeModal = ({ isOpen, onPasswordChanged }) => {
     setLoading(true);
     try {
       const token = sessionStorage.getItem('token');
-      const response = await fetch('http://localhost:3000/api/auth/change-password', {
+      const response = await fetch(`${API_BASE}/api/auth/change-password`, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',

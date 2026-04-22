@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { API_BASE } from '../../config/api';
 import { Wallet, Landmark, ArrowRightLeft, ShieldCheck, Save, Clock } from 'lucide-react';
 import { useToast } from '../../contexts/ToastContext';
 
@@ -29,8 +30,8 @@ const HostPaymentsSection = () => {
       const token = sessionStorage.getItem('token');
       
       const [paymentsRes, profileRes] = await Promise.all([
-        fetch('http://localhost:3000/api/host/payments', { headers: { Authorization: `Bearer ${token}` } }),
-        fetch('http://localhost:3000/api/host/profile', { headers: { Authorization: `Bearer ${token}` } })
+        fetch(`${API_BASE}/api/host/payments`, { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`${API_BASE}/api/host/profile`, { headers: { Authorization: `Bearer ${token}` } })
       ]);
 
       if (paymentsRes.ok) {
@@ -63,7 +64,7 @@ const HostPaymentsSection = () => {
     setIsSaving(true);
     try {
       const token = sessionStorage.getItem('token');
-      const res = await fetch('http://localhost:3000/api/host/profile/bank', {
+      const res = await fetch(`${API_BASE}/api/host/profile/bank`, {
         method: 'PUT',
         headers: { 
           'Authorization': `Bearer ${token}`,

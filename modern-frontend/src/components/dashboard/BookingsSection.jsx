@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { API_BASE } from '../../config/api';
 import { Search, Filter, Calendar, MapPin, Eye, Info, Star, Clock, CheckCircle, AlertCircle, X, Shield, Users, Download } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import { toPng } from 'html-to-image';
@@ -27,7 +28,7 @@ const BookingsSection = ({ status: initialStatusFilter }) => {
   const fetchBookings = async () => {
     try {
       const token = sessionStorage.getItem('token');
-      const response = await fetch('http://localhost:3000/api/tourist/reservations', {
+      const response = await fetch(`${API_BASE}/api/tourist/reservations`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -44,7 +45,7 @@ const BookingsSection = ({ status: initialStatusFilter }) => {
     setIsCancelling(true);
     try {
         const token = sessionStorage.getItem('token');
-        const response = await fetch(`http://localhost:3000/api/tourist/reservations/${cancelBooking.id_reserva}/cancel`, {
+        const response = await fetch(`${API_BASE}/api/tourist/reservations/${cancelBooking.id_reserva}/cancel`, {
           method: 'POST',
           headers: { 
               'Authorization': `Bearer ${token}`,
@@ -75,7 +76,7 @@ const BookingsSection = ({ status: initialStatusFilter }) => {
     setIsSubmittingReview(true);
     try {
         const token = sessionStorage.getItem('token');
-        const response = await fetch('http://localhost:3000/api/reviews', {
+        const response = await fetch(`${API_BASE}/api/reviews`, {
           method: 'POST',
           headers: { 
               'Authorization': `Bearer ${token}`,
@@ -132,7 +133,7 @@ const BookingsSection = ({ status: initialStatusFilter }) => {
       const typePrefix = res.tipo_actividad === 'TURISTICA' ? 'T' : 'A';
       const id = `${typePrefix}-${res.id_actividad}`;
       const token = sessionStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/api/activities/${id}`, {
+      const response = await fetch(`${API_BASE}/api/activities/${id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!response.ok) throw new Error('No se pudo obtener el detalle de la actividad');

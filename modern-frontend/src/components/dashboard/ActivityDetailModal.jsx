@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { API_BASE } from '../../config/api';
 import { X, MapPin, Clock, Users, Signal, Tag, Calendar, Star, Info, Image as ImageIcon, Plus, CheckCircle2, MessageSquare, User, Flag } from 'lucide-react';
 import Map, { Marker, Source } from 'react-map-gl/mapbox';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -63,7 +64,7 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
 
     setIsSendingMessage(true);
     try {
-      const response = await fetch('http://localhost:3000/api/messages', {
+      const response = await fetch(`${API_BASE}/api/messages`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

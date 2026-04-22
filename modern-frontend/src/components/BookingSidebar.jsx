@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
+import { API_BASE } from '../../config/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Calendar, Users, Minus, Plus, CreditCard, ChevronRight, Clock, Shield, Star, CheckCircle2, ChevronLeft, MessageSquare, Trash2, Sparkle, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -67,7 +68,7 @@ const BookingSidebar = ({ isOpen, onClose }) => {
     setError(null);
     try {
       const tokenAuth = sessionStorage.getItem('token');
-      const response = await fetch('http://localhost:3000/api/reservations/package', {
+      const response = await fetch(`${API_BASE}/api/reservations/package`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -123,7 +124,7 @@ const BookingSidebar = ({ isOpen, onClose }) => {
         return;
       }
       
-      const response = await fetch('http://localhost:3000/api/messages', {
+      const response = await fetch(`${API_BASE}/api/messages`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -225,7 +226,7 @@ const BookingSidebar = ({ isOpen, onClose }) => {
     } else if (hostId) {
       const fetchHostDiscount = async () => {
         try {
-          const response = await fetch(`http://localhost:3000/api/host/${hostId}/profile`);
+          const response = await fetch(`${API_BASE}/api/host/${hostId}/profile`);
           if (response.ok) {
             const data = await response.json();
             setHostDiscount(parseFloat(data.descuento_paquete) || 0);
@@ -245,7 +246,7 @@ const BookingSidebar = ({ isOpen, onClose }) => {
         const fetchCap = async () => {
           setLoadingCapacities(prev => ({ ...prev, [item.id]: true }));
           try {
-            const response = await fetch(`http://localhost:3000/api/activities/${item.id}/availability?date=${date}`);
+            const response = await fetch(`${API_BASE}/api/activities/${item.id}/availability?date=${date}`);
             if (response.ok) {
               const data = await response.json();
               setCapacities(prev => ({ ...prev, [item.id]: data.remaining }));

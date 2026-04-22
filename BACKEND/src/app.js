@@ -14,13 +14,16 @@ const adminRoutes = require('./routes/adminRoutes');
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: process.env.FRONTEND_URL || true,
+  credentials: true,
+}));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(morgan('dev'));
 
-// Static files
-const frontendPath = path.resolve(__dirname, '../../modern-frontend');
+// Static files — serve the compiled Vite build in production
+const frontendPath = path.resolve(__dirname, '../../modern-frontend/dist');
 app.use(express.static(frontendPath));
 
 // Routes

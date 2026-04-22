@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { API_BASE } from '../../config/api';
 import { Search, Check, X, Clock, Calendar, User, DollarSign, Eye, Shield, Users, Wallet, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useToast } from '../../contexts/ToastContext';
@@ -29,7 +30,7 @@ const HostBookingsSection = () => {
     setHostSecretCode(null);
     try {
         const token = sessionStorage.getItem('token');
-        const response = await fetch('http://localhost:3000/api/host/reservations/validate-qr', {
+        const response = await fetch(`${API_BASE}/api/host/reservations/validate-qr`, {
           method: 'POST',
           headers: { 
               'Authorization': `Bearer ${token}`,
@@ -58,7 +59,7 @@ const HostBookingsSection = () => {
     setIsSubmittingReview(true);
     try {
         const token = sessionStorage.getItem('token');
-        const response = await fetch('http://localhost:3000/api/reviews', {
+        const response = await fetch(`${API_BASE}/api/reviews`, {
           method: 'POST',
           headers: { 
               'Authorization': `Bearer ${token}`,
@@ -90,7 +91,7 @@ const HostBookingsSection = () => {
   const fetchBookings = async () => {
     try {
       const token = sessionStorage.getItem('token');
-      const response = await fetch('http://localhost:3000/api/host/reservations', {
+      const response = await fetch(`${API_BASE}/api/host/reservations`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -109,7 +110,7 @@ const HostBookingsSection = () => {
   const handleStatusUpdate = async (id, newStatus) => {
     try {
       const token = sessionStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/api/host/reservations/${id}/status`, {
+      const response = await fetch(`${API_BASE}/api/host/reservations/${id}/status`, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',

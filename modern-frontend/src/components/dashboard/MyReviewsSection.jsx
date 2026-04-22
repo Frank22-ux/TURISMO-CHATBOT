@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { API_BASE } from '../../config/api';
 import { Star, MessageSquare } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -10,7 +11,7 @@ const MyReviewsSection = () => {
     const fetchReviews = async () => {
       try {
         const token = sessionStorage.getItem('token');
-        const response = await fetch('http://localhost:3000/api/reviews/received', {
+        const response = await fetch(`${API_BASE}/api/reviews/received`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await response.json();

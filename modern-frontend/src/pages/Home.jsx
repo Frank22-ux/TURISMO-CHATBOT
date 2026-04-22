@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { API_BASE } from '../config/api';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Search, MapPin, ArrowRight, Image as ImageIcon, Users, Navigation, RefreshCw, LayoutGrid, Map, ShoppingBag, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -70,7 +71,7 @@ const ActivityCard = ({ activity, onOpenDetail, onOpenBooking }) => (
           <button 
             onClick={async () => {
               try {
-                const response = await fetch(`http://localhost:3000/api/activities/${activity.id}`);
+                const response = await fetch(`${API_BASE}/api/activities/${activity.id}`);
                 if (response.ok) {
                   const fullData = await response.json();
                   onOpenDetail(fullData);
@@ -153,7 +154,7 @@ const Home = () => {
     const handleSuccess = () => setIsBookingOpen(true);
 
     try {
-      const response = await fetch(`http://localhost:3000/api/activities/${act.id}`);
+      const response = await fetch(`${API_BASE}/api/activities/${act.id}`);
       if (response.ok) {
         const fullData = await response.json();
         const result = addToCart(fullData, handleSuccess);
@@ -326,7 +327,7 @@ const Home = () => {
          params.append('limit', 10);
       }
 
-      const response = await fetch(`http://localhost:3000/api/activities?${params.toString()}`);
+      const response = await fetch(`${API_BASE}/api/activities?${params.toString()}`);
       if (response.ok) {
         const data = await response.json();
         setActivities(data);

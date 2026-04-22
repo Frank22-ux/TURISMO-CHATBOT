@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_BASE } from '../config/api';
 import { 
     Users, 
     Activity, 
@@ -63,11 +64,11 @@ const AdminDashboard = () => {
             const config = { headers: { Authorization: `Bearer ${token}` } };
             
             const [statsRes, usersRes, activitiesRes, financeRes, moderationRes] = await Promise.all([
-                axios.get('http://localhost:3000/api/admin/stats', config),
-                axios.get('http://localhost:3000/api/admin/users', config),
-                axios.get('http://localhost:3000/api/admin/activities', config),
-                axios.get('http://localhost:3000/api/admin/financial-report', config),
-                axios.get('http://localhost:3000/api/admin/reviews', config)
+                axios.get(`${API_BASE}/api/admin/stats`, config),
+                axios.get(`${API_BASE}/api/admin/users`, config),
+                axios.get(`${API_BASE}/api/admin/activities`, config),
+                axios.get(`${API_BASE}/api/admin/financial-report`, config),
+                axios.get(`${API_BASE}/api/admin/reviews`, config)
             ]);
             
             setStats(statsRes.data);
@@ -111,7 +112,7 @@ const AdminDashboard = () => {
     const handleVerifyFromModal = async (userId) => {
         try {
             const token = sessionStorage.getItem('token');
-            await axios.patch(`http://localhost:3000/api/admin/users/${userId}/verification`, { verificado: true }, { headers: { Authorization: `Bearer ${token}` } });
+            await axios.patch(`${API_BASE}/api/admin/users/${userId}/verification`, { verificado: true }, { headers: { Authorization: `Bearer ${token}` } });
             setUsers(users.map(u => u.id_usuario === userId ? { ...u, verificado: true } : u));
         } catch (error) {
             alert("Error al actualizar verificación");
@@ -121,7 +122,7 @@ const AdminDashboard = () => {
     const toggleVerification = async (userId, currentVerif) => {
         try {
             const token = sessionStorage.getItem('token');
-            await axios.patch(`http://localhost:3000/api/admin/users/${userId}/verification`, { verificado: !currentVerif }, { headers: { Authorization: `Bearer ${token}` } });
+            await axios.patch(`${API_BASE}/api/admin/users/${userId}/verification`, { verificado: !currentVerif }, { headers: { Authorization: `Bearer ${token}` } });
             setUsers(users.map(u => u.id_usuario === userId ? { ...u, verificado: !currentVerif } : u));
         } catch (error) {
             alert("Error al actualizar verificación");
@@ -132,7 +133,7 @@ const AdminDashboard = () => {
         try {
             const token = sessionStorage.getItem('token');
             const newEstado = currentEstado === 'ACTIVA' ? 'PAUSADA' : 'ACTIVA';
-            await axios.patch(`http://localhost:3000/api/admin/activities/${tipo}/${id}/status`, { estado: newEstado }, { headers: { Authorization: `Bearer ${token}` } });
+            await axios.patch(`${API_BASE}/api/admin/activities/${tipo}/${id}/status`, { estado: newEstado }, { headers: { Authorization: `Bearer ${token}` } });
             setAllActivities(allActivities.map(a => (a.id_actividad === id && a.tipo === tipo) ? { ...a, estado: newEstado } : a));
         } catch (error) {
             alert("Error al actualizar estado de la actividad");
@@ -142,7 +143,7 @@ const AdminDashboard = () => {
     const toggleReviewVisibility = async (reviewId, tipo, currentVisible) => {
         try {
             const token = sessionStorage.getItem('token');
-            await axios.patch(`http://localhost:3000/api/admin/reviews/${tipo}/${reviewId}/visibility`, { visible: !currentVisible }, { headers: { Authorization: `Bearer ${token}` } });
+            await axios.patch(`${API_BASE}/api/admin/reviews/${tipo}/${reviewId}/visibility`, { visible: !currentVisible }, { headers: { Authorization: `Bearer ${token}` } });
             setAllReviews(allReviews.map(r => r.id === reviewId ? { ...r, visible: !currentVisible } : r));
         } catch (error) {
             alert("Error al actualizar visibilidad de la reseña");

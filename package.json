@@ -6,7 +6,9 @@
     "dev:backend": "node BACKEND/src/server.js",
     "dev:frontend": "npm run dev --prefix modern-frontend",
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
-    "start": "npm run dev"
+    "build": "npm run build --prefix modern-frontend",
+    "install:all": "npm install && npm install --prefix modern-frontend && npm install --prefix BACKEND",
+    "start": "node BACKEND/src/server.js"
   },
   "keywords": [],
   "author": "",

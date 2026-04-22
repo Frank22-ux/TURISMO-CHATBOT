@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { API_BASE } from '../../config/api';
 import { Ticket, Calendar, CheckCircle2, AlertCircle, Percent, Clock, Sparkles, MapPinned, Utensils, Save, X, ChevronDown } from 'lucide-react';
 import { useToast } from '../../contexts/ToastContext';
 import CustomCalendar from '../CustomCalendar';
@@ -41,15 +42,15 @@ const OfferCenterSection = () => {
     try {
       const token = sessionStorage.getItem('token');
       const [actRes, serRes] = await Promise.all([
-        fetch('http://localhost:3000/api/host/activities', { headers: { Authorization: `Bearer ${token}` } }),
-        fetch('http://localhost:3000/api/host/services', { headers: { Authorization: `Bearer ${token}` } })
+        fetch(`${API_BASE}/api/host/activities`, { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`${API_BASE}/api/host/services`, { headers: { Authorization: `Bearer ${token}` } })
       ]);
       
       if (actRes.ok) setActivities(await actRes.json());
       if (serRes.ok) setServices(await serRes.json());
 
       // Fetch profile to get current package discount
-      const profRes = await fetch('http://localhost:3000/api/host/profile', { 
+      const profRes = await fetch(`${API_BASE}/api/host/profile`, { 
         headers: { Authorization: `Bearer ${token}` } 
       });
       if (profRes.ok) {
@@ -81,7 +82,7 @@ const OfferCenterSection = () => {
       const itemsToUpdate = (discountType === 'EXPERIENCE' ? activities : services)
         .filter(item => selectedItems.includes(item.id_actividad));
 
-      const res = await fetch('http://localhost:3000/api/host/bulk-offers', {
+      const res = await fetch(`${API_BASE}/api/host/bulk-offers`, {
         method: 'POST',
         headers: { 
           'Authorization': `Bearer ${token}`,
@@ -118,7 +119,7 @@ const OfferCenterSection = () => {
     setIsUpdatingPackage(true);
     try {
       const token = sessionStorage.getItem('token');
-      const response = await fetch('http://localhost:3000/api/host/profile', {
+      const response = await fetch(`${API_BASE}/api/host/profile`, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',

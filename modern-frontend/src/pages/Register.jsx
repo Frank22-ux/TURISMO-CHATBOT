@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { API_BASE } from '../config/api';
 import { Link, useNavigate } from 'react-router-dom';
 import { User, Mail, Lock, Phone, Calendar, ArrowRight, Mountain, X, Check, AlertCircle, Briefcase, Compass } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -65,7 +66,7 @@ const Register = () => {
     };
 
     try {
-      const response = await fetch('http://localhost:3000/api/auth/register', {
+      const response = await fetch(`${API_BASE}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

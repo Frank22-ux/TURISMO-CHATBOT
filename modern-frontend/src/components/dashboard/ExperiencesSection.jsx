@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { API_BASE } from '../../config/api';
 import { Search, Plus, MapPinned } from 'lucide-react';
 import ActivityCard from './ActivityCard';
 import ActivityModal from './ActivityModal';
@@ -19,7 +20,7 @@ const ExperiencesSection = () => {
   const fetchActivities = async () => {
     try {
       const token = sessionStorage.getItem('token');
-      const response = await fetch('http://localhost:3000/api/host/activities', {
+      const response = await fetch(`${API_BASE}/api/host/activities`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -40,8 +41,8 @@ const ExperiencesSection = () => {
       const token = sessionStorage.getItem('token');
       const method = selectedActivity ? 'PUT' : 'POST';
       const url = selectedActivity 
-        ? `http://localhost:3000/api/host/activities/${selectedActivity.id}`
-        : 'http://localhost:3000/api/host/activities';
+        ? `${API_BASE}/api/host/activities/${selectedActivity.id}`
+        : `${API_BASE}/api/host/activities`;
 
       const response = await fetch(url, {
         method,
@@ -65,7 +66,7 @@ const ExperiencesSection = () => {
     const newStatus = activity.estado === 'ACTIVA' ? 'PAUSADA' : 'ACTIVA';
     try {
       const token = sessionStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/api/host/activities/${activity.id}/status`, {
+      const response = await fetch(`${API_BASE}/api/host/activities/${activity.id}/status`, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',
@@ -89,7 +90,7 @@ const ExperiencesSection = () => {
     setIsDeleting(true);
     try {
       const token = sessionStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/api/host/activities/${selectedActivity.id}`, {
+      const response = await fetch(`${API_BASE}/api/host/activities/${selectedActivity.id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -195,7 +196,7 @@ const ExperiencesSection = () => {
                 onView={async (a) => { 
                   try {
                     const token = sessionStorage.getItem('token');
-                    const response = await fetch(`http://localhost:3000/api/host/activities/${a.id}`, {
+                    const response = await fetch(`${API_BASE}/api/host/activities/${a.id}`, {
                       headers: { 'Authorization': `Bearer ${token}` }
                     });
                     if (response.ok) {

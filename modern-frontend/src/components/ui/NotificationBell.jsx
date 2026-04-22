@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { API_BASE } from '../../config/api';
 import { Bell, MessageSquare, CalendarClock } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 
@@ -20,7 +21,7 @@ const NotificationBell = ({ role, onNavigate }) => {
         const token = sessionStorage.getItem('token');
         if (!token) return;
 
-        const res = await fetch(`http://localhost:3000/api/${route}/notifications`, {
+        const res = await fetch(`${API_BASE}/api/${route}/notifications`, {
           headers: { Authorization: `Bearer ${token}` }
         });
 

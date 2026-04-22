@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_BASE } from '../../config/api';
 import { X, FileText, Download, AlertCircle, CheckCircle, ShieldCheck, Eye } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
@@ -19,7 +20,7 @@ const DocumentViewerModal = ({ isOpen, onClose, hostId, hostName, onVerify }) =>
         setError(null);
         try {
             const token = sessionStorage.getItem('token');
-            const response = await axios.get(`http://localhost:3000/api/admin/hosts/${hostId}/documents`, {
+            const response = await axios.get(`${API_BASE}/api/admin/hosts/${hostId}/documents`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setDocuments(response.data);

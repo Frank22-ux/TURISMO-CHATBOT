@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { API_BASE } from '../config/api';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Phone, ArrowRight, Mountain, AlertCircle } from 'lucide-react';
 import AuthLayout from '../components/AuthLayout';
@@ -19,7 +20,7 @@ const Login = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch('http://localhost:3000/api/auth/reactivate-account', {
+      const response = await fetch(`${API_BASE}/api/auth/reactivate-account`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -47,7 +48,7 @@ const Login = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch('http://localhost:3000/api/auth/login', {
+      const response = await fetch(`${API_BASE}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

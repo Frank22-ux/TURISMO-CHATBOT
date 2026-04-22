@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { API_BASE } from '../../config/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Send, Paperclip, MoreHorizontal, Info, User, Check, CheckCheck, MessageSquare, Trash2, Edit, Archive, UserCircle, X, Phone, Globe } from 'lucide-react';
 import ConfirmModal from './ConfirmModal';
@@ -19,7 +20,7 @@ const MessagingSection = ({ initialHostId, initialHostName }) => {
   const fetchConversations = async () => {
     try {
       const token = sessionStorage.getItem('token');
-      const response = await fetch('http://localhost:3000/api/messages/conversations', {
+      const response = await fetch(`${API_BASE}/api/messages/conversations`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -55,7 +56,7 @@ const MessagingSection = ({ initialHostId, initialHostName }) => {
     if (!activeChat || !activeChat.id_receptor) return;
     try {
       const token = sessionStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/api/messages/${activeChat.id_receptor}`, {
+      const response = await fetch(`${API_BASE}/api/messages/${activeChat.id_receptor}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -94,7 +95,7 @@ const MessagingSection = ({ initialHostId, initialHostName }) => {
     try {
       const token = sessionStorage.getItem('token');
       // Backend expects POST /api/messages
-      const response = await fetch('http://localhost:3000/api/messages', {
+      const response = await fetch(`${API_BASE}/api/messages`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -129,7 +130,7 @@ const MessagingSection = ({ initialHostId, initialHostName }) => {
     try {
       const token = sessionStorage.getItem('token');
       if (type === 'message') {
-        const response = await fetch(`http://localhost:3000/api/messages/${targetId}`, {
+        const response = await fetch(`${API_BASE}/api/messages/${targetId}`, {
           method: 'DELETE',
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -137,7 +138,7 @@ const MessagingSection = ({ initialHostId, initialHostName }) => {
           setMessages(prev => prev.filter(m => m.id_mensaje !== targetId));
         }
       } else if (type === 'chat') {
-        await fetch(`http://localhost:3000/api/messages/conversations/${activeChat.id_receptor}`, {
+        await fetch(`${API_BASE}/api/messages/conversations/${activeChat.id_receptor}`, {
           method: 'DELETE',
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -157,7 +158,7 @@ const MessagingSection = ({ initialHostId, initialHostName }) => {
     if (!editContent.trim()) return;
     try {
       const token = sessionStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/api/messages/${editingMsgId}/content`, {
+      const response = await fetch(`${API_BASE}/api/messages/${editingMsgId}/content`, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',
@@ -180,7 +181,7 @@ const MessagingSection = ({ initialHostId, initialHostName }) => {
     if (!activeChat) return;
     try {
       const token = sessionStorage.getItem('token');
-      await fetch(`http://localhost:3000/api/messages/conversations/${activeChat.id_receptor}/archive`, {
+      await fetch(`${API_BASE}/api/messages/conversations/${activeChat.id_receptor}/archive`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
