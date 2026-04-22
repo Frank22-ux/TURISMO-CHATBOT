@@ -1,10 +1,15 @@
 /**
- * Central API configuration
+ * Central API configuration — Vercel (Frontend) + Render (Backend)
  *
- * In production (Render): the backend serves the frontend from the same origin,
- * so API_BASE = '' and all fetch calls become relative paths like /api/...
+ * VITE_API_URL must be set in:
+ *   - Local:   modern-frontend/.env  → VITE_API_URL=http://localhost:3000
+ *   - Vercel:  Environment Variables → VITE_API_URL=https://your-app.onrender.com
  *
- * In local development: VITE_API_URL = 'http://localhost:3000' (set in .env)
- * so fetch calls become http://localhost:3000/api/...
+ * Since the frontend (Vercel) and backend (Render) are on different domains,
+ * VITE_API_URL is ALWAYS required — there is no "same-origin" fallback.
  */
 export const API_BASE = import.meta.env.VITE_API_URL || '';
+
+if (!import.meta.env.VITE_API_URL) {
+    console.warn('[API] VITE_API_URL is not set. API calls will use relative paths (only works if backend serves the frontend).');
+}
