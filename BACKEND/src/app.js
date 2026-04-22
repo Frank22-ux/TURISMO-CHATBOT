@@ -40,7 +40,8 @@ const corsOptions = {
 // Apply CORS globally — must run BEFORE route handlers
 app.use(cors(corsOptions));
 // Handle preflight OPTIONS requests for all routes
-app.options('*', cors(corsOptions));
+// NOTE: Express v5 does not support '*' wildcard — use regex instead
+app.options(/.*/, cors(corsOptions));
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
