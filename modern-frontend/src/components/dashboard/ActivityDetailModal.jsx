@@ -110,17 +110,23 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
 
   useEffect(() => {
     if (activity) {
-      console.log("EXPERIENCE:", activity);
+      // Tarea 3: Validar diferencias de data con logs específicos
+      const isDashboard = window.location.pathname.includes('/dashboard');
+      if (isDashboard) {
+        console.log("ANFITRION:", activity);
+      } else {
+        console.log("TURISTA:", activity);
+      }
       
-      // Mapeo exacto solicitado por el usuario
-      const coverRaw = activity.coverImage || activity.image || activity.portada || null;
-      const galleryRaw = activity.images || activity.gallery || activity.galeria || [];
+      // Tarea 2 y 6: Unificar lógica y evitar errores de mapeo
+      const cover = activity.coverImage || activity.image || activity.portada || null;
+      const gallery = activity.images || activity.gallery || activity.galeria || [];
       
-      console.log("COVER RAW:", coverRaw);
-      console.log("GALLERY RAW:", galleryRaw);
+      console.log("COVER:", cover);
+      console.log("GALLERY:", gallery);
 
-      // Inicializar imagen activa
-      const initialImg = getImageUrl(coverRaw) || (galleryRaw.length > 0 ? getImageUrl(galleryRaw[0]) : "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80");
+      // Inicializar imagen activa (Tarea 2)
+      const initialImg = getImageUrl(cover) || (Array.isArray(gallery) && gallery.length > 0 ? getImageUrl(gallery[0]) : "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80");
       setActiveImage(initialImg);
 
       const newLat = parseFloat(activity.latitud) || -0.180653;
@@ -144,22 +150,23 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
 
   if (!isOpen || !activity) return null;
 
-  const coverRaw = activity.coverImage || activity.image || activity.portada || null;
-  const galleryRaw = Array.isArray(activity.images) ? activity.images : 
-                     Array.isArray(activity.gallery) ? activity.gallery :
-                     Array.isArray(activity.galeria) ? activity.galeria : [];
+  // Tarea 2 y 5: Unificar lógica de renderizado
+  const cover = activity.coverImage || activity.image || activity.portada || null;
+  const gallery = activity.images || activity.gallery || activity.galeria || [];
   
-  // Construir lista de todas las imágenes únicas y válidas
-  const allImages = [...new Set([coverRaw, ...galleryRaw])]
+  // Construir lista para la galería (Tarea 2)
+  const galleryImages = [cover, ...(Array.isArray(gallery) ? gallery : [])]
     .filter(Boolean)
     .map(getImageUrl)
     .filter(Boolean);
   
-  // Si no hay ninguna imagen, usar el placeholder general
+  // Eliminar duplicados de URLs completas
+  const displayImages = [...new Set(galleryImages)];
+  
   const placeholder = "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80";
   
-  const displayImages = allImages.length > 0 ? allImages : [placeholder];
-  const hasGallery = displayImages.length > 1;
+  const finalGallery = displayImages.length > 0 ? displayImages : [placeholder];
+  const hasGallery = finalGallery.length > 1;
 
   const isActive = activity.estado === 'ACTIVA';
 
@@ -206,19 +213,19 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.5 }}
-                  src={activeImage} 
+                  src={activeImage || placeholder} 
                   className="w-full h-full object-cover"
                   alt={activity.title || activity.titulo}
                 />
               </AnimatePresence>
               <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-black/30" />
               
-              {/* Gallery Thumbnails Overlay */}
+              {/* Gallery Thumbnails Overlay (Tarea 5) */}
               {hasGallery && (
                 <div className="absolute bottom-32 left-10 right-10 flex gap-3 overflow-x-auto pb-4 no-scrollbar">
-                  {displayImages.map((img, idx) => (
+                  {finalGallery.map((img, i) => (
                     <motion.button
-                      key={idx}
+                      key={i}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => setActiveImage(img)}
@@ -226,7 +233,7 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
                         activeImage === img ? 'border-primary ring-4 ring-primary/20 scale-110' : 'border-white/50 hover:border-white'
                       }`}
                     >
-                      <img src={img} className="w-full h-full object-cover" alt={`Gallery ${idx}`} />
+                      <img src={img} className="w-full h-full object-cover" alt={`Gallery ${i}`} />
                     </motion.button>
                   ))}
                 </div>
