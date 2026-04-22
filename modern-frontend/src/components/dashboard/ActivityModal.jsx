@@ -779,7 +779,7 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
                           />
                           {isSearching && <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>}
                         </div>
-                        
+                        <AnimatePresence>
                           {searchQuery.length > 2 && !isSearching && searchResults.length === 0 && (
                             <motion.div 
                               initial={{ opacity: 0, y: -10 }}
