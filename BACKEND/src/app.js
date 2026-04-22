@@ -28,7 +28,15 @@ const corsOptions = {
     origin: (origin, callback) => {
         // Allow requests with no origin: curl, Postman, Render health checks
         if (!origin) return callback(null, true);
+        
+        // Allow exact matches from the hardcoded list
         if (allowedOrigins.includes(origin)) return callback(null, true);
+        
+        // Allow dynamically generated Vercel preview domains safely
+        if (origin.startsWith('https://turismo-chatbot') && origin.endsWith('.vercel.app')) {
+            return callback(null, true);
+        }
+
         console.warn(`[CORS] Blocked request from origin: ${origin}`);
         callback(new Error(`CORS policy: origin ${origin} not allowed`));
     },
