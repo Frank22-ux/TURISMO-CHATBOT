@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { X, MapPin, Camera, Info, Save, Layers, Clock, Users, Signal, Tag, Plus, Flag } from 'lucide-react';
-import Map, { Marker, NavigationControl, Source } from 'react-map-gl/mapbox';
+import MapboxMap, { Marker, NavigationControl, Source } from 'react-map-gl/mapbox';
 import { motion, AnimatePresence } from 'framer-motion';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useToast } from '../../contexts/ToastContext';
@@ -8,6 +8,12 @@ import CustomCalendar from '../CustomCalendar';
 import { ChevronDown } from 'lucide-react';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
+const Map = MAPBOX_TOKEN ? MapboxMap : ({ children, style, className }) => (
+    <div style={style} className={`bg-slate-100 border border-red-200 flex flex-col items-center justify-center p-6 text-center text-red-500 rounded-[2rem] ${className || ''}`}>
+        <span className="font-black text-lg mb-2">Error de Mapbox</span>
+        <span className="text-sm font-bold text-slate-500">El token VITE_MAPBOX_ACCESS_TOKEN no está configurado.</span>
+    </div>
+);
 
 const reverseGeocode = async (lat, lng) => {
   try {

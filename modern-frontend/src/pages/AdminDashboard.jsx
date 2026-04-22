@@ -25,12 +25,18 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
-import Map, { Marker, Popup, NavigationControl, FullscreenControl } from 'react-map-gl/mapbox';
+import MapboxMap, { Marker, Popup, NavigationControl, FullscreenControl } from 'react-map-gl/mapbox';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import * as XLSX from 'xlsx';
 import DocumentViewerModal from '../components/DocumentViewerModal';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
+const Map = MAPBOX_TOKEN ? MapboxMap : ({ children, style, className }) => (
+    <div style={style} className={`bg-slate-100 border border-red-200 flex flex-col items-center justify-center p-6 text-center text-red-500 rounded-[3rem] ${className || ''}`}>
+        <span className="font-black text-lg mb-2">Error de Mapbox</span>
+        <span className="text-sm font-bold text-slate-500">El token VITE_MAPBOX_ACCESS_TOKEN no está configurado en Vercel.</span>
+    </div>
+);
 
 const AdminDashboard = () => {
     const [activeTab, setActiveTab] = useState('overview');
