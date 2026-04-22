@@ -780,7 +780,16 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
                           {isSearching && <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>}
                         </div>
                         
-                        <AnimatePresence>
+                          {searchQuery.length > 2 && !isSearching && searchResults.length === 0 && (
+                            <motion.div 
+                              initial={{ opacity: 0, y: -10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -10 }}
+                              className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-slate-100 p-4 text-center z-50"
+                            >
+                              <p className="text-sm font-bold text-slate-400">No se encontraron resultados para "{searchQuery}"</p>
+                            </motion.div>
+                          )}
                           {searchResults.length > 0 && (
                             <motion.div 
                               initial={{ opacity: 0, y: -10 }}
@@ -846,9 +855,20 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
                             </button>
                           </div>
                           {position && (
-                            <Marker latitude={position.lat} longitude={position.lng} anchor="bottom">
-                              <div className="w-8 h-8 bg-primary rounded-full border-4 border-white shadow-lg animate-bounce flex items-center justify-center">
-                                <MapPin className="w-4 h-4 text-white" />
+                            <Marker 
+                              latitude={position.lat} 
+                              longitude={position.lng} 
+                              anchor="bottom"
+                              draggable
+                              onDragEnd={async (e) => {
+                                const { lng, lat } = e.lngLat;
+                                setPosition({ lat, lng });
+                                const data = await reverseGeocode(lat, lng);
+                                if (data) handleLocationFound(data);
+                              }}
+                            >
+                              <div className="w-10 h-10 bg-primary rounded-full border-4 border-white shadow-2xl flex items-center justify-center cursor-grab active:cursor-grabbing transition-transform hover:scale-110">
+                                <MapPin className="w-5 h-5 text-white" />
                               </div>
                             </Marker>
                           )}
@@ -918,9 +938,28 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
                           >
                             <NavigationControl position="top-right" />
                             {meetingPosition && (
-                              <Marker latitude={meetingPosition.lat} longitude={meetingPosition.lng} anchor="bottom">
-                                <div className="w-8 h-8 bg-amber-500 rounded-full border-4 border-white shadow-lg animate-bounce flex items-center justify-center">
-                                  <Flag className="w-4 h-4 text-white" />
+                              <Marker 
+                                latitude={meetingPosition.lat} 
+                                longitude={meetingPosition.lng} 
+                                anchor="bottom"
+                                draggable
+                                onDragEnd={async (e) => {
+                                  const { lng, lat } = e.lngLat;
+                                  setMeetingPosition({ lat, lng });
+                                  setFormData(prev => ({ ...prev, latitud_encuentro: lat, longitud_encuentro: lng }));
+                                  const data = await reverseGeocode(lat, lng);
+                                  if (data && data.address) {
+                                    const city = data.address.city || data.address.town || data.address.village || data.address.suburb || '';
+                                    const road = data.address.road || '';
+                                    const houseNumber = data.address.house_number || '';
+                                    let fullAddress = `${road} ${houseNumber}`.trim();
+                                    if (!fullAddress) fullAddress = city || 'Ubicación seleccionada';
+                                    setFormData(prev => ({ ...prev, direccion_encuentro: fullAddress }));
+                                  }
+                                }}
+                              >
+                                <div className="w-10 h-10 bg-amber-500 rounded-full border-4 border-white shadow-2xl flex items-center justify-center cursor-grab active:cursor-grabbing transition-transform hover:scale-110">
+                                  <Flag className="w-5 h-5 text-white" />
                                 </div>
                               </Marker>
                             )}
