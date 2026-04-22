@@ -103,19 +103,21 @@ const createService = async (data) => {
 };
 
 const createImage = async (serviceId, imageUrl) => {
+    const numericId = typeof serviceId === 'string' && serviceId.includes('-') ? serviceId.split('-')[1] : serviceId;
     const query = `
         INSERT INTO imagen_portada (tipo_actividad, id_actividad, url_imagen)
         VALUES ('ALIMENTARIA', $1, $2)
     `;
-    await db.query(query, [serviceId, imageUrl]);
+    await db.query(query, [numericId, imageUrl]);
 };
 
 const createGalleryImage = async (serviceId, imageUrl) => {
+    const numericId = typeof serviceId === 'string' && serviceId.includes('-') ? serviceId.split('-')[1] : serviceId;
     const query = `
         INSERT INTO imagenes_galeria (tipo_actividad, id_actividad, url_imagen)
         VALUES ('ALIMENTARIA', $1, $2)
     `;
-    await db.query(query, [serviceId, imageUrl]);
+    await db.query(query, [numericId, imageUrl]);
 };
 
 const findById = async (id) => {
@@ -196,11 +198,13 @@ const updateLocation = async (id, data) => {
 };
 
 const clearPortada = async (serviceId) => {
-    await db.query("DELETE FROM imagen_portada WHERE id_actividad = $1 AND tipo_actividad = 'ALIMENTARIA'", [serviceId]);
+    const numericId = typeof serviceId === 'string' && serviceId.includes('-') ? serviceId.split('-')[1] : serviceId;
+    await db.query("DELETE FROM imagen_portada WHERE id_actividad = $1 AND tipo_actividad = 'ALIMENTARIA'", [numericId]);
 };
 
 const clearGallery = async (serviceId) => {
-    await db.query("DELETE FROM imagenes_galeria WHERE id_actividad = $1 AND tipo_actividad = 'ALIMENTARIA'", [serviceId]);
+    const numericId = typeof serviceId === 'string' && serviceId.includes('-') ? serviceId.split('-')[1] : serviceId;
+    await db.query("DELETE FROM imagenes_galeria WHERE id_actividad = $1 AND tipo_actividad = 'ALIMENTARIA'", [numericId]);
 };
 
 module.exports = {

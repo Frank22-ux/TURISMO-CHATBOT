@@ -249,19 +249,21 @@ const createActivity = async (activityData) => {
 };
 
 const createImage = async (activityId, imageUrl) => {
+    const numericId = typeof activityId === 'string' && activityId.includes('-') ? activityId.split('-')[1] : activityId;
     const query = `
         INSERT INTO imagen_portada (tipo_actividad, id_actividad, url_imagen)
         VALUES ('TURISTICA', $1, $2)
     `;
-    await db.query(query, [activityId, imageUrl]);
+    await db.query(query, [numericId, imageUrl]);
 };
 
 const createGalleryImage = async (activityId, imageUrl) => {
+    const numericId = typeof activityId === 'string' && activityId.includes('-') ? activityId.split('-')[1] : activityId;
     const query = `
         INSERT INTO imagenes_galeria (tipo_actividad, id_actividad, url_imagen)
         VALUES ('TURISTICA', $1, $2)
     `;
-    await db.query(query, [activityId, imageUrl]);
+    await db.query(query, [numericId, imageUrl]);
 };
 
 const findFullById = async (id) => {
@@ -398,11 +400,13 @@ const updateLocation = async (id, data) => {
 };
 
 const clearPortada = async (activityId) => {
-    await db.query("DELETE FROM imagen_portada WHERE id_actividad = $1 AND tipo_actividad = 'TURISTICA'", [activityId]);
+    const numericId = typeof activityId === 'string' && activityId.includes('-') ? activityId.split('-')[1] : activityId;
+    await db.query("DELETE FROM imagen_portada WHERE id_actividad = $1 AND tipo_actividad = 'TURISTICA'", [numericId]);
 };
 
 const clearGallery = async (activityId) => {
-    await db.query("DELETE FROM imagenes_galeria WHERE id_actividad = $1 AND tipo_actividad = 'TURISTICA'", [activityId]);
+    const numericId = typeof activityId === 'string' && activityId.includes('-') ? activityId.split('-')[1] : activityId;
+    await db.query("DELETE FROM imagenes_galeria WHERE id_actividad = $1 AND tipo_actividad = 'TURISTICA'", [numericId]);
 };
 
 const updateBulkOffers = async (ids, type, offerPrice, expirationDate, percentage) => {
