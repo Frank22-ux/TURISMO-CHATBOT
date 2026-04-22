@@ -3,6 +3,7 @@ import { API_BASE } from '../../config/api';
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import ActivityModal from './ActivityModal';
+import { useToast } from '../../contexts/ToastContext';
 
 const HostSummarySection = ({ user }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -15,6 +16,7 @@ const HostSummarySection = ({ user }) => {
     newBookings: 0,
     recentReservations: []
   });
+  const { showToast } = useToast();
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -59,7 +61,7 @@ const HostSummarySection = ({ user }) => {
       if (response.ok) {
         setIsModalOpen(false);
         // Optionally trigger a refresh of stats or local data if relevant
-        alert(`${modalType === 'EXPERIENCE' ? 'Experiencia' : 'Servicio'} creado con éxito`);
+        showToast(`${modalType === 'EXPERIENCE' ? 'Experiencia' : 'Servicio'} creado con éxito`, 'success');
       }
     } catch (error) {
       console.error('Error creating item:', error);

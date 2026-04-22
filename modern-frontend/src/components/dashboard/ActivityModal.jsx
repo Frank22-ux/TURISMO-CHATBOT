@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { X, MapPin, Camera, Info, Save, Layers, Clock, Users, Signal, Tag, Plus, Flag } from 'lucide-react';
+import { X, MapPin, Camera, Info, Save, Layers, Clock, Users, Signal, Tag, Plus, Flag, Search } from 'lucide-react';
 import MapboxMap, { Marker, NavigationControl, Source } from 'react-map-gl/mapbox';
 import { motion, AnimatePresence } from 'framer-motion';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -122,6 +122,47 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
   const [preview, setPreview] = useState(null);
   const [showCalendar, setShowCalendar] = useState(false);
   const { showToast } = useToast();
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+
+  const fetchLocations = async (query) => {
+    setIsSearching(true);
+    try {
+      const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${MAPBOX_TOKEN}&language=es&country=ec`);
+      const data = await res.json();
+      setSearchResults(data.features || []);
+    } catch (error) {
+      console.error('Error fetching locations:', error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleSelectLocation = (feature) => {
+    const [lng, lat] = feature.center;
+    setPosition({ lat, lng });
+    setViewState(prev => ({ ...prev, latitude: lat, longitude: lng, zoom: 15 }));
+    
+    const context = feature.context || [];
+    const city = feature.text || context.find(c => c.id.startsWith('place'))?.text || '';
+    const state = context.find(c => c.id.startsWith('region'))?.text || '';
+    const country = context.find(c => c.id.startsWith('country'))?.text || 'Ecuador';
+    
+    setFormData(prev => ({
+      ...prev,
+      ciudad: city,
+      provincia: state,
+      pais: country,
+      direccion: feature.place_name || prev.direccion,
+      latitud: lat,
+      longitud: lng
+    }));
+    
+    setSearchQuery('');
+    setSearchResults([]);
+  };
 
   useEffect(() => {
     if (initialData && isOpen) {
@@ -271,7 +312,7 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
         if (data) handleLocationFound(data);
       });
     } else {
-      alert("La geolocalización no está disponible en tu navegador.");
+      showToast("La geolocalización no está disponible en tu navegador.", "error");
     }
   };
 
@@ -721,6 +762,51 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
                       <h3 className="text-sm font-black text-primary uppercase tracking-[0.2em] flex items-center gap-2">
                         <MapPin className="w-4 h-4" /> Ubicación del Proyecto
                       </h3>
+                      
+                      <div className="relative">
+                        <div className="flex items-center gap-2 px-4 py-3 bg-white border border-slate-200 rounded-2xl shadow-sm focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+                          <Search className="w-5 h-5 text-slate-400" />
+                          <input 
+                            type="text"
+                            placeholder="Buscar dirección o lugar (ej: Parque La Carolina, Quito)"
+                            value={searchQuery}
+                            onChange={(e) => {
+                              setSearchQuery(e.target.value);
+                              if (e.target.value.length > 2) fetchLocations(e.target.value);
+                              else setSearchResults([]);
+                            }}
+                            className="flex-1 outline-none text-sm font-bold text-slate-700 bg-transparent"
+                          />
+                          {isSearching && <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>}
+                        </div>
+                        
+                        <AnimatePresence>
+                          {searchResults.length > 0 && (
+                            <motion.div 
+                              initial={{ opacity: 0, y: -10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -10 }}
+                              className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden z-50 max-h-60 overflow-y-auto"
+                            >
+                              {searchResults.map((result) => (
+                                <button
+                                  key={result.id}
+                                  type="button"
+                                  onClick={() => handleSelectLocation(result)}
+                                  className="w-full text-left px-4 py-3 hover:bg-slate-50 border-b border-slate-50 last:border-0 flex items-start gap-3 transition-colors"
+                                >
+                                  <MapPin className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                                  <div>
+                                    <p className="text-sm font-bold text-slate-700">{result.text}</p>
+                                    <p className="text-xs text-slate-400 truncate">{result.place_name}</p>
+                                  </div>
+                                </button>
+                              ))}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+
                       <div className="h-72 rounded-[40px] overflow-hidden border-4 border-slate-50 shadow-2xl z-0 relative group">
                         <Map
                           {...viewState}
@@ -958,8 +1044,7 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
           <div className="flex gap-4">
             {step === 1 ? (
               <button 
-                type="button" 
-                onClick={() => setStep(2)}
+                type="submit"
                 className="bg-primary-dark text-white px-10 py-4 rounded-3xl font-black text-xs uppercase tracking-[0.2em] transition-all shadow-xl shadow-slate-900/10 hover:shadow-2xl hover:-translate-y-1 flex items-center gap-2"
               >
                 Continuar <Layers className="w-4 h-4" />
