@@ -58,14 +58,14 @@ const DocumentViewerModal = ({ isOpen, onClose, hostId, hostName, onVerify }) =>
                     onClick={(e) => e.stopPropagation()}
                 >
                     {/* Header */}
-                    <div className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white p-6 flex justify-between items-center">
+                    <div className="bg-gradient-to-r from-primary-dark to-primary text-white p-6 flex justify-between items-center">
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
                                 <FileText className="w-6 h-6" />
                             </div>
                             <div>
                                 <h2 className="text-xl font-bold">Documentos de Verificación</h2>
-                                <p className="text-blue-100 text-sm">Anfitrión: {hostName}</p>
+                                <p className="text-slate-200 text-sm">Anfitrión: {hostName}</p>
                             </div>
                         </div>
                         <button
@@ -80,20 +80,20 @@ const DocumentViewerModal = ({ isOpen, onClose, hostId, hostName, onVerify }) =>
                     <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
                         {loading ? (
                             <div className="flex flex-col items-center justify-center py-12">
-                                <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+                                <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
                                 <p className="text-gray-500 font-medium">Cargando documentos...</p>
                             </div>
                         ) : error ? (
                             <div className="flex flex-col items-center justify-center py-12">
-                                <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
-                                <p className="text-red-500 font-medium">{error}</p>
+                                <AlertCircle className="w-12 h-12 text-danger mb-4" />
+                                <p className="text-danger font-medium">{error}</p>
                             </div>
                         ) : documents ? (
                             <div className="space-y-6">
                                 {/* Información del Anfitrión */}
                                 <div className="bg-gray-50 rounded-2xl p-4">
                                     <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
-                                        <ShieldCheck className="w-5 h-5 text-indigo-600" />
+                                        <ShieldCheck className="w-5 h-5 text-primary" />
                                         Información del Anfitrión
                                     </h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -117,14 +117,14 @@ const DocumentViewerModal = ({ isOpen, onClose, hostId, hostName, onVerify }) =>
                                 {/* Documentos Legales */}
                                 <div>
                                     <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                                        <FileText className="w-5 h-5 text-indigo-600" />
+                                        <FileText className="w-5 h-5 text-primary" />
                                         Documentos Legales
                                     </h3>
                                     
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {/* Documento Frontal */}
                                         {documents.url_documento_legal_frontal ? (
-                                            <div className="bg-white border-2 border-gray-200 rounded-2xl p-4 hover:border-indigo-300 transition-colors">
+                                            <div className="bg-white border-2 border-slate-200 rounded-2xl p-4 hover:border-primary/50 transition-colors">
                                                 <div className="flex items-center justify-between mb-3">
                                                     <h4 className="font-medium text-gray-800">Documento Frontal</h4>
                                                     <div className="flex gap-2">
@@ -132,7 +132,7 @@ const DocumentViewerModal = ({ isOpen, onClose, hostId, hostName, onVerify }) =>
                                                             href={documents.url_documento_legal_frontal}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
-                                                            className="w-8 h-8 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center hover:bg-indigo-100 transition-colors"
+                                                            className="w-8 h-8 bg-primary/10 text-primary rounded-lg flex items-center justify-center hover:bg-primary/20 transition-colors"
                                                             title="Ver documento"
                                                         >
                                                             <Eye className="w-4 h-4" />
@@ -140,7 +140,7 @@ const DocumentViewerModal = ({ isOpen, onClose, hostId, hostName, onVerify }) =>
                                                         <a
                                                             href={documents.url_documento_legal_frontal}
                                                             download={`documento_frontal_${hostName}.jpg`}
-                                                            className="w-8 h-8 bg-green-50 text-green-600 rounded-lg flex items-center justify-center hover:bg-green-100 transition-colors"
+                                                            className="w-8 h-8 bg-success-light text-success rounded-lg flex items-center justify-center hover:bg-success hover:text-white transition-colors"
                                                             title="Descargar documento"
                                                         >
                                                             <Download className="w-4 h-4" />
@@ -169,7 +169,7 @@ const DocumentViewerModal = ({ isOpen, onClose, hostId, hostName, onVerify }) =>
 
                                         {/* Documento Posterior */}
                                         {documents.url_documento_legal_posterior ? (
-                                            <div className="bg-white border-2 border-gray-200 rounded-2xl p-4 hover:border-indigo-300 transition-colors">
+                                            <div className="bg-white border-2 border-slate-200 rounded-2xl p-4 hover:border-primary/50 transition-colors">
                                                 <div className="flex items-center justify-between mb-3">
                                                     <h4 className="font-medium text-gray-800">Documento Posterior</h4>
                                                     <div className="flex gap-2">
@@ -177,7 +177,7 @@ const DocumentViewerModal = ({ isOpen, onClose, hostId, hostName, onVerify }) =>
                                                             href={documents.url_documento_legal_posterior}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
-                                                            className="w-8 h-8 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center hover:bg-indigo-100 transition-colors"
+                                                            className="w-8 h-8 bg-primary/10 text-primary rounded-lg flex items-center justify-center hover:bg-primary/20 transition-colors"
                                                             title="Ver documento"
                                                         >
                                                             <Eye className="w-4 h-4" />
@@ -185,7 +185,7 @@ const DocumentViewerModal = ({ isOpen, onClose, hostId, hostName, onVerify }) =>
                                                         <a
                                                             href={documents.url_documento_legal_posterior}
                                                             download={`documento_posterior_${hostName}.jpg`}
-                                                            className="w-8 h-8 bg-green-50 text-green-600 rounded-lg flex items-center justify-center hover:bg-green-100 transition-colors"
+                                                            className="w-8 h-8 bg-success-light text-success rounded-lg flex items-center justify-center hover:bg-success hover:text-white transition-colors"
                                                             title="Descargar documento"
                                                         >
                                                             <Download className="w-4 h-4" />
@@ -215,12 +215,12 @@ const DocumentViewerModal = ({ isOpen, onClose, hostId, hostName, onVerify }) =>
                                 </div>
 
                                 {/* Alerta de verificación */}
-                                <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+                                <div className="bg-warning-light border border-warning rounded-2xl p-4">
                                     <div className="flex items-start gap-3">
-                                        <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5" />
+                                        <AlertCircle className="w-5 h-5 text-warning mt-0.5" />
                                         <div>
-                                            <p className="font-medium text-amber-800">Importante:</p>
-                                            <p className="text-sm text-amber-700 mt-1">
+                                            <p className="font-medium text-warning">Importante:</p>
+                                            <p className="text-sm text-warning mt-1">
                                                 Revise cuidadosamente los documentos antes de verificar al anfitrión. 
                                                 Una vez verificado, el anfitrión podrá acceder a todas las funcionalidades de la plataforma.
                                             </p>
@@ -242,7 +242,7 @@ const DocumentViewerModal = ({ isOpen, onClose, hostId, hostName, onVerify }) =>
                             </button>
                             <button
                                 onClick={handleVerify}
-                                className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-medium hover:from-green-600 hover:to-emerald-700 transition-all flex items-center gap-2 shadow-lg"
+                                className="px-6 py-3 bg-success text-white rounded-xl font-medium hover:bg-success/90 transition-all flex items-center gap-2 shadow-lg"
                             >
                                 <CheckCircle className="w-5 h-5" />
                                 {documents && (documents.url_documento_legal_frontal || documents.url_documento_legal_posterior) 

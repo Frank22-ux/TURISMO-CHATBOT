@@ -38,14 +38,14 @@ export const ToastProvider = ({ children }) => {
               className={`
                 pointer-events-auto flex items-center gap-4 p-4 rounded-2xl shadow-[0_10px_30px_-5px_rgba(0,0,0,0.15)] 
                 bg-white border w-[360px] backdrop-blur-md bg-white/95
-                ${toast.type === 'success' ? 'border-emerald-500/20' : 
-                  toast.type === 'error' ? 'border-red-500/20' : 'border-blue-500/20'}
+                ${toast.type === 'success' ? 'border-success/20' : 
+                  toast.type === 'error' ? 'border-danger/20' : 'border-primary/20'}
               `}
             >
               <div className={`
                 w-10 h-10 rounded-xl flex items-center justify-center shrink-0
-                ${toast.type === 'success' ? 'bg-emerald-50 text-emerald-600' : 
-                  toast.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-600'}
+                ${toast.type === 'success' ? 'bg-success-light text-success' : 
+                  toast.type === 'error' ? 'bg-danger-light text-danger' : 'bg-accent text-primary'}
               `}>
                 {toast.type === 'success' && <CheckCircle2 className="w-5 h-5" />}
                 {toast.type === 'error' && <AlertCircle className="w-5 h-5" />}

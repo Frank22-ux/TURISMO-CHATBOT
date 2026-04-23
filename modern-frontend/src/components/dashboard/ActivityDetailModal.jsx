@@ -8,7 +8,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 const Map = MAPBOX_TOKEN ? MapboxMap : ({ children, style, className }) => (
-    <div style={style} className={`bg-slate-100 border border-red-200 flex flex-col items-center justify-center p-6 text-center text-red-500 rounded-[2rem] ${className || ''}`}>
+    <div style={style} className={`bg-slate-100 border border-danger/20 flex flex-col items-center justify-center p-6 text-center text-danger rounded-[2rem] ${className || ''}`}>
         <span className="font-black text-lg mb-2">Error de Mapbox</span>
         <span className="text-sm font-bold text-slate-500">El token VITE_MAPBOX_ACCESS_TOKEN no está configurado.</span>
     </div>
@@ -188,7 +188,7 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
                 exit={{ opacity: 0, y: -50, scale: 0.9 }}
                 className="absolute top-0 left-0 right-0 z-[200] flex justify-center px-4 pointer-events-none"
               >
-                <div className={`shadow-2xl rounded-2xl px-6 py-4 flex items-center gap-3 backdrop-blur-md border ${toast.type === 'success' ? 'bg-emerald-500/90 border-emerald-400 text-white shadow-emerald-500/30' : 'bg-red-500/90 border-red-400 text-white shadow-red-500/30'}`}>
+                <div className={`shadow-2xl rounded-2xl px-6 py-4 flex items-center gap-3 backdrop-blur-md border ${toast.type === 'success' ? 'bg-success/90 border-success text-white shadow-success/30' : 'bg-danger/90 border-danger text-white shadow-danger/30'}`}>
                    {toast.type === 'success' ? <CheckCircle2 className="w-6 h-6" /> : <X className="w-6 h-6" />}
                    <p className="font-bold text-sm tracking-wide">{toast.message}</p>
                 </div>
@@ -242,7 +242,7 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
               <div className="absolute bottom-8 left-10 right-10">
                 <div className="flex items-center gap-3 mb-4 flex-wrap">
                   <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg ${
-                    isActive ? 'bg-green-500 text-white' : 'bg-amber-500 text-white'
+                    isActive ? 'bg-success text-white' : 'bg-warning text-white'
                   }`}>
                     {activity.estado}
                   </span>
@@ -250,7 +250,7 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
                     {activity.id_categoria === '1' ? 'Aventura' : 'Cultura'}
                   </span>
                   {activity.nombre_anfitrion && (
-                    <span className="px-4 py-1.5 rounded-full bg-amber-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg flex items-center gap-2">
+                    <span className="px-4 py-1.5 rounded-full bg-warning text-white text-[10px] font-black uppercase tracking-widest shadow-lg flex items-center gap-2">
                       <User className="w-3.5 h-3.5" />
                       Por: {activity.nombre_anfitrion}
                     </span>
@@ -292,7 +292,7 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
                     <p className="font-bold text-slate-800">{activity.capacidad} Pers.</p>
                   </div>
                   <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 flex flex-col items-center text-center gap-2">
-                    <Star className="w-6 h-6 text-amber-500" />
+                    <Star className="w-6 h-6 text-warning" />
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Rating</p>
                     <p className="font-bold text-slate-800">
                       {activity.avg_rating && parseFloat(activity.avg_rating) > 0 
@@ -356,14 +356,14 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
                     <motion.div 
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="p-8 bg-amber-50 rounded-[32px] border-2 border-amber-200 shadow-xl shadow-amber-500/5 space-y-6"
+                      className="p-8 bg-warning-light rounded-[32px] border-2 border-warning shadow-xl shadow-warning/5 space-y-6"
                     >
-                      <h4 className="text-sm font-black text-amber-800 uppercase tracking-[0.2em] flex items-center gap-2">
-                        <CheckCircle2 className="w-5 h-5 text-amber-600" /> Punto de Encuentro Confirmado
+                      <h4 className="text-sm font-black text-warning uppercase tracking-[0.2em] flex items-center gap-2">
+                        <CheckCircle2 className="w-5 h-5 text-warning" /> Punto de Encuentro Confirmado
                       </h4>
                       
                       {activity.latitud_encuentro && activity.longitud_encuentro && (
-                        <div className="h-48 rounded-[24px] overflow-hidden border-2 border-amber-100 shadow-inner z-0">
+                        <div className="h-48 rounded-[24px] overflow-hidden border-2 border-warning-light shadow-inner z-0">
                           <Map
                             {...meetingViewState}
                             onMove={evt => setMeetingViewState(evt.viewState)}
@@ -372,7 +372,7 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
                             style={{ width: '100%', height: '100%' }}
                           >
                             <Marker latitude={parseFloat(activity.latitud_encuentro)} longitude={parseFloat(activity.longitud_encuentro)} anchor="bottom">
-                               <div className="w-8 h-8 bg-amber-500 rounded-full border-4 border-white shadow-lg flex items-center justify-center animate-bounce">
+                               <div className="w-8 h-8 bg-warning rounded-full border-4 border-white shadow-lg flex items-center justify-center animate-bounce">
                                   <Flag className="w-4 h-4 text-white" />
                                </div>
                             </Marker>
@@ -381,21 +381,21 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
                       )}
 
                       {activity.direccion_encuentro && (
-                        <div className="flex items-center gap-4 text-amber-800 font-bold bg-amber-500/10 p-4 rounded-2xl border border-amber-200 mt-4 mb-2">
-                           <MapPin className="w-5 h-5 flex-shrink-0 text-amber-600" />
+                        <div className="flex items-center gap-4 text-warning font-bold bg-warning-light p-4 rounded-2xl border border-warning mt-4 mb-2">
+                           <MapPin className="w-5 h-5 flex-shrink-0 text-warning" />
                            <span className="text-sm">{activity.direccion_encuentro}</span>
                         </div>
                       )}
 
                       {activity.punto_encuentro && (
-                        <div className="p-6 bg-white/60 backdrop-blur-sm rounded-2xl border border-amber-100">
-                          <p className="text-amber-900 font-bold leading-relaxed">
+                        <div className="p-6 bg-white/60 backdrop-blur-sm rounded-2xl border border-warning-light">
+                          <p className="text-warning font-bold leading-relaxed">
                             {activity.punto_encuentro}
                           </p>
                         </div>
                       )}
                       
-                      <p className="text-[10px] font-black text-amber-600/60 uppercase tracking-widest text-center italic">
+                      <p className="text-[10px] font-black text-warning/60 uppercase tracking-widest text-center italic">
                         Solo tú y el anfitrión pueden ver esta información
                       </p>
                     </motion.div>
@@ -441,7 +441,7 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
                         disabled={added}
                         className={`w-full py-4 rounded-2xl font-black text-xs transition-all shadow-xl flex items-center justify-center gap-3 border ${
                           added || isAlreadyInCart
-                          ? 'bg-emerald-500 text-white border-emerald-400' 
+                          ? 'bg-success text-white border-success' 
                           : 'bg-primary text-white border-primary-light hover:bg-white hover:text-primary-dark hover:scale-105 active:scale-95'
                         }`}
                       >

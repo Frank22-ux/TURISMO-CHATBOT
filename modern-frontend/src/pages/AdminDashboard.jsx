@@ -332,28 +332,27 @@ const AdminDashboard = () => {
     const getCount = (role) => stats?.users.find(u => u.rol === role)?.count || 0;
 
     const kpis = [
-        { 
             label: 'Total Usuarios', 
             value: stats?.users.reduce((acc, curr) => acc + parseInt(curr.count), 0) || 0, 
-            icon: Users, color: 'bg-blue-500', 
+            icon: Users, color: 'bg-primary', 
             detail: `${getCount('TURISTA')} Turistas / ${getCount('ANFITRION')} Anfitriones` 
         },
         { 
             label: 'Ganancias Plataforma', 
             value: `$${parseFloat(stats?.earnings?.total_plataforma || 0).toFixed(2)}`, 
-            icon: DollarSign, color: 'bg-emerald-500', 
+            icon: DollarSign, color: 'bg-success', 
             detail: `De un total de $${parseFloat(stats?.earnings?.total_bruto || 0).toFixed(2)}` 
         },
         { 
             label: 'Experiencias Activas', 
             value: stats?.activities.find(a => a.tipo === 'Experiencias' && a.estado === 'ACTIVA')?.count || 0, 
-            icon: Activity, color: 'bg-orange-500', 
+            icon: Activity, color: 'bg-warning', 
             detail: 'Servicios de turismo' 
         },
         { 
             label: 'Servicios Activos', 
             value: stats?.activities.find(a => a.tipo === 'Servicios' && a.estado === 'ACTIVA')?.count || 0, 
-            icon: Package, color: 'bg-purple-500', 
+            icon: Package, color: 'bg-secondary', 
             detail: 'Alimentación y más' 
         },
     ];
@@ -365,7 +364,7 @@ const AdminDashboard = () => {
                 <div className="p-4 md:p-10">
                     <div className="flex items-center justify-between mb-4 md:mb-12">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 md:w-12 md:h-12 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200">
+                            <div className="w-10 h-10 md:w-12 md:h-12 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20">
                                 <ShieldCheck className="text-white w-5 h-5 md:w-7 md:h-7" />
                             </div>
                             <div>
@@ -376,7 +375,7 @@ const AdminDashboard = () => {
                         <div className="flex md:hidden items-center">
                             <button 
                                 onClick={handleLogout}
-                                className="p-2 bg-red-50 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all"
+                                className="p-2 bg-danger-light text-danger rounded-xl hover:bg-danger hover:text-white transition-all"
                             >
                                 <Power className="w-5 h-5" />
                             </button>
@@ -411,7 +410,7 @@ const AdminDashboard = () => {
                 <div className="mt-auto p-8 border-t border-slate-50 hidden md:block">
                     <button 
                         onClick={handleLogout}
-                        className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-red-50 text-red-500 rounded-2xl text-[11px] font-black uppercase hover:bg-red-500 hover:text-white transition-all group"
+                        className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-danger-light text-danger rounded-2xl text-[11px] font-black uppercase hover:bg-danger hover:text-white transition-all group"
                     >
                         <Power className="w-4 h-4 group-hover:rotate-90 transition-transform" />
                         Cerrar Sesión
@@ -447,7 +446,7 @@ const AdminDashboard = () => {
                                 <div className="flex justify-end -mt-4 mb-2">
                                     <button 
                                         onClick={downloadOverviewReport} 
-                                        className="flex items-center gap-2 px-6 py-3 bg-indigo-500 text-white rounded-2xl text-[10px] font-black uppercase shadow-lg shadow-indigo-200 hover:scale-105 active:scale-95 transition-all"
+                                        className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-2xl text-[10px] font-black uppercase shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
                                     >
                                         <Download className="w-4 h-4" /> Exportar Análisis General
                                     </button>
@@ -476,8 +475,8 @@ const AdminDashboard = () => {
                                                 <p className="text-slate-400 text-[11px] font-black tracking-widest uppercase mt-1">Registros y Reservas por Mes</p>
                                             </div>
                                             <div className="flex gap-2">
-                                                <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase"> Usuarios</div>
-                                                <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-black uppercase"> Reservas</div>
+                                                <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 text-primary rounded-full text-[10px] font-black uppercase"> Usuarios</div>
+                                                <div className="flex items-center gap-2 px-3 py-1.5 bg-success-light text-success rounded-full text-[10px] font-black uppercase"> Reservas</div>
                                             </div>
                                         </div>
                                         <div className="p-4 flex-1 h-[300px] flex items-end justify-around gap-2 px-8 pb-8">
@@ -491,16 +490,16 @@ const AdminDashboard = () => {
                                                                 <motion.div 
                                                                     initial={{ height: 0 }}
                                                                     animate={{ height: `${(item.count / maxVal) * 100}%` }}
-                                                                    className="w-4 bg-blue-500 rounded-t-lg relative"
+                                                                    className="w-4 bg-primary rounded-t-lg relative"
                                                                 >
-                                                                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-black text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">{item.count} u.</div>
+                                                                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-black text-primary opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">{item.count} u.</div>
                                                                 </motion.div>
                                                                 <motion.div 
                                                                     initial={{ height: 0 }}
                                                                     animate={{ height: `${(bookings / maxVal) * 100}%` }}
-                                                                    className="w-4 bg-emerald-500 rounded-t-lg relative"
+                                                                    className="w-4 bg-success rounded-t-lg relative"
                                                                 >
-                                                                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-black text-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">{bookings} r.</div>
+                                                                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-black text-success opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">{bookings} r.</div>
                                                                 </motion.div>
                                                             </div>
                                                             <div className="text-[10px] font-black text-slate-400 uppercase rotate-45 mt-2 origin-left">{new Date(item.mes + '-01').toLocaleDateString('es-ES', { month: 'short' })}</div>
@@ -521,10 +520,10 @@ const AdminDashboard = () => {
                                                 {recentActivity.map((act, idx) => (
                                                     <div key={idx} className="flex items-start gap-4">
                                                         <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-                                                            act.tipo === 'USER_REG' ? 'bg-blue-50 text-blue-500' :
-                                                            act.tipo === 'PAYMENT' ? 'bg-emerald-50 text-emerald-500' :
-                                                            act.tipo === 'BOOKING' ? 'bg-orange-50 text-orange-500' :
-                                                            'bg-purple-50 text-purple-500'
+                                                            act.tipo === 'USER_REG' ? 'bg-primary/10 text-primary' :
+                                                            act.tipo === 'PAYMENT' ? 'bg-success-light text-success' :
+                                                            act.tipo === 'BOOKING' ? 'bg-warning-light text-warning' :
+                                                            'bg-secondary/10 text-secondary'
                                                         }`}>
                                                             {act.tipo === 'USER_REG' ? <Users className="w-4 h-4" /> : 
                                                              act.tipo === 'PAYMENT' ? <DollarSign className="w-4 h-4" /> : 
@@ -542,7 +541,7 @@ const AdminDashboard = () => {
                                             </div>
                                         </div>
 
-                                        <div className="bg-gradient-to-br from-indigo-600 to-primary rounded-[2.5rem] p-8 text-white shadow-xl shadow-primary/20 relative overflow-hidden group">
+                                        <div className="bg-gradient-to-br from-primary-dark to-primary rounded-[2.5rem] p-8 text-white shadow-xl shadow-primary/20 relative overflow-hidden group">
                                             <Users className="absolute bottom-4 right-4 w-24 h-24 text-white/10 -rotate-12" />
                                             <div className="relative z-10">
                                                 <div className="bg-white/20 w-fit px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest mb-6">Mejor Anfitrión</div>
@@ -605,7 +604,7 @@ const AdminDashboard = () => {
                                         </div>
                                         <button 
                                             onClick={downloadUsersReport} 
-                                            className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-xl text-[10px] font-black uppercase shadow-lg shadow-blue-200 hover:scale-105 active:scale-95 transition-all"
+                                            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-[10px] font-black uppercase shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
                                         >
                                             <Download className="w-4 h-4" /> EXCEL
                                         </button>
@@ -638,7 +637,7 @@ const AdminDashboard = () => {
                                                         </div>
                                                     </td>
                                                     <td className="px-6 py-5 text-sm font-black text-slate-600">
-                                                        <span className={`px-3 py-1 rounded-full text-[10px] uppercase ${u.rol === 'ANFITRION' ? 'bg-purple-50 text-purple-600' : 'bg-blue-50 text-blue-600'}`}>
+                                                        <span className={`px-3 py-1 rounded-full text-[10px] uppercase ${u.rol === 'ANFITRION' ? 'bg-secondary/10 text-secondary' : 'bg-primary/10 text-primary'}`}>
                                                             {u.rol}
                                                         </span>
                                                     </td>
@@ -647,14 +646,14 @@ const AdminDashboard = () => {
                                                             <div className="flex items-center gap-2">
                                                                 {u.verificado ? (
                                                                     <div className="flex items-center gap-2">
-                                                                        <div className="px-3 py-1.5 bg-emerald-50 text-emerald-500 rounded-lg flex items-center gap-2 shadow-md shadow-emerald-200">
+                                                                    <div className="px-3 py-1.5 bg-success-light text-success rounded-lg flex items-center gap-2 shadow-md shadow-success/10">
                                                                             <ShieldCheck className="w-4 h-4" />
                                                                             <span className="text-[10px] font-black uppercase">Verificado</span>
                                                                         </div>
                                                                         <button 
                                                                             onClick={() => toggleVerification(u.id_usuario, u.verificado)}
                                                                             title="Quitar verificación"
-                                                                            className="w-8 h-8 flex items-center justify-center bg-red-50 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-colors"
+                                                                            className="w-8 h-8 flex items-center justify-center bg-danger-light text-danger rounded-lg hover:bg-danger hover:text-white transition-colors"
                                                                         >
                                                                             <X className="w-4 h-4" />
                                                                         </button>
@@ -685,8 +684,8 @@ const AdminDashboard = () => {
                                                         ) : <span className="text-slate-200 font-black">-</span>}
                                                     </td>
                                                     <td className="px-6 py-5">
-                                                        <span className={`flex items-center gap-1.5 text-[10px] font-black uppercase ${u.estado === 'ACTIVO' ? 'text-emerald-500' : 'text-red-500'}`}>
-                                                            <div className={`w-1.5 h-1.5 rounded-full ${u.estado === 'ACTIVO' ? 'bg-emerald-500 animate-pulse' : 'bg-red-50'}`}></div>
+                                                        <span className={`flex items-center gap-1.5 text-[10px] font-black uppercase ${u.estado === 'ACTIVO' ? 'text-success' : 'text-danger'}`}>
+                                                            <div className={`w-1.5 h-1.5 rounded-full ${u.estado === 'ACTIVO' ? 'bg-success animate-pulse' : 'bg-danger-light'}`}></div>
                                                             {u.estado}
                                                         </span>
                                                     </td>
@@ -712,7 +711,7 @@ const AdminDashboard = () => {
                                         <p className="text-slate-400 text-[11px] font-black tracking-widest uppercase mt-1">Control de calidad y disponibilidad</p>
                                     </div>
                                     <div className="flex gap-4">
-                                        <button onClick={downloadCatalogReport} className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-xl text-[10px] font-black uppercase shadow-lg shadow-orange-200 hover:scale-105 active:scale-95 transition-all">
+                                        <button onClick={downloadCatalogReport} className="flex items-center gap-2 px-4 py-2 bg-warning text-white rounded-xl text-[10px] font-black uppercase shadow-lg shadow-warning/20 hover:scale-105 active:scale-95 transition-all">
                                             <Download className="w-4 h-4" /> EXCEL
                                         </button>
                                         <button className="flex items-center gap-2 px-4 py-2 bg-slate-50 text-slate-600 rounded-xl text-xs font-black uppercase">
@@ -742,7 +741,7 @@ const AdminDashboard = () => {
                                                         </div>
                                                     </td>
                                                     <td className="px-6 py-5">
-                                                        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${act.tipo === 'TURISTICA' ? 'bg-orange-50 text-orange-600' : 'bg-purple-50 text-purple-600'}`}>
+                                                        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${act.tipo === 'TURISTICA' ? 'bg-warning-light text-warning' : 'bg-secondary/10 text-secondary'}`}>
                                                             {act.tipo === 'TURISTICA' ? 'Experiencia' : 'Servicio'}
                                                         </span>
                                                     </td>
@@ -753,7 +752,7 @@ const AdminDashboard = () => {
                                                         ${parseFloat(act.precio_cero || act.precio || 0).toFixed(2)}
                                                     </td>
                                                     <td className="px-6 py-5">
-                                                        <span className={`px-3 py-1 rounded-md text-[10px] font-black uppercase ${act.estado === 'ACTIVA' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
+                                                        <span className={`px-3 py-1 rounded-md text-[10px] font-black uppercase ${act.estado === 'ACTIVA' ? 'bg-success-light text-success' : 'bg-danger-light text-danger'}`}>
                                                             {act.estado}
                                                         </span>
                                                     </td>
@@ -761,7 +760,7 @@ const AdminDashboard = () => {
                                                         <button 
                                                             onClick={() => toggleActivityStatus(act.id_actividad, act.tipo, act.estado)}
                                                             className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${
-                                                                act.estado === 'ACTIVA' ? 'bg-orange-50 text-orange-500 hover:bg-orange-500 hover:text-white' : 'bg-emerald-50 text-emerald-500 hover:bg-emerald-500 hover:text-white'
+                                                                act.estado === 'ACTIVA' ? 'bg-warning-light text-warning hover:bg-warning hover:text-white' : 'bg-success-light text-success hover:bg-success hover:text-white'
                                                             }`}
                                                         >
                                                             {act.estado === 'ACTIVA' ? 'Pausar' : 'Activar'}
@@ -790,7 +789,7 @@ const AdminDashboard = () => {
                                     </div>
                                     <button 
                                         onClick={downloadFinancialReport}
-                                        className="flex items-center gap-2 px-6 py-3 bg-emerald-500 text-white rounded-2xl text-[10px] font-black uppercase shadow-lg shadow-emerald-200 hover:scale-105 active:scale-95 transition-all"
+                                        className="flex items-center gap-2 px-6 py-3 bg-success text-white rounded-2xl text-[10px] font-black uppercase shadow-lg shadow-success/20 hover:scale-105 active:scale-95 transition-all"
                                     >
                                         <ArrowUpRight className="w-4 h-4" /> Exportar a EXCEL
                                     </button>
@@ -852,9 +851,9 @@ const AdminDashboard = () => {
                                                         <Award key={i} className={`w-3 h-3 ${i < rev.puntuacion ? 'text-yellow-400 fill-yellow-400' : 'text-slate-200'}`} />
                                                     ))}
                                                 </div>
-                                                <button 
+                                                 <button 
                                                     onClick={() => toggleReviewVisibility(rev.id, rev.tipo, rev.visible)}
-                                                    className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase transition-all ${rev.visible ? 'bg-red-50 text-red-500 hover:bg-red-500 hover:text-white' : 'bg-emerald-50 text-emerald-500 hover:bg-emerald-500 hover:text-white'}`}
+                                                    className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase transition-all ${rev.visible ? 'bg-danger-light text-danger hover:bg-danger hover:text-white' : 'bg-success-light text-success hover:bg-success hover:text-white'}`}
                                                 >
                                                     {rev.visible ? 'Ocultar' : 'Mostrar'}
                                                 </button>
@@ -891,8 +890,8 @@ const AdminDashboard = () => {
                                         <p className="text-slate-400 text-[11px] font-black tracking-widest uppercase mt-1">Ubicación de todas las experiencias y servicios</p>
                                     </div>
                                     <div className="flex gap-4">
-                                        <div className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-[10px] font-black uppercase">
-                                            <div className="w-2 h-2 bg-indigo-600 rounded-full animate-ping"></div> En Vivo
+                                        <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-xl text-[10px] font-black uppercase">
+                                            <div className="w-2 h-2 bg-primary rounded-full animate-ping"></div> En Vivo
                                         </div>
                                     </div>
                                 </div>
@@ -928,7 +927,7 @@ const AdminDashboard = () => {
                                                     setSelectedLocation(act);
                                                 }}
                                             >
-                                                <div className={`p-2 rounded-xl shadow-lg cursor-pointer transform hover:scale-110 transition-transform ${act.tipo === 'TURISTICA' ? 'bg-orange-500 text-white' : 'bg-purple-500 text-white'}`}>
+                                                <div className={`p-2 rounded-xl shadow-lg cursor-pointer transform hover:scale-110 transition-transform ${act.tipo === 'TURISTICA' ? 'bg-warning text-white' : 'bg-secondary text-white'}`}>
                                                     {act.tipo === 'TURISTICA' ? <Activity className="w-4 h-4" /> : <Package className="w-4 h-4" />}
                                                 </div>
                                             </Marker>

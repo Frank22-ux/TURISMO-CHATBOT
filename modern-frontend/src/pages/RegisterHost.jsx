@@ -13,8 +13,8 @@ const Toast = ({ message, type = 'error', onClose }) => (
     exit={{ opacity: 0, y: 20, scale: 0.9 }}
     className={`fixed bottom-10 right-10 z-[100] flex items-center gap-4 px-6 py-4 rounded-3xl shadow-2xl backdrop-blur-xl border ${
       type === 'success' 
-        ? 'bg-green-500/90 border-green-400 text-white' 
-        : 'bg-red-500/90 border-red-400 text-white'
+        ? 'bg-success/90 border-success text-white' 
+        : 'bg-danger/90 border-danger text-white'
     }`}
   >
     {type === 'success' ? <Check className="w-6 h-6" /> : <AlertCircle className="w-6 h-6" />}

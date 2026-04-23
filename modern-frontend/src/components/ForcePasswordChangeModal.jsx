@@ -77,15 +77,15 @@ const ForcePasswordChangeModal = ({ isOpen, onPasswordChanged }) => {
           {/* Body */}
           <form onSubmit={handleSubmit} className="p-8 space-y-6">
             {errorDesc && (
-              <div className="bg-red-50 border border-red-100 p-4 rounded-xl flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
-                <p className="text-sm font-bold text-red-600">{errorDesc}</p>
+              <div className="bg-danger-light border border-danger p-4 rounded-xl flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-danger shrink-0 mt-0.5" />
+                <p className="text-sm font-bold text-danger">{errorDesc}</p>
               </div>
             )}
 
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Contraseña Temporal <span className="text-red-500">*</span></label>
+                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Contraseña Temporal <span className="text-danger">*</span></label>
                 <input 
                   type="password"
                   required
@@ -97,7 +97,7 @@ const ForcePasswordChangeModal = ({ isOpen, onPasswordChanged }) => {
               </div>
               
               <div className="pt-4 border-t border-slate-100">
-                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Nueva Contraseña <span className="text-red-500">*</span></label>
+                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Nueva Contraseña <span className="text-danger">*</span></label>
                 <input 
                   type="password"
                   required
@@ -109,7 +109,7 @@ const ForcePasswordChangeModal = ({ isOpen, onPasswordChanged }) => {
               </div>
 
               <div>
-                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Confirmar Nueva Contraseña <span className="text-red-500">*</span></label>
+                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Confirmar Nueva Contraseña <span className="text-danger">*</span></label>
                 <input 
                   type="password"
                   required

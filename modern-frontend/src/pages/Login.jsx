@@ -96,7 +96,7 @@ const Login = () => {
       </p>
 
       {error && (
-        <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm font-bold border border-red-200 mb-6 flex items-center gap-3 animate-fade-in shadow-sm shadow-red-100">
+        <div className="bg-danger-light text-danger p-4 rounded-xl text-sm font-bold border border-danger-light mb-6 flex items-center gap-3 animate-fade-in shadow-sm shadow-danger/10">
           <AlertCircle className="w-5 h-5 flex-shrink-0" />
           <span>{error}</span>
         </div>
@@ -104,7 +104,7 @@ const Login = () => {
 
       {showReactivation ? (
         <form onSubmit={handleReactivate} className="space-y-6">
-          <div className="bg-orange-50 text-orange-600 p-4 rounded-xl text-sm font-bold border border-orange-200 mb-6">
+          <div className="bg-warning-light text-warning p-4 rounded-xl text-sm font-bold border border-warning mb-6">
             ⚠️ Tu cuenta fue suspendida temporalmente por más de 30 días de inactividad. Revisa tu correo, te enviamos un código de desbloqueo.
           </div>
           <div>
@@ -135,7 +135,7 @@ const Login = () => {
              <button 
                type="submit" 
                disabled={loading || reactivationCode.length < 6}
-               className="flex-1 py-4 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl font-black shadow-xl shadow-orange-500/20 transform hover:-translate-y-1 active:scale-95 transition-all disabled:opacity-50"
+               className="flex-1 py-4 bg-warning hover:bg-warning-dark text-white rounded-2xl font-black shadow-xl shadow-warning/20 transform hover:-translate-y-1 active:scale-95 transition-all disabled:opacity-50"
              >
                {loading ? 'Verificando...' : 'Reactivar'}
              </button>

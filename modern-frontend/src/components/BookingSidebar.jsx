@@ -290,7 +290,7 @@ const BookingSidebar = ({ isOpen, onClose }) => {
                   exit={{ opacity: 0, y: -50, scale: 0.9 }}
                   className="fixed top-0 left-0 right-0 z-[200] flex justify-center px-4 pointer-events-none"
                 >
-                  <div className={`shadow-2xl rounded-2xl px-6 py-4 flex items-center gap-3 backdrop-blur-md border ${toast.type === 'success' ? 'bg-emerald-500/90 border-emerald-400 text-white shadow-emerald-500/30' : 'bg-red-500/90 border-red-400 text-white shadow-red-500/30'}`}>
+                  <div className={`shadow-2xl rounded-2xl px-6 py-4 flex items-center gap-3 backdrop-blur-md border ${toast.type === 'success' ? 'bg-success/90 border-success text-white shadow-success/30' : 'bg-danger/90 border-danger text-white shadow-danger/30'}`}>
                      {toast.type === 'success' ? <CheckCircle2 className="w-6 h-6" /> : <X className="w-6 h-6" />}
                      <p className="font-bold text-sm tracking-wide">{toast.message}</p>
                   </div>
@@ -331,10 +331,10 @@ const BookingSidebar = ({ isOpen, onClose }) => {
                         <h4 className="font-black text-primary-dark uppercase text-xs tracking-widest mb-3 border-b border-slate-100 pb-1">1. Reservas y Pagos</h4>
                         <p>Al confirmar tu pago, el monto total será procesado de forma segura a través de nuestra pasarela de pagos integrada (Kushki). Los fondos se mantendrán en custodia hasta que se complete satisfactoriamente la experiencia garantizando la seguridad de tu inversión.</p>
                       </section>
-                      <section className="bg-red-50/50 p-6 rounded-3xl border border-red-100/50">
-                        <h4 className="font-black text-red-600 uppercase text-xs tracking-widest mb-3">2. Política de Cancelación y Reembolsos</h4>
+                      <section className="bg-danger-light/50 p-6 rounded-3xl border border-danger-light">
+                        <h4 className="font-black text-danger uppercase text-xs tracking-widest mb-3">2. Política de Cancelación y Reembolsos</h4>
                         <p className="font-bold text-slate-700 mb-3">
-                          Se devolverá únicamente el <span className="text-red-600">30% del total</span> de la experiencia en caso de cancelación por cualquier motivo.
+                          Se devolverá únicamente el <span className="text-danger">30% del total</span> de la experiencia en caso de cancelación por cualquier motivo.
                         </p>
                         <p className="text-sm font-medium text-slate-600">
                           Solo por factores externos comprobables se podrá solicitar una reprogramación de la fecha, sujeto a disponibilidad del anfitrión.
@@ -388,12 +388,12 @@ const BookingSidebar = ({ isOpen, onClose }) => {
                     exit={{ opacity: 0, y: -20 }}
                     className={`mb-8 p-6 rounded-[2.5rem] border-2 border-dashed flex items-center justify-between transition-all ${
                       selectedItems.length >= 2 
-                        ? 'bg-emerald-50 border-emerald-200 text-emerald-800' 
-                        : 'bg-amber-50 border-amber-200 text-amber-800'
+                        ? 'bg-success-light border-success text-success' 
+                        : 'bg-warning-light border-warning text-warning'
                     }`}
                   >
                     <div className="flex items-center gap-4">
-                       <div className={`p-3 rounded-2xl ${selectedItems.length >= 2 ? 'bg-emerald-500' : 'bg-amber-500'} text-white shadow-lg`}>
+                       <div className={`p-3 rounded-2xl ${selectedItems.length >= 2 ? 'bg-success' : 'bg-warning'} text-white shadow-lg`}>
                           <Sparkle className="w-5 h-5" />
                        </div>
                        <div>
@@ -410,7 +410,7 @@ const BookingSidebar = ({ isOpen, onClose }) => {
                        </div>
                     </div>
                     {selectedItems.length >= 2 && (
-                       <CheckCircle2 className="w-6 h-6 text-emerald-500" />
+                       <CheckCircle2 className="w-6 h-6 text-success" />
                     )}
                   </motion.div>
                 )}
@@ -436,7 +436,7 @@ const BookingSidebar = ({ isOpen, onClose }) => {
                         <div className="flex justify-between items-start mb-1">
                           <h3 className="text-lg font-black text-primary-dark line-clamp-1">{item.titulo}</h3>
                           {selectedItems.length >= 2 && hostDiscount > 0 && (
-                             <span className="px-2 py-1 rounded-lg bg-emerald-500 text-white text-[9px] font-black uppercase tracking-tighter shadow-md animate-pulse">
+                             <span className="px-2 py-1 rounded-lg bg-success text-white text-[9px] font-black uppercase tracking-tighter shadow-md animate-pulse">
                                -{hostDiscount}% Combo
                              </span>
                           )}
@@ -483,7 +483,7 @@ const BookingSidebar = ({ isOpen, onClose }) => {
                         }
                       />
                       {dates[item.id] && (
-                        <div className={`p-4 rounded-2xl flex items-center gap-3 text-xs font-bold border transition-all ${capacities[item.id] === 0 ? 'bg-red-50 text-red-700 border-red-100 animate-pulse' : 'bg-emerald-50 text-emerald-700 border-emerald-100'}`}>
+                        <div className={`p-4 rounded-2xl flex items-center gap-3 text-xs font-bold border transition-all ${capacities[item.id] === 0 ? 'bg-danger-light text-danger border-danger-light animate-pulse' : 'bg-success-light text-success border-success-light'}`}>
                            {capacities[item.id] === 0 ? <X className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
                            {loadingCapacities[item.id] ? 'Consultando...' : capacities[item.id] === 0 ? '¡Sin cupos para esta fecha!' : `${capacities[item.id] || 0} cupos disponibles`}
                         </div>
@@ -569,7 +569,7 @@ const BookingSidebar = ({ isOpen, onClose }) => {
 
                         {(guestCounts[item.id]?.seniors > 0) && (
                           <div className="pt-2">
-                             <p className="text-[9px] font-bold text-amber-700 bg-amber-50 p-3 rounded-xl border border-amber-100 flex items-center gap-2">
+                             <p className="text-[9px] font-bold text-warning bg-warning-light p-3 rounded-xl border border-warning flex items-center gap-2">
                                <Shield className="w-3 h-3 shrink-0" /> Requiere acreditación
                              </p>
                           </div>
@@ -626,25 +626,25 @@ const BookingSidebar = ({ isOpen, onClose }) => {
                     </div>
                     
                     {priceDetails.discount > 0 && (
-                      <div className="p-4 bg-emerald-500/10 rounded-2xl border border-emerald-500/20 my-4 flex justify-between items-center group relative overflow-hidden">
-                        <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/0 to-emerald-500/5 group-hover:translate-x-full transition-transform duration-1000" />
+                      <div className="p-4 bg-success/10 rounded-2xl border border-success/20 my-4 flex justify-between items-center group relative overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-r from-success to-success/5 group-hover:translate-x-full transition-transform duration-1000" />
                         <div className="flex items-center gap-3">
-                           <div className="w-8 h-8 rounded-xl bg-emerald-500 flex items-center justify-center text-white shadow-xl shadow-emerald-500/20">
+                           <div className="w-8 h-8 rounded-xl bg-success flex items-center justify-center text-white shadow-xl shadow-success/20">
                               <Sparkle className="w-4 h-4" />
                            </div>
                            <div>
-                              <p className="text-[9px] font-black text-emerald-400 uppercase tracking-widest">Ahorro por Paquete ISTPET</p>
+                              <p className="text-[9px] font-black text-success uppercase tracking-widest">Ahorro por Paquete ISTPET</p>
                               <p className="text-xs font-bold text-white">Descuento del {hostDiscount}% aplicado</p>
                            </div>
                         </div>
-                        <span className="text-lg font-black text-emerald-400">-${priceDetails.discount.toFixed(2)}</span>
+                        <span className="text-lg font-black text-success">-${priceDetails.discount.toFixed(2)}</span>
                       </div>
                     )}
 
                     <div className="flex justify-between text-sm items-center">
-                        <span className="opacity-50 text-emerald-400">15% IVA (Incluido)</span>
+                        <span className="opacity-50 text-success">15% IVA (Incluido)</span>
                         <div className="h-px flex-grow mx-4 bg-white/5" />
-                        <span className="font-bold text-emerald-400">${priceDetails.iva.toFixed(2)}</span>
+                        <span className="font-bold text-success">${priceDetails.iva.toFixed(2)}</span>
                     </div>
                   </div>
                   

@@ -32,7 +32,7 @@ const ActivityCard = ({ activity, onOpenDetail, onOpenBooking }) => (
         {activity.tipo === 'TURISTICA' ? 'Experiencia' : 'Servicio'}
       </span>
       {activity.precio_oferta && (
-        <span className="absolute top-4 left-4 bg-emerald-500 text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg z-10 animate-pulse">
+        <span className="absolute top-4 left-4 bg-success text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg z-10 animate-pulse">
           OFERTA -{Math.round((1 - (activity.precio_oferta / activity.original_price)) * 100)}%
         </span>
       )}
@@ -66,7 +66,7 @@ const ActivityCard = ({ activity, onOpenDetail, onOpenBooking }) => (
               )}
               <span className="text-xs font-normal text-slate-400">/ pers</span>
             </div>
-            <span className="text-[9px] font-black uppercase text-emerald-600 tracking-tighter mt-[-2px]">15% IVA Incluido</span>
+            <span className="text-[9px] font-black uppercase text-success tracking-tighter mt-[-2px]">15% IVA Incluido</span>
           </div>
           <button 
             onClick={async () => {
@@ -348,21 +348,21 @@ const Home = () => {
                              setInfoModal({ isOpen: false, title: '', content: '' });
                              setRadius(20);
                              fetchActivities({ ...filters, radius: 20 });
-                         }} className="px-6 py-3 bg-secondary/10 text-secondary font-bold rounded-xl hover:bg-secondary hover:text-white transition-all shadow-sm text-sm">20 km</button>
+                         }} className="px-6 py-3 bg-secondary/10 text-primary font-bold rounded-xl hover:bg-secondary hover:text-white transition-all shadow-sm text-sm">20 km</button>
                        )}
                        {currentRadius < 30 && (
                          <button onClick={() => {
                              setInfoModal({ isOpen: false, title: '', content: '' });
                              setRadius(30);
                              fetchActivities({ ...filters, radius: 30 });
-                         }} className="px-6 py-3 bg-secondary/10 text-secondary font-bold rounded-xl hover:bg-secondary hover:text-white transition-all shadow-sm text-sm">30 km</button>
+                         }} className="px-6 py-3 bg-secondary/10 text-primary font-bold rounded-xl hover:bg-secondary hover:text-white transition-all shadow-sm text-sm">30 km</button>
                        )}
                        {currentRadius < 50 && (
                          <button onClick={() => {
                              setInfoModal({ isOpen: false, title: '', content: '' });
                              setRadius(50);
                              fetchActivities({ ...filters, radius: 50 });
-                         }} className="px-6 py-3 bg-secondary/10 text-secondary font-bold rounded-xl hover:bg-secondary hover:text-white transition-all shadow-sm text-sm">50 km</button>
+                         }} className="px-6 py-3 bg-secondary/10 text-primary font-bold rounded-xl hover:bg-secondary hover:text-white transition-all shadow-sm text-sm">50 km</button>
                        )}
                        <button onClick={() => {
                            setInfoModal({ isOpen: false, title: '', content: '' });
@@ -618,8 +618,8 @@ const Home = () => {
                     disabled={isLocating}
                     className={`p-3 rounded-xl transition-all shadow-sm flex items-center justify-center relative ${
                       searchQuery === 'Mi Ubicación Actual' 
-                        ? 'bg-emerald-100 text-emerald-600' 
-                        : 'bg-secondary/10 text-secondary hover:bg-secondary hover:text-white'
+                        ? 'bg-success-light text-success' 
+                        : 'bg-secondary/10 text-primary hover:bg-secondary hover:text-white'
                     }`}
                     title="Usar mi ubicación actual"
                   >
@@ -793,7 +793,7 @@ const Home = () => {
                         setSearchParams({ category: 'experiencias' });
                         fetchActivities({ ...{searchQuery, lat, lng, radius, adults, childrenCount}, limit: null });
                       }}
-                      className="px-6 py-3 bg-secondary/10 text-secondary font-bold rounded-xl hover:bg-secondary hover:text-white transition-all shadow-sm flex items-center gap-2"
+                      className="px-6 py-3 bg-secondary/10 text-primary font-bold rounded-xl hover:bg-secondary hover:text-white transition-all shadow-sm flex items-center gap-2"
                     >
                       Ver todas las Experiencias <ArrowRight className="w-4 h-4" />
                     </button>

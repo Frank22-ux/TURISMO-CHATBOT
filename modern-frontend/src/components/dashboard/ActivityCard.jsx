@@ -13,7 +13,7 @@ const ActivityCard = ({ activity, onView, onEdit, onDelete, onToggleStatus }) =>
         />
         <div className="absolute top-4 left-4">
           <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg ${
-            isActive ? 'bg-green-500 text-white' : 'bg-amber-500 text-white'
+            isActive ? 'bg-success text-white' : 'bg-warning text-white'
           }`}>
             {activity.estado}
           </span>
@@ -24,10 +24,10 @@ const ActivityCard = ({ activity, onView, onEdit, onDelete, onToggleStatus }) =>
           <button onClick={() => onView(activity)} title="Ver" className="p-3 bg-white text-slate-800 rounded-2xl hover:bg-primary hover:text-white transition-all scale-90 group-hover:scale-100">
             <Eye className="w-5 h-5" />
           </button>
-          <button onClick={() => onEdit(activity)} title="Editar" className="p-3 bg-white text-slate-800 rounded-2xl hover:bg-blue-500 hover:text-white transition-all scale-90 delay-75 group-hover:scale-100">
+          <button onClick={() => onEdit(activity)} title="Editar" className="p-3 bg-white text-slate-800 rounded-2xl hover:bg-primary hover:text-white transition-all scale-90 delay-75 group-hover:scale-100">
             <Pencil className="w-5 h-5" />
           </button>
-          <button onClick={() => onDelete(activity)} title="Eliminar" className="p-3 bg-white text-slate-800 rounded-2xl hover:bg-red-500 hover:text-white transition-all scale-90 delay-150 group-hover:scale-100">
+          <button onClick={() => onDelete(activity)} title="Eliminar" className="p-3 bg-white text-slate-800 rounded-2xl hover:bg-danger hover:text-white transition-all scale-90 delay-150 group-hover:scale-100">
             <Trash2 className="w-5 h-5" />
           </button>
         </div>
@@ -60,8 +60,8 @@ const ActivityCard = ({ activity, onView, onEdit, onDelete, onToggleStatus }) =>
             onClick={() => onToggleStatus(activity)}
             className={`flex items-center gap-2 px-6 py-2.5 rounded-2xl text-xs font-black transition-all ${
               isActive 
-              ? 'bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white' 
-              : 'bg-green-50 text-green-600 hover:bg-green-500 hover:text-white'
+              ? 'bg-warning-light text-warning hover:bg-warning hover:text-white' 
+              : 'bg-success-light text-success hover:bg-success hover:text-white'
             }`}
           >
             {isActive ? <><Pause className="w-4 h-4" /> Pausar</> : <><Play className="w-4 h-4" /> Activar</>}

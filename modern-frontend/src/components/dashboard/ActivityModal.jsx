@@ -9,7 +9,7 @@ import { ChevronDown } from 'lucide-react';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 const Map = MAPBOX_TOKEN ? MapboxMap : ({ children, style, className }) => (
-    <div style={style} className={`bg-slate-100 border border-red-200 flex flex-col items-center justify-center p-6 text-center text-red-500 rounded-[2rem] ${className || ''}`}>
+    <div style={style} className={`bg-slate-100 border border-danger/20 flex flex-col items-center justify-center p-6 text-center text-danger rounded-[2rem] ${className || ''}`}>
         <span className="font-black text-lg mb-2">Error de Mapbox</span>
         <span className="text-sm font-bold text-slate-500">El token VITE_MAPBOX_ACCESS_TOKEN no está configurado.</span>
     </div>
@@ -410,7 +410,7 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
             </div>
           </div>
           
-          <button type="button" onClick={onClose} className="p-4 bg-white text-slate-400 rounded-2xl hover:bg-red-50 hover:text-red-500 transition-all shadow-sm border border-slate-100">
+          <button type="button" onClick={onClose} className="p-4 bg-white text-slate-400 rounded-2xl hover:bg-danger-light hover:text-danger transition-all shadow-sm border border-slate-100">
             <X className="w-6 h-6" />
           </button>
         </div>
@@ -629,33 +629,33 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
 
                       {/* Offer Fields - Only visible on Edit */}
                       {initialData && (
-                        <div className="p-6 bg-emerald-50 rounded-3xl border border-emerald-100 space-y-4">
+                        <div className="p-6 bg-success-light rounded-3xl border border-success space-y-4">
                           <div className="flex items-center gap-2 mb-2">
-                            <Tag className="w-4 h-4 text-emerald-600" />
-                            <h4 className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">Oferta Especial</h4>
+                            <Tag className="w-4 h-4 text-success" />
+                            <h4 className="text-[10px] font-black text-success uppercase tracking-widest">Oferta Especial</h4>
                           </div>
                           <div className="grid grid-cols-1 gap-4">
                             <div className="space-y-1">
-                              <label className="text-[9px] font-black text-emerald-600/60 uppercase tracking-widest ml-1">Precio Rebajado</label>
+                              <label className="text-[9px] font-black text-success uppercase tracking-widest ml-1">Precio Rebajado</label>
                               <input 
                                 type="number"
                                 placeholder="Ej: 29.99"
                                 value={formData.precio_oferta || ''}
                                 onChange={(e) => setFormData({...formData, precio_oferta: e.target.value})}
-                                className="w-full px-4 py-3 bg-white border border-emerald-100 rounded-2xl text-sm font-bold focus:border-emerald-500 outline-none transition-all"
+                                className="w-full px-4 py-3 bg-white border border-success-light rounded-2xl text-sm font-bold focus:border-success outline-none transition-all"
                               />
                             </div>
                             <div className="space-y-1 relative">
-                              <label className="text-[9px] font-black text-emerald-600/60 uppercase tracking-widest ml-1">Fecha de Fin</label>
+                              <label className="text-[9px] font-black text-success uppercase tracking-widest ml-1">Fecha de Fin</label>
                               <button 
                                 type="button"
                                 onClick={() => setShowCalendar(!showCalendar)}
-                                className="w-full px-4 py-3 bg-white border border-emerald-100 rounded-2xl text-sm font-bold flex items-center justify-between outline-none"
+                                className="w-full px-4 py-3 bg-white border border-success-light rounded-2xl text-sm font-bold flex items-center justify-between outline-none"
                               >
                                 <span className={formData.fecha_fin_oferta ? "text-slate-800" : "text-slate-300"}>
                                   {formData.fecha_fin_oferta ? formData.fecha_fin_oferta : "Seleccionar..."}
                                 </span>
-                                <ChevronDown className={`w-4 h-4 text-emerald-400 transition-transform ${showCalendar ? 'rotate-180' : ''}`} />
+                                <ChevronDown className={`w-4 h-4 text-success transition-transform ${showCalendar ? 'rotate-180' : ''}`} />
                               </button>
 
                               <AnimatePresence>
@@ -708,7 +708,7 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
                         ) : (
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                              <div className="w-5 h-5 flex items-center justify-center text-orange-500 font-black">🔥</div>
+                              <div className="w-5 h-5 flex items-center justify-center text-warning font-black">🔥</div>
                               <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Picante (0-5)</span>
                             </div>
                             <input 
@@ -910,11 +910,11 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
                         className="w-full p-4 rounded-2xl bg-slate-50 border border-slate-100 outline-none font-bold text-sm focus:bg-white transition-all shadow-sm"
                       />
                       <div className="space-y-4 pt-4 border-t border-slate-100">
-                        <label className="text-[10px] font-black text-amber-500 uppercase tracking-widest ml-1 flex items-center gap-2">
+                        <label className="text-[10px] font-black text-warning uppercase tracking-widest ml-1 flex items-center gap-2">
                           <Flag className="w-3 h-3" /> Punto de Encuentro (Visible solo tras el pago)
                         </label>
                         
-                        <div className="h-56 rounded-[32px] overflow-hidden border-4 border-amber-50 shadow-inner relative">
+                        <div className="h-56 rounded-[32px] overflow-hidden border-4 border-warning-light shadow-inner relative">
                           <Map
                             {...meetingViewState}
                             onMove={evt => setMeetingViewState(evt.viewState)}
@@ -958,13 +958,13 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
                                   }
                                 }}
                               >
-                                <div className="w-10 h-10 bg-amber-500 rounded-full border-4 border-white shadow-2xl flex items-center justify-center cursor-grab active:cursor-grabbing transition-transform hover:scale-110">
+                                <div className="w-10 h-10 bg-warning rounded-full border-4 border-white shadow-2xl flex items-center justify-center cursor-grab active:cursor-grabbing transition-transform hover:scale-110">
                                   <Flag className="w-5 h-5 text-white" />
                                 </div>
                               </Marker>
                             )}
                           </Map>
-                          <div className="absolute bottom-4 left-4 right-4 bg-white/80 backdrop-blur-md p-3 rounded-2xl text-[10px] font-black uppercase text-center text-amber-600 shadow-lg pointer-events-none">
+                          <div className="absolute bottom-4 left-4 right-4 bg-white/80 backdrop-blur-md p-3 rounded-2xl text-[10px] font-black uppercase text-center text-warning shadow-lg pointer-events-none">
                             Haz clic para establecer el punto de encuentro exacto
                           </div>
                         </div>
@@ -974,13 +974,13 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
                           placeholder="Instrucciones precisas de dónde encontrarse (ej: En la puerta principal del hotel X, frente a la estatua Y)" 
                           value={formData.punto_encuentro || ''}
                           onChange={(e) => setFormData({...formData, punto_encuentro: e.target.value})}
-                          className="w-full p-4 rounded-2xl bg-amber-50/30 border border-amber-100 outline-none font-bold text-sm focus:border-amber-400 transition-all shadow-sm resize-none"
+                          className="w-full p-4 rounded-2xl bg-warning-light/30 border border-warning-light outline-none font-bold text-sm focus:border-warning transition-all shadow-sm resize-none"
                         ></textarea>
                         
                         <input 
                           type="text" placeholder="Dirección del punto de encuentro" value={formData.direccion_encuentro || ''}
                           onChange={(e) => setFormData({...formData, direccion_encuentro: e.target.value})}
-                          className="w-full p-4 rounded-2xl bg-amber-50/50 border border-amber-100 outline-none font-bold text-sm focus:bg-white transition-all shadow-sm text-amber-900 placeholder:text-amber-300"
+                          className="w-full p-4 rounded-2xl bg-warning-light/50 border border-warning-light outline-none font-bold text-sm focus:bg-white transition-all shadow-sm text-slate-800 placeholder:text-warning"
                         />
                       </div>
                     </div>
@@ -1045,7 +1045,7 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
                             <button 
                               type="button"
                               onClick={() => removeGalleryImage(idx)}
-                              className="absolute inset-0 bg-red-500/80 text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                              className="absolute inset-0 bg-danger/80 text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
                             >
                               <X className="w-5 h-5" />
                             </button>

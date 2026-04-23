@@ -77,7 +77,7 @@ const NotificationBell = ({ role, onNavigate }) => {
         className="p-3 bg-white rounded-xl border border-slate-100 shadow-sm text-slate-800 hover:text-primary relative transition-colors focus:ring-2 focus:ring-primary/20"
       >
         <Bell className="w-5 h-5 animate-wiggle" />
-        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-black w-5 h-5 flex items-center justify-center rounded-full shadow-lg ring-4 ring-white">
+        <span className="absolute -top-2 -right-2 bg-danger text-white text-[10px] font-black w-5 h-5 flex items-center justify-center rounded-full shadow-lg ring-4 ring-white">
           {notifications.total}
         </span>
       </button>
@@ -98,7 +98,7 @@ const NotificationBell = ({ role, onNavigate }) => {
       >
         <div className="px-5 mb-3 border-b border-slate-50 pb-3 flex justify-between items-center">
           <h4 className="font-black text-slate-800">Notificaciones</h4>
-          <span className="text-[10px] bg-red-100 text-red-600 font-black px-2 py-0.5 rounded-full">{notifications.total} Nuevas</span>
+          <span className="text-[10px] bg-danger-light text-danger font-black px-2 py-0.5 rounded-full">{notifications.total} Nuevas</span>
         </div>
         
         <div className="max-h-96 overflow-y-auto px-3 space-y-1">
@@ -109,7 +109,7 @@ const NotificationBell = ({ role, onNavigate }) => {
               onClick={() => handleMessageClick(msg)}
               className="w-full flex items-start gap-3 p-3 rounded-2xl hover:bg-slate-50 transition-colors text-left"
             >
-               <div className="mt-1 w-8 h-8 rounded-full bg-blue-100 text-blue-500 flex items-center justify-center shrink-0">
+               <div className="mt-1 w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
                  <MessageSquare className="w-4 h-4" />
                </div>
                <div className="overflow-hidden">
@@ -124,8 +124,8 @@ const NotificationBell = ({ role, onNavigate }) => {
 
           {/* Fallback si hay mensajes pero no details (muy raro) */}
           {notifications.unreadMessages > 0 && (!notifications.messageDetails || notifications.messageDetails.length === 0) && (
-            <button onClick={() => onNavigate && onNavigate(role === 'TURISTA' ? 'messages' : 'messaging')} className="w-full flex items-center gap-3 p-3 rounded-2xl bg-blue-50/50 hover:bg-blue-50 transition-colors text-left">
-              <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+            <button onClick={() => onNavigate && onNavigate(role === 'TURISTA' ? 'messages' : 'messaging')} className="w-full flex items-center gap-3 p-3 rounded-2xl bg-primary/5 hover:bg-primary/10 transition-colors text-left">
+              <div className="w-2 h-2 rounded-full bg-primary"></div>
               <p className="font-bold text-slate-700 text-sm">Tienes {notifications.unreadMessages} mensaje{notifications.unreadMessages !== 1 ? 's' : ''} sin leer.</p>
             </button>
           )}
@@ -137,7 +137,7 @@ const NotificationBell = ({ role, onNavigate }) => {
               onClick={handleReservationClick}
               className="w-full flex items-start gap-3 p-3 rounded-2xl hover:bg-slate-50 transition-colors text-left"
             >
-               <div className="mt-1 w-8 h-8 rounded-full bg-orange-100 text-orange-500 flex items-center justify-center shrink-0">
+               <div className="mt-1 w-8 h-8 rounded-full bg-warning-light text-warning flex items-center justify-center shrink-0">
                  <CalendarClock className="w-4 h-4" />
                </div>
                <div className="overflow-hidden">
@@ -152,8 +152,8 @@ const NotificationBell = ({ role, onNavigate }) => {
 
           {/* Fallback si hay reservas pero no details */}
           {notifications.pendingReservations > 0 && (!notifications.reservationDetails || notifications.reservationDetails.length === 0) && (
-            <button onClick={handleReservationClick} className="w-full flex items-center gap-3 p-3 rounded-2xl bg-orange-50/50 hover:bg-orange-50 transition-colors text-left">
-              <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></div>
+            <button onClick={handleReservationClick} className="w-full flex items-center gap-3 p-3 rounded-2xl bg-warning-light/50 hover:bg-warning-light transition-colors text-left">
+              <div className="w-2 h-2 rounded-full bg-warning animate-pulse"></div>
               <p className="font-bold text-slate-700 text-sm">{notifications.pendingReservations} reserva{notifications.pendingReservations !== 1 ? 's' : ''} pendiente{notifications.pendingReservations !== 1 ? 's' : ''}.</p>
             </button>
           )}

@@ -126,14 +126,14 @@ export const CartProvider = ({ children }) => {
                initial={{ scale: 0.9, opacity: 0, y: 20 }}
                animate={{ scale: 1, opacity: 1, y: 0 }}
                exit={{ scale: 0.9, opacity: 0, y: 20 }}
-               className="relative bg-white rounded-[2.5rem] p-8 max-w-md w-full shadow-2xl flex flex-col items-center text-center border-2 border-amber-100"
+               className="relative bg-white rounded-[2.5rem] p-8 max-w-md w-full shadow-2xl flex flex-col items-center text-center border-2 border-warning-light"
              >
-                <div className="w-16 h-16 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center mb-6 shadow-inner">
+                <div className="w-16 h-16 bg-warning-light text-warning rounded-full flex items-center justify-center mb-6 shadow-inner">
                    <AlertTriangle className="w-8 h-8" />
                 </div>
                 <h3 className="text-2xl font-black text-primary-dark mb-4 leading-tight">¿Cambiar Anfitrión?</h3>
                 <p className="text-slate-500 font-medium mb-8 text-sm">
-                   Solo puedes separar experiencias de <span className="font-bold text-slate-700">un mismo anfitrión</span> por paquete. Si continúas, <span className="font-bold text-red-500">se vaciará tu carrito actual</span> y se añadirá esta nueva experiencia.
+                   Solo puedes separar experiencias de <span className="font-bold text-slate-700">un mismo anfitrión</span> por paquete. Si continúas, <span className="font-bold text-danger">se vaciará tu carrito actual</span> y se añadirá esta nueva experiencia.
                 </p>
                 <div className="flex gap-4 w-full">
                    <button 
@@ -144,7 +144,7 @@ export const CartProvider = ({ children }) => {
                    </button>
                    <button 
                      onClick={confirmHostOverride}
-                     className="flex-1 py-4 bg-amber-500 hover:bg-amber-600 text-white font-black rounded-2xl shadow-lg hover:shadow-amber-500/30 transition-all active:scale-95"
+                     className="flex-1 py-4 bg-warning hover:bg-warning-dark text-white font-black rounded-2xl shadow-lg hover:shadow-warning/30 transition-all active:scale-95"
                    >
                      Sí, Cambiar
                    </button>
