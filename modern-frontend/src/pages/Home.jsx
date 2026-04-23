@@ -326,11 +326,11 @@ const Home = () => {
   };
 
   const experienciasData = useMemo(() => activities.filter(a => a.tipo === 'TURISTICA'), [activities]);
-  const serviciosData = useMemo(() => activities.filter(a => a.tipo === 'ALIMENTARIA'), [activities]);
-
+  const serviciosData = useMemo(() => activities.filter(a => a.tipo === 'ALIMENTARIA'), [activities]);  // Función de fetch base (no maneja loading state cuando se llama por tipo)
   const fetchActivities = async (filters = {}, skipModal = false) => {
+    const isCategoryFetch = !!filters.type; // Si viene con tipo, es una sub-fetch
+    if (!isCategoryFetch) setLoading(true);
     try {
-      setLoading(true);
       const params = new URLSearchParams();
       if (filters.city) params.append('city', filters.city);
       if (filters.province) params.append('province', filters.province);
@@ -344,90 +344,74 @@ const Home = () => {
       }
       
       const guestsTotal = (filters.adults || 1) + (filters.childrenCount || 0);
-      if (guestsTotal > 1) {
-        params.append('guests', guestsTotal);
-      }
+      if (guestsTotal > 1) params.append('guests', guestsTotal);
       
-      // Set limit for recommendations
+      // Limit: si se pasa explicitamente null/false, no limitar
       if (filters.limit !== undefined) {
          if (filters.limit) params.append('limit', filters.limit);
       } else {
          params.append('limit', 10);
       }
 
+      console.log(`[Frontend-Fetch] URL: ${API_BASE}/api/activities?${params.toString()}`);
+
       const response = await fetch(`${API_BASE}/api/activities?${params.toString()}`);
-      if (response.ok) {
-        const data = await response.json();
-        if (!filters.type) { 
-           setActivities(data);
-        }
-        
-        // Custom notification for empty location results
-        if (data.length === 0 && filters.lat && filters.lng && !skipModal) {
-           const currentRadius = filters.radius || 10;
-           setInfoModal({
-              isOpen: true,
-              title: 'Sin resultados cercanos',
-              content: (
-                 <div className="flex flex-col gap-6 items-center justify-center py-2 text-center">
-                    <p className="text-slate-600">No encontramos experiencias o servicios a menos de <span className="font-bold text-slate-800">{currentRadius} km</span> de tu ubicación.</p>
-                    <p className="text-slate-800 font-bold mb-2">¿Deseas ampliar el radio de búsqueda o ver todas las opciones?</p>
-                    <div className="flex flex-wrap gap-3 justify-center w-full">
-                       {currentRadius < 20 && (
-                         <button onClick={() => {
-                             setInfoModal({ isOpen: false, title: '', content: '' });
-                             setRadius(20);
-                             fetchActivities({ ...filters, radius: 20 });
-                         }} className="px-6 py-3 bg-secondary/10 text-primary font-bold rounded-xl hover:bg-secondary hover:text-white transition-all shadow-sm text-sm">20 km</button>
-                       )}
-                       {currentRadius < 30 && (
-                         <button onClick={() => {
-                             setInfoModal({ isOpen: false, title: '', content: '' });
-                             setRadius(30);
-                             fetchActivities({ ...filters, radius: 30 });
-                         }} className="px-6 py-3 bg-secondary/10 text-primary font-bold rounded-xl hover:bg-secondary hover:text-white transition-all shadow-sm text-sm">30 km</button>
-                       )}
-                       {currentRadius < 50 && (
-                         <button onClick={() => {
-                             setInfoModal({ isOpen: false, title: '', content: '' });
-                             setRadius(50);
-                             fetchActivities({ ...filters, radius: 50 });
-                         }} className="px-6 py-3 bg-secondary/10 text-primary font-bold rounded-xl hover:bg-secondary hover:text-white transition-all shadow-sm text-sm">50 km</button>
-                       )}
-                       <button onClick={() => {
-                           setInfoModal({ isOpen: false, title: '', content: '' });
-                           setSearchQuery('');
-                           setLat(null);
-                           setLng(null);
-                           fetchActivities({ ...filters, lat: null, lng: null, searchQuery: '', limit: null });
-                       }} className="px-6 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-all shadow-sm text-sm">Ver todas</button>
-                    </div>
-                 </div>
-              )
-           });
-        } else if (data.length === 0 && filters.searchQuery && filters.searchQuery !== 'Mi Ubicación Actual') {
-           setInfoModal({
-              isOpen: true,
-              title: 'Aún no llegamos aquí',
-              content: (
-                 <div className="flex flex-col gap-6 items-center justify-center py-2 text-center">
-                    <p className="text-slate-600">Actualmente no contamos con experiencias o servicios registrados en <span className="font-bold text-slate-800">{filters.searchQuery}</span>.</p>
-                    <p className="text-slate-800 font-bold mb-2">¡Pronto expandiremos nuestros destinos! Mientras tanto...</p>
-                    <button onClick={() => {
-                        setInfoModal({ isOpen: false, title: '', content: '' });
-                        setSearchQuery('');
-                        fetchActivities({ ...filters, searchQuery: '' });
-                    }} className="px-6 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-all shadow-sm text-sm">Explora otras opciones</button>
-                 </div>
-              )
-           });
-        }
-        return data;
+      if (!response.ok) {
+        console.error('[Frontend-Fetch] Error de respuesta:', response.status);
+        return [];
       }
+      const data = await response.json();
+      console.log(`[Frontend-Fetch] Recibidos ${data.length} resultados (type=${filters.type || 'ALL'})`);
+      
+      // Solo actualiza el estado global si es una búsqueda unificada (no por tipo)
+      if (!isCategoryFetch) {
+         setActivities(data);
+      }
+      
+      // Modales de sin resultados (solo para búsquedas con coordenadas)
+      if (data.length === 0 && filters.lat && filters.lng && !skipModal) {
+         const currentRadius = filters.radius || 10;
+         setInfoModal({
+            isOpen: true,
+            title: 'Sin resultados cercanos',
+            content: (
+               <div className="flex flex-col gap-6 items-center justify-center py-2 text-center">
+                  <p className="text-slate-600">No encontramos experiencias o servicios a menos de <span className="font-bold text-slate-800">{currentRadius} km</span> de tu ubicación.</p>
+                  <p className="text-slate-800 font-bold mb-2">¿Deseas ampliar el radio de búsqueda o ver todas las opciones?</p>
+                  <div className="flex flex-wrap gap-3 justify-center w-full">
+                     {currentRadius < 20 && (
+                       <button onClick={() => { setInfoModal({ isOpen: false, title: '', content: '' }); setRadius(20); fetchActivities({ ...filters, radius: 20 }); }} className="px-6 py-3 bg-secondary/10 text-primary font-bold rounded-xl hover:bg-secondary hover:text-white transition-all shadow-sm text-sm">20 km</button>
+                     )}
+                     {currentRadius < 30 && (
+                       <button onClick={() => { setInfoModal({ isOpen: false, title: '', content: '' }); setRadius(30); fetchActivities({ ...filters, radius: 30 }); }} className="px-6 py-3 bg-secondary/10 text-primary font-bold rounded-xl hover:bg-secondary hover:text-white transition-all shadow-sm text-sm">30 km</button>
+                     )}
+                     {currentRadius < 50 && (
+                       <button onClick={() => { setInfoModal({ isOpen: false, title: '', content: '' }); setRadius(50); fetchActivities({ ...filters, radius: 50 }); }} className="px-6 py-3 bg-secondary/10 text-primary font-bold rounded-xl hover:bg-secondary hover:text-white transition-all shadow-sm text-sm">50 km</button>
+                     )}
+                     <button onClick={() => { setInfoModal({ isOpen: false, title: '', content: '' }); setSearchQuery(''); setLat(null); setLng(null); fetchActivities({ ...filters, lat: null, lng: null, searchQuery: '', limit: null }); }} className="px-6 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-all shadow-sm text-sm">Ver todas</button>
+                  </div>
+               </div>
+            )
+         });
+      } else if (data.length === 0 && filters.searchQuery && filters.searchQuery !== 'Mi Ubicación Actual') {
+         setInfoModal({
+            isOpen: true,
+            title: 'Aún no llegamos aquí',
+            content: (
+               <div className="flex flex-col gap-6 items-center justify-center py-2 text-center">
+                  <p className="text-slate-600">Actualmente no contamos con experiencias o servicios registrados en <span className="font-bold text-slate-800">{filters.searchQuery}</span>.</p>
+                  <p className="text-slate-800 font-bold mb-2">¡Pronto expandiremos nuestros destinos! Mientras tanto...</p>
+                  <button onClick={() => { setInfoModal({ isOpen: false, title: '', content: '' }); setSearchQuery(''); fetchActivities({ ...filters, searchQuery: '' }); }} className="px-6 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-all shadow-sm text-sm">Explora otras opciones</button>
+               </div>
+            )
+         });
+      }
+      return data;
     } catch (error) {
-      console.error('Error fetching activities:', error);
+      console.error('[Frontend-Fetch] Error:', error);
+      return [];
     } finally {
-      if (!filters.type) setLoading(false);
+      if (!isCategoryFetch) setLoading(false);
     }
   };
 
@@ -532,12 +516,16 @@ const Home = () => {
     const loadInitialData = async () => {
        setLoading(true);
        try {
-          // Fetch both types separately to ensure both sections are full (max 10 each)
+          // Fetch por tipo separado para garantizar hasta 10 de cada sección
           const [exp, ser] = await Promise.all([
              fetchActivities({ type: 'TURISTICA', limit: 10 }, true),
              fetchActivities({ type: 'ALIMENTARIA', limit: 10 }, true)
           ]);
-          setActivities([...(exp || []), ...(ser || [])]);
+          const combined = [...(exp || []), ...(ser || [])];
+          console.log(`[Frontend-Render] Experiencias: ${(exp || []).length}, Servicios: ${(ser || []).length}, Total: ${combined.length}`);
+          setActivities(combined);
+       } catch(e) {
+          console.error('[Frontend] Error en carga inicial:', e);
        } finally {
           setLoading(false);
        }
