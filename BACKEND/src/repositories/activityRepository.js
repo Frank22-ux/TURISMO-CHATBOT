@@ -45,20 +45,22 @@ const findAll = async (filters = {}) => {
     const pCountry = country ? addParam(`%${country}%`) : null;
     const pType = filters.type ? addParam(filters.type) : null;
 
-    // Fórmula Haversine corregida y simplificada para Postgres
+    // Fórmula Haversine corregida y protegida contra errores de precisión (acos fuera de [-1,1])
     let distanceFormula = 'NULL';
     if (pLat && pLng) {
         distanceFormula = `(
             6371 * acos(
-                cos(radians(${pLat})) * cos(radians(u.latitud)) *
-                cos(radians(u.longitud) - radians(${pLng})) +
-                sin(radians(${pLat})) * sin(radians(u.latitud))
+                LEAST(GREATEST(
+                    cos(radians(${pLat})) * cos(radians(u.latitud)) *
+                    cos(radians(u.longitud) - radians(${pLng})) +
+                    sin(radians(${pLat})) * sin(radians(u.latitud)),
+                -1), 1)
             )
         )`;
     }
 
     const buildAvailabilityCheck = (tableAlias, type) => {
-        if (!startDate || !endDate) return 'TRUE';
+        if (!startDate || !endDate) return 'TRUE::boolean'; 
         return `
             NOT EXISTS (
                 SELECT 1 
@@ -127,7 +129,6 @@ const findAll = async (filters = {}) => {
 
     // Filtro de distancia (SOLO si hay coordenadas y radio válidos)
     if (pRadius && pLat && pLng) {
-        // Usamos una tolerancia de 0.5km para ser menos restrictivos si es necesario
         query += ` AND (${distanceFormula} <= ${pRadius} + 0.5)`;
     }
 
@@ -148,12 +149,14 @@ const findAll = async (filters = {}) => {
     }
 
     try {
+        console.log(`[Database-Query] Executing SQL...`);
         const { rows } = await db.query(query, params);
         console.log(`[Debug-4] Total final devuelto al frontend: ${rows.length}`);
         return rows;
     } catch (err) {
         console.error('[Database-Error] SQL:', query);
-        console.error('[Database-Error] Error:', err.message);
+        console.error('[Database-Error] Params:', JSON.stringify(params));
+        console.error('[Database-Error] Message:', err.message);
         throw err;
     }
 };
