@@ -204,58 +204,74 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
           </button>
 
           <div className="flex-1 overflow-auto">
-            {/* Hero Image Section */}
-            <div className="relative h-72 sm:h-[450px] w-full bg-slate-100 group overflow-hidden sm:overflow-visible">
-              <AnimatePresence mode="wait">
-                <motion.img 
-                  key={activeImage}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.5 }}
-                  src={activeImage || placeholder} 
-                  className="w-full h-full object-cover"
-                  alt={activity.title || activity.titulo}
-                />
-              </AnimatePresence>
+            {/* Image Section */}
+            <div className="relative w-full bg-slate-100 group">
+              {/* Mobile Slider: Visible only on mobile */}
+              <div className="sm:hidden w-full h-80 overflow-x-auto snap-x snap-mandatory flex no-scrollbar bg-slate-200">
+                {finalGallery.map((img, i) => (
+                  <div key={i} className="snap-start min-w-full h-full relative">
+                    <img src={img} className="w-full h-full object-cover" alt={`Gallery ${i}`} />
+                    <div className="absolute bottom-4 right-4 bg-black/40 backdrop-blur-md text-white text-[10px] font-black px-3 py-1.5 rounded-full">
+                      {i + 1} / {finalGallery.length}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop View: Visible only on sm and up */}
+              <div className="hidden sm:block relative h-[450px] w-full overflow-visible">
+                <AnimatePresence mode="wait">
+                  <motion.img 
+                    key={activeImage}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.5 }}
+                    src={activeImage || placeholder} 
+                    className="w-full h-full object-cover"
+                    alt={activity.title || activity.titulo}
+                  />
+                </AnimatePresence>
+                
+                {/* Gallery Thumbnails Overlay (Desktop) */}
+                {hasGallery && (
+                  <div className="absolute bottom-32 left-10 right-10 flex gap-3 overflow-x-auto pb-2 no-scrollbar">
+                    {finalGallery.map((img, i) => (
+                      <motion.button
+                        key={i}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setActiveImage(img)}
+                        className={`relative w-20 h-20 rounded-2xl overflow-hidden border-2 transition-all shrink-0 shadow-lg ${
+                          activeImage === img ? 'border-primary ring-4 ring-primary/20 scale-110' : 'border-white/50 hover:border-white'
+                        }`}
+                      >
+                        <img src={img} className="w-full h-full object-cover" alt={`Gallery ${i}`} />
+                      </motion.button>
+                    ))}
+                  </div>
+                )}
+              </div>
               
-              {/* Gallery Thumbnails Overlay */}
-              {hasGallery && (
-                <div className="relative sm:absolute sm:bottom-32 sm:left-10 sm:right-10 flex gap-2 sm:gap-3 overflow-x-auto p-4 sm:p-0 sm:pb-2 no-scrollbar bg-white sm:bg-transparent">
-                  {finalGallery.map((img, i) => (
-                    <motion.button
-                      key={i}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => setActiveImage(img)}
-                      className={`relative w-12 h-12 sm:w-20 sm:h-20 rounded-xl sm:rounded-2xl overflow-hidden border-2 transition-all shrink-0 shadow-lg ${
-                        activeImage === img ? 'border-primary ring-2 sm:ring-4 ring-primary/20 scale-110' : 'border-white/50 sm:border-white/50 hover:border-white'
-                      }`}
-                    >
-                      <img src={img} className="w-full h-full object-cover" alt={`Gallery ${i}`} />
-                    </motion.button>
-                  ))}
-                </div>
-              )}
-              
-              <div className="relative sm:absolute sm:bottom-8 sm:left-10 sm:right-10 px-6 py-6 sm:px-0 sm:py-0 sm:drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)] bg-white sm:bg-transparent">
-                <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4 flex-wrap">
-                  <span className={`px-3 sm:px-4 py-1 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-widest shadow-lg ${
+              {/* Info Container: Relative on mobile, Absolute on desktop */}
+              <div className="relative sm:absolute sm:bottom-8 sm:left-10 sm:right-10 px-6 py-8 sm:p-0 sm:drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)] bg-white sm:bg-transparent">
+                <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-4 flex-wrap">
+                  <span className={`px-3 sm:px-4 py-1.5 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-widest shadow-lg ${
                     isActive ? 'bg-success text-white' : 'bg-warning text-white'
                   }`}>
                     {activity.estado}
                   </span>
-                  <span className="px-3 sm:px-4 py-1 rounded-full bg-slate-100 sm:bg-white/90 sm:backdrop-blur-md text-primary-dark text-[9px] sm:text-[10px] font-black uppercase tracking-widest shadow-lg">
+                  <span className="px-3 sm:px-4 py-1.5 rounded-full bg-slate-100 sm:bg-white/90 sm:backdrop-blur-md text-primary-dark text-[9px] sm:text-[10px] font-black uppercase tracking-widest shadow-lg">
                     {activity.id_categoria === '1' ? 'Aventura' : 'Cultura'}
                   </span>
                   {activity.nombre_anfitrion && (
-                    <span className="px-3 sm:px-4 py-1 rounded-full bg-warning text-white text-[9px] sm:text-[10px] font-black uppercase tracking-widest shadow-lg flex items-center gap-2">
-                      <User className="w-3 sm:w-3.5 h-3 sm:h-3.5" />
+                    <span className="px-3 sm:px-4 py-1.5 rounded-full bg-warning text-white text-[9px] sm:text-[10px] font-black uppercase tracking-widest shadow-lg flex items-center gap-2">
+                      <User className="w-3.5 h-3.5" />
                       Por: {activity.nombre_anfitrion}
                     </span>
                   )}
                 </div>
-                <h2 className="text-2xl sm:text-5xl font-display font-black text-slate-900 sm:text-white sm:drop-shadow-lg tracking-tight leading-tight">
+                <h2 className="text-3xl sm:text-5xl font-display font-black text-slate-900 sm:text-white sm:drop-shadow-lg tracking-tight leading-tight">
                   {activity.title || activity.titulo}
                 </h2>
               </div>
