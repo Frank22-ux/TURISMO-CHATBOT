@@ -1,7 +1,12 @@
 const axios = require('axios');
-require('dotenv').config();
 
-const MAPBOX_TOKEN = process.env.MAPBOX_ACCESS_TOKEN;
+// En Render no es necesario dotenv, pero lo mantenemos para local
+try {
+    require('dotenv').config();
+} catch (e) {}
+
+const MAPBOX_ACCESS_TOKEN = process.env.MAPBOX_ACCESS_TOKEN;
+console.log("[Geocoding] MAPBOX_ACCESS_TOKEN:", MAPBOX_ACCESS_TOKEN ? "DEFINIDO" : "NO DEFINIDO");
 
 /**
  * Normaliza una ubicación usando el Reverse Geocoding de Mapbox
@@ -12,9 +17,15 @@ const MAPBOX_TOKEN = process.env.MAPBOX_ACCESS_TOKEN;
 const reverseGeocode = async (lat, lng) => {
     if (!lat || !lng || lat === 0 || lng === 0) return null;
     
+    const token = process.env.MAPBOX_ACCESS_TOKEN;
+    if (!token) {
+        console.warn("[Geocoding] MAPBOX_ACCESS_TOKEN no definido, saltando normalización");
+        return null;
+    }
+
     try {
-        const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_TOKEN}&language=es&types=place,region,country`;
-        const response = await axios.get(url);
+        const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${token}&language=es&types=place,region,country`;
+        const response = await axios.get(url, { timeout: 5000 }); // Timeout de 5s para no bloquear
         
         if (!response.data || !response.data.features || response.data.features.length === 0) {
             return null;

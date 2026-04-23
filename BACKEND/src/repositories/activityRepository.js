@@ -28,10 +28,15 @@ const findAll = async (filters = {}) => {
 
     console.log(`[Search-Params]`, { lat, lng, radius, city, province, type: filters.type, limit });
 
-    const pLat = (lat && parseFloat(lat) !== 0) ? addParam(parseFloat(lat)) : null;
-    const pLng = (lng && parseFloat(lng) !== 0) ? addParam(parseFloat(lng)) : null;
-    const pRadius = (radius && parseFloat(radius) > 0) ? addParam(parseFloat(radius)) : null;
-    const pGuests = guests ? addParam(parseInt(guests)) : addParam(1); 
+    const pLat = (lat && !isNaN(parseFloat(lat)) && parseFloat(lat) !== 0) ? addParam(parseFloat(lat)) : null;
+    const pLng = (lng && !isNaN(parseFloat(lng)) && parseFloat(lng) !== 0) ? addParam(parseFloat(lng)) : null;
+    const pRadius = (radius && !isNaN(parseFloat(radius)) && parseFloat(radius) > 0) ? addParam(parseFloat(radius)) : null;
+    
+    // Validar guests para evitar NaN
+    let guestsValue = parseInt(guests);
+    if (isNaN(guestsValue) || guestsValue < 1) guestsValue = 1;
+    const pGuests = addParam(guestsValue);
+
     const pStartDate = startDate ? addParam(startDate) : null;
     const pEndDate = endDate ? addParam(endDate) : null;
     const pLocation = location ? addParam(`%${location}%`) : null;
@@ -135,8 +140,11 @@ const findAll = async (filters = {}) => {
 
     // Límite (Siempre al final)
     if (limit) {
-        const pLimit = addParam(parseInt(limit));
-        query += ` LIMIT ${pLimit}`;
+        let limitValue = parseInt(limit);
+        if (!isNaN(limitValue) && limitValue > 0) {
+            const pLimit = addParam(limitValue);
+            query += ` LIMIT ${pLimit}`;
+        }
     }
 
     try {

@@ -22,12 +22,18 @@ const createActivity = async (activityData) => {
     let finalCiudad = ciudad;
     let finalProvincia = provincia;
 
+    // Solo normalizar si tenemos coordenadas y el campo ciudad parece una dirección
+    // OJO: Evitamos geocoding si no es estrictamente necesario para no afectar performance
     if (latitud && longitud && (isStreetAddress(ciudad) || !ciudad)) {
-        const normalized = await reverseGeocode(latitud, longitud);
-        if (normalized) {
-            finalCiudad = normalized.ciudad || ciudad;
-            finalProvincia = normalized.provincia || provincia;
-            console.log(`[Service] Ubicación normalizada: ${ciudad} -> ${finalCiudad}`);
+        try {
+            const normalized = await reverseGeocode(latitud, longitud);
+            if (normalized) {
+                finalCiudad = normalized.ciudad || ciudad;
+                finalProvincia = normalized.provincia || provincia;
+                console.log(`[Service] Ubicación normalizada: ${ciudad} -> ${finalCiudad}`);
+            }
+        } catch (error) {
+            console.error("[Service] Error en geocoding (no crítico):", error.message);
         }
     }
 
@@ -172,10 +178,14 @@ const updateActivity = async (id, data) => {
         let finalProvincia = provincia;
 
         if (latitud && longitud && (isStreetAddress(ciudad) || !ciudad)) {
-            const normalized = await reverseGeocode(latitud, longitud);
-            if (normalized) {
-                finalCiudad = normalized.ciudad || ciudad;
-                finalProvincia = normalized.provincia || provincia;
+            try {
+                const normalized = await reverseGeocode(latitud, longitud);
+                if (normalized) {
+                    finalCiudad = normalized.ciudad || ciudad;
+                    finalProvincia = normalized.provincia || provincia;
+                }
+            } catch (error) {
+                console.error("[Service] Error en geocoding update (no crítico):", error.message);
             }
         }
 
