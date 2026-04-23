@@ -415,10 +415,47 @@ const Home = () => {
     }
   };
 
-  const handleSearch = () => {
-    fetchActivities({
-      city, province, country, lat, lng, radius, adults, childrenCount
-    });
+  // Función unificada para cargar datos balanceados (10 de cada categoría)
+  const loadBalancedActivities = async () => {
+    setLoading(true);
+    try {
+      console.log('[Frontend-Load] Iniciando carga balanceada...');
+      const [exp, ser] = await Promise.all([
+        fetchActivities({ type: 'TURISTICA', limit: 10 }, true),
+        fetchActivities({ type: 'ALIMENTARIA', limit: 10 }, true)
+      ]);
+      const combined = [...(exp || []), ...(ser || [])];
+      console.log(`[Frontend-Load] Finalizado. Exp: ${(exp || []).length}, Ser: ${(ser || []).length}, Total: ${combined.length}`);
+      setActivities(combined);
+    } catch (e) {
+      console.error('[Frontend-Load] Error:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearch = async () => {
+    // Si la categoría es "todas", hacemos una carga balanceada con los filtros actuales
+    if (activeCategory === 'todas') {
+      setLoading(true);
+      try {
+        const [exp, ser] = await Promise.all([
+          fetchActivities({ city, province, country, lat, lng, radius, adults, childrenCount, type: 'TURISTICA', limit: 10 }, true),
+          fetchActivities({ city, province, country, lat, lng, radius, adults, childrenCount, type: 'ALIMENTARIA', limit: 10 }, true)
+        ]);
+        setActivities([...(exp || []), ...(ser || [])]);
+      } catch (e) {
+        console.error('[Frontend-Search] Error en búsqueda balanceada:', e);
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      // Búsqueda específica por categoría
+      fetchActivities({
+        city, province, country, lat, lng, radius, adults, childrenCount,
+        type: activeCategory === 'experiencias' ? 'TURISTICA' : 'ALIMENTARIA'
+      });
+    }
   };
 
   const handleGetLocation = () => {
@@ -468,6 +505,7 @@ const Home = () => {
 
               if (results && results.length > 0) {
                 setRadius(r);
+                handleSearch();
                 setInfoModal({
                   isOpen: true,
                   title: '¡Resultados encontrados!',
@@ -513,24 +551,7 @@ const Home = () => {
   };
 
   useEffect(() => {
-    const loadInitialData = async () => {
-       setLoading(true);
-       try {
-          // Fetch por tipo separado para garantizar hasta 10 de cada sección
-          const [exp, ser] = await Promise.all([
-             fetchActivities({ type: 'TURISTICA', limit: 10 }, true),
-             fetchActivities({ type: 'ALIMENTARIA', limit: 10 }, true)
-          ]);
-          const combined = [...(exp || []), ...(ser || [])];
-          console.log(`[Frontend-Render] Experiencias: ${(exp || []).length}, Servicios: ${(ser || []).length}, Total: ${combined.length}`);
-          setActivities(combined);
-       } catch(e) {
-          console.error('[Frontend] Error en carga inicial:', e);
-       } finally {
-          setLoading(false);
-       }
-    };
-    loadInitialData();
+    loadBalancedActivities();
   }, []);
 
   return (
@@ -725,7 +746,7 @@ const Home = () => {
                    setChildrenCount(0);
                    
                    setSearchParams({});
-                   fetchActivities({ city: '', province: '', country: '', lat: null, lng: null, radius: 10, adults: 1, childrenCount: 0 });
+                    loadBalancedActivities();
                  }}
                  className="w-1/3 xl:w-auto bg-slate-100 hover:bg-slate-200 text-slate-600 px-6 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 border border-slate-200"
                  title="Limpiar filtros"
