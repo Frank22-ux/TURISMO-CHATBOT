@@ -205,7 +205,7 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
 
           <div className="flex-1 overflow-auto">
             {/* Hero Image Section */}
-            <div className="relative h-72 sm:h-[450px] w-full bg-slate-100 group">
+            <div className="relative h-72 sm:h-[450px] w-full bg-slate-100 group overflow-hidden sm:overflow-visible">
               <AnimatePresence mode="wait">
                 <motion.img 
                   key={activeImage}
@@ -221,7 +221,7 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
               
               {/* Gallery Thumbnails Overlay */}
               {hasGallery && (
-                <div className="absolute bottom-4 sm:bottom-32 left-4 sm:left-10 right-4 sm:right-10 flex gap-2 sm:gap-3 overflow-x-auto pb-2 no-scrollbar">
+                <div className="relative sm:absolute sm:bottom-32 sm:left-10 sm:right-10 flex gap-2 sm:gap-3 overflow-x-auto p-4 sm:p-0 sm:pb-2 no-scrollbar bg-white sm:bg-transparent">
                   {finalGallery.map((img, i) => (
                     <motion.button
                       key={i}
@@ -229,7 +229,7 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
                       whileTap={{ scale: 0.95 }}
                       onClick={() => setActiveImage(img)}
                       className={`relative w-12 h-12 sm:w-20 sm:h-20 rounded-xl sm:rounded-2xl overflow-hidden border-2 transition-all shrink-0 shadow-lg ${
-                        activeImage === img ? 'border-primary ring-2 sm:ring-4 ring-primary/20 scale-110' : 'border-white/50 hover:border-white'
+                        activeImage === img ? 'border-primary ring-2 sm:ring-4 ring-primary/20 scale-110' : 'border-white/50 sm:border-white/50 hover:border-white'
                       }`}
                     >
                       <img src={img} className="w-full h-full object-cover" alt={`Gallery ${i}`} />
@@ -238,14 +238,14 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
                 </div>
               )}
               
-              <div className="absolute bottom-4 sm:bottom-8 left-4 sm:left-10 right-4 sm:right-10 drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)]">
-                <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4 flex-wrap">
+              <div className="relative sm:absolute sm:bottom-8 sm:left-10 sm:right-10 px-6 py-6 sm:px-0 sm:py-0 sm:drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)] bg-white sm:bg-transparent">
+                <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4 flex-wrap">
                   <span className={`px-3 sm:px-4 py-1 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-widest shadow-lg ${
                     isActive ? 'bg-success text-white' : 'bg-warning text-white'
                   }`}>
                     {activity.estado}
                   </span>
-                  <span className="px-3 sm:px-4 py-1 rounded-full bg-white/90 backdrop-blur-md text-primary-dark text-[9px] sm:text-[10px] font-black uppercase tracking-widest shadow-lg">
+                  <span className="px-3 sm:px-4 py-1 rounded-full bg-slate-100 sm:bg-white/90 sm:backdrop-blur-md text-primary-dark text-[9px] sm:text-[10px] font-black uppercase tracking-widest shadow-lg">
                     {activity.id_categoria === '1' ? 'Aventura' : 'Cultura'}
                   </span>
                   {activity.nombre_anfitrion && (
@@ -255,14 +255,14 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
                     </span>
                   )}
                 </div>
-                <h2 className="text-2xl sm:text-5xl font-display font-black text-slate-900 tracking-tight leading-tight">
+                <h2 className="text-2xl sm:text-5xl font-display font-black text-slate-900 sm:text-white sm:drop-shadow-lg tracking-tight leading-tight">
                   {activity.title || activity.titulo}
                 </h2>
               </div>
             </div>
 
             {/* Content Grid */}
-            <div className="p-6 sm:p-10 grid grid-cols-1 lg:grid-cols-3 gap-8 sm:gap-12">
+            <div className="p-6 sm:p-10 grid grid-cols-1 lg:grid-cols-3 gap-8 sm:gap-12 border-t border-slate-50 sm:border-0">
               {/* Left Column: Details */}
               <div className="lg:col-span-2 space-y-8 sm:space-y-10">
                 <div className="space-y-4 sm:space-y-6">
