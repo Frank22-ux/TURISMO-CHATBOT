@@ -1,4 +1,5 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { UserCircle, LayoutDashboard, LogOut, Menu, Mountain, Utensils, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import HostTermsModal from './HostTermsModal';
@@ -9,6 +10,12 @@ const Navbar = () => {
   const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const isLinkActive = (category) => {
+    const params = new URLSearchParams(location.search);
+    return params.get('category') === category;
+  };
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -44,13 +51,33 @@ const Navbar = () => {
         </Link>
 
         <nav className="hidden md:flex items-center gap-8">
-          <Link to="/?category=experiencias" className={`text-sm font-bold transition-colors ${
-            isScrolled || isMobileMenuOpen ? 'text-slate-600 hover:text-primary' : 'text-white/80 hover:text-white'
-          }`}>Experiencias</Link>
+          <Link 
+            to="/?category=experiencias" 
+            className={`text-sm font-bold transition-all relative py-1 ${
+              isLinkActive('experiencias') 
+                ? 'text-primary' 
+                : (isScrolled || isMobileMenuOpen ? 'text-slate-600 hover:text-primary' : 'text-white/80 hover:text-white')
+            }`}
+          >
+            Experiencias
+            {isLinkActive('experiencias') && (
+              <motion.div layoutId="nav-underline" className="absolute bottom-0 left-0 w-full h-0.5 bg-primary rounded-full" />
+            )}
+          </Link>
           
-          <Link to="/?category=servicios" className={`text-sm font-bold transition-colors ${
-            isScrolled || isMobileMenuOpen ? 'text-slate-600 hover:text-primary' : 'text-white/80 hover:text-white'
-          }`}>Servicios</Link>
+          <Link 
+            to="/?category=servicios" 
+            className={`text-sm font-bold transition-all relative py-1 ${
+              isLinkActive('servicios') 
+                ? 'text-primary' 
+                : (isScrolled || isMobileMenuOpen ? 'text-slate-600 hover:text-primary' : 'text-white/80 hover:text-white')
+            }`}
+          >
+            Servicios
+            {isLinkActive('servicios') && (
+              <motion.div layoutId="nav-underline" className="absolute bottom-0 left-0 w-full h-0.5 bg-primary rounded-full" />
+            )}
+          </Link>
 
           {!user ? (
             <>
@@ -101,7 +128,9 @@ const Navbar = () => {
           <Link 
             to="/?category=experiencias" 
             onClick={() => setIsMobileMenuOpen(false)}
-            className="text-slate-700 font-bold text-lg border-b border-slate-50 pb-3 hover:text-primary transition-colors"
+            className={`font-bold text-lg border-b border-slate-50 pb-3 transition-colors ${
+              isLinkActive('experiencias') ? 'text-primary' : 'text-slate-700 hover:text-primary'
+            }`}
           >
             Experiencias
           </Link>
@@ -109,7 +138,9 @@ const Navbar = () => {
           <Link 
             to="/?category=servicios" 
             onClick={() => setIsMobileMenuOpen(false)}
-            className="text-slate-700 font-bold text-lg border-b border-slate-50 pb-3 hover:text-primary transition-colors"
+            className={`font-bold text-lg border-b border-slate-50 pb-3 transition-colors ${
+              isLinkActive('servicios') ? 'text-primary' : 'text-slate-700 hover:text-primary'
+            }`}
           >
             Servicios
           </Link>

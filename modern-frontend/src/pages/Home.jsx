@@ -100,6 +100,13 @@ const ActivityCard = ({ activity, onOpenDetail, onOpenBooking }) => (
 );
 
 
+const HERO_IMAGES = [
+  "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
+  "https://images.unsplash.com/photo-1589405709102-c246853add3c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
+  "https://images.unsplash.com/photo-1582234372722-50d7ccc30ebd?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
+  "https://images.unsplash.com/photo-1628155930542-3c7a64e2c833?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80"
+];
+
 const Home = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeCategory = searchParams.get('category') || 'todas';
@@ -122,10 +129,18 @@ const Home = () => {
   const [infoModal, setInfoModal] = useState({ isOpen: false, title: '', content: '' });
   const [isLocating, setIsLocating] = useState(false);
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [viewMode, setViewMode] = useState('grid');
   const locationDropdownRef = useRef(null);
   const navigate = useNavigate();
   const { addToCart, selectedItems } = useCart();
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % HERO_IMAGES.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
 
   const handleOpenBookingRequest = async (act) => {
     const userData = sessionStorage.getItem('user');
@@ -232,8 +247,11 @@ const Home = () => {
 
   const filteredActivities = useMemo(() => {
     if (activeCategory === 'todas') return activities;
-    const typeToFilter = activeCategory === 'experiencias' ? 'TURISTICA' : 'ALIMENTARIA';
-    return activities.filter(activity => activity.tipo === typeToFilter);
+    return activities.filter(activity => 
+      activeCategory === 'experiencias' 
+        ? activity.tipo === 'TURISTICA' 
+        : activity.tipo !== 'TURISTICA'
+    );
   }, [activities, activeCategory]);
 
   const uniqueLocations = useMemo(() => {
@@ -508,22 +526,46 @@ const Home = () => {
     <div className="min-h-screen bg-slate-50 font-sans">
       <Navbar />
       
-      {/* Hero Section */}
-      <section className="relative h-[80vh] flex items-center justify-center overflow-hidden bg-primary-dark">
+      {/* Hero Section with Carousel */}
+      <section className="relative h-[80vh] flex items-center justify-center overflow-hidden bg-slate-900">
         <div className="absolute inset-0 z-0">
-          <img 
-            src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80" 
-            className="w-full h-full object-cover opacity-60"
-            alt="Hero Background"
-          />
+          <AnimatePresence mode="wait">
+            <motion.img
+              key={currentImageIndex}
+              src={HERO_IMAGES[currentImageIndex]}
+              initial={{ opacity: 0, scale: 1.1 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 1.5, ease: "easeInOut" }}
+              className="w-full h-full object-cover"
+              alt={`Hero Background ${currentImageIndex}`}
+            />
+          </AnimatePresence>
+          {/* Subtle dark overlay for contrast without blue tint */}
+          <div className="absolute inset-0 bg-black/30 z-10"></div>
         </div>
-        <div className="relative z-10 text-center text-white px-4 max-w-4xl">
+        
+        <div className="relative z-20 text-center text-white px-4 max-w-4xl drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]">
           <h1 className="text-5xl md:text-7xl font-display font-black mb-6 animate-fade-in-up">
             Encuentra actividades únicas en el <span className="text-secondary">Ecuador</span>
           </h1>
-          <p className="text-xl md:text-2xl opacity-90 mb-8 font-light">
+          <p className="text-xl md:text-2xl opacity-95 mb-8 font-light">
             Explora experiencias auténticas diseñadas para aventureros y buscadores de serenidad.
           </p>
+          
+          {/* Carousel Dots */}
+          <div className="flex justify-center gap-2 mt-8">
+            {HERO_IMAGES.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => setCurrentImageIndex(idx)}
+                className={`w-2.5 h-2.5 rounded-full transition-all ${
+                  currentImageIndex === idx ? 'bg-white w-8' : 'bg-white/40 hover:bg-white/60'
+                }`}
+                aria-label={`Go to slide ${idx + 1}`}
+              />
+            ))}
+          </div>
         </div>
       </section>
 

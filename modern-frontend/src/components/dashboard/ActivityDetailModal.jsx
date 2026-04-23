@@ -218,7 +218,6 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
                   alt={activity.title || activity.titulo}
                 />
               </AnimatePresence>
-              <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-black/30" />
               
               {/* Gallery Thumbnails Overlay (Tarea 5) */}
               {hasGallery && (
@@ -239,7 +238,7 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
                 </div>
               )}
               
-              <div className="absolute bottom-8 left-10 right-10">
+              <div className="absolute bottom-8 left-10 right-10 drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)]">
                 <div className="flex items-center gap-3 mb-4 flex-wrap">
                   <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg ${
                     isActive ? 'bg-success text-white' : 'bg-warning text-white'

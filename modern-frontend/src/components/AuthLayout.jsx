@@ -16,8 +16,7 @@ const AuthLayout = ({ children, title, subtitle, image }) => {
             className="absolute inset-0 w-full h-full object-cover"
             alt="Auth Background"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-primary-dark/90 via-primary-dark/40 to-transparent"></div>
-          <div className="absolute inset-0 p-12 flex flex-col justify-between text-white">
+          <div className="absolute inset-0 p-12 flex flex-col justify-between text-white drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)]">
             <Link to="/" className="flex items-center gap-2 font-bold hover:gap-3 transition-all">
               <ArrowLeft className="w-5 h-5" /> Volver al inicio
             </Link>
