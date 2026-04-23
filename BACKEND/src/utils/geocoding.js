@@ -58,18 +58,40 @@ const reverseGeocode = async (lat, lng) => {
 };
 
 /**
- * Verifica si una cadena parece ser una dirección en lugar de una ciudad
- * @param {string} text - Texto a validar
- * @returns {boolean} - True si parece una dirección
+ * Determina si una cadena de texto parece ser una dirección o nombre de calle
+ * en lugar de una ciudad o provincia.
  */
 const isStreetAddress = (text) => {
     if (!text) return false;
+    const lower = text.toLowerCase().trim();
+    
+    // Palabras clave que indican una calle o dirección
     const commonStreetKeywords = [
         'avenida', 'ave.', 'calle', 'cll', 'pasaje', 'psj', 'garcia moreno', 
-        'shyris', 'eloy alfaro', 'sanchez', 'antonio', 'moreno', 'chile'
+        'shyris', 'eloy alfaro', 'sanchez', 'antonio', 'moreno', 'chile',
+        'espejo', 'venezuela', 'guayaquil', 'bolivar', 'sucre', 'mejia',
+        'olmedo', 'jose', 'mariano', 'aguilera', 'belo horizonte',
+        'mallorca', 'manuel samaniego', 'melchor de aymerich', 'montufar',
+        'pazmiño', 'feliza', 'rumipamba', 'pita', 'la carolina', 'la ronda'
     ];
-    const lower = text.toLowerCase();
-    return commonStreetKeywords.some(keyword => lower.includes(keyword));
+
+    // Indicadores de barrios o zonas específicas
+    const neighborhoodIndicators = ['sector', 'barrio', 'urbanización', 'urb.', 'etapa'];
+
+    // Si contiene números (ej: "Calle 123")
+    const hasNumbers = /\d/.test(text);
+    
+    // Si contiene separadores típicos de direcciones
+    const hasStreetSeparators = /[#\-y]/ .test(text) && text.length > 5;
+
+    // Si coincide con alguna palabra clave
+    const matchesKeyword = commonStreetKeywords.some(kw => lower.includes(kw));
+    const matchesNeighborhood = neighborhoodIndicators.some(ni => lower.includes(ni));
+
+    // Si es muy largo (las ciudades suelen ser nombres cortos)
+    const isTooLong = text.length > 25;
+
+    return matchesKeyword || matchesNeighborhood || (hasNumbers && hasStreetSeparators) || isTooLong;
 };
 
 module.exports = {

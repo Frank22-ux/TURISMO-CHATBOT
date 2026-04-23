@@ -62,7 +62,7 @@ const findAll = async (filters = {}) => {
     let query = `
         WITH BaseActivities AS (
             SELECT 
-                'TURISTICA' as tipo, at.id_actividad as id_num, 'T-' || at.id_actividad as id,
+                'TURISTICA' as tipo, at.id_actividad, 'T-' || at.id_actividad as id,
                 at.titulo as title, at.precio as price, at.capacidad, at.vistas, at.estado, at.id_anfitrion, at.id_ubicacion
             FROM actividades_turisticas at
             WHERE at.estado = 'ACTIVA'
@@ -70,13 +70,14 @@ const findAll = async (filters = {}) => {
             UNION ALL
             
             SELECT 
-                'ALIMENTARIA' as tipo, aa.id_actividad as id_num, 'A-' || aa.id_actividad as id,
+                'ALIMENTARIA' as tipo, aa.id_actividad, 'A-' || aa.id_actividad as id,
                 aa.titulo as title, aa.precio as price, aa.capacidad, aa.vistas, aa.estado, aa.id_anfitrion, aa.id_ubicacion
             FROM actividades_alimentarias aa
             WHERE aa.estado = 'ACTIVA'
         )
         SELECT 
             ba.*,
+            COALESCE(u.ciudad, 'Sin ciudad') || ', ' || COALESCE(u.pais, 'Sin país') as location,
             u.ciudad, u.provincia, u.pais, u.direccion, u.latitud, u.longitud,
             ip.url_imagen as image,
             us.nombre as nombre_anfitrion,
@@ -84,7 +85,7 @@ const findAll = async (filters = {}) => {
         FROM BaseActivities ba
         LEFT JOIN ubicaciones u ON ba.id_ubicacion = u.id_ubicacion
         LEFT JOIN usuarios us ON ba.id_anfitrion = us.id_usuario
-        LEFT JOIN imagen_portada ip ON ba.id_num = ip.id_actividad AND ba.tipo = ip.tipo_actividad
+        LEFT JOIN imagen_portada ip ON ba.id_actividad = ip.id_actividad AND ba.tipo = ip.tipo_actividad
         WHERE 1=1
     `;
 
@@ -100,7 +101,7 @@ const findAll = async (filters = {}) => {
     if (pLat && pLng) {
         query += ` ORDER BY distance ASC NULLS LAST`;
     } else {
-        query += ` ORDER BY ba.vistas DESC, ba.id_num DESC`;
+        query += ` ORDER BY ba.vistas DESC, ba.id_actividad DESC`;
     }
 
     if (limit) {
