@@ -14,30 +14,24 @@ const findAll = async (filters = {}) => {
     // =============================================
     try {
         const rawCount = await db.query("SELECT (SELECT COUNT(*) FROM actividades_turisticas) + (SELECT COUNT(*) FROM actividades_alimentarias) as total_raw");
-        console.log(`[Debug-1] Total actividades en tablas (sin filtros): ${rawCount.rows[0].total_raw}`);
+        console.log(`[Debug-1] Total en DB (sin filtros): ${rawCount.rows[0].total_raw}`);
 
         const joinedCount = await db.query(`
             SELECT 
-                (SELECT COUNT(*) FROM actividades_turisticas at LEFT JOIN ubicaciones u ON at.id_ubicacion = u.id_ubicacion WHERE at.estado = 'ACTIVA') as tur_activas,
-                (SELECT COUNT(*) FROM actividades_alimentarias aa LEFT JOIN ubicaciones u ON aa.id_ubicacion = u.id_ubicacion WHERE aa.estado = 'ACTIVA') as ali_activas,
-                (SELECT COUNT(*) FROM actividades_turisticas WHERE estado != 'ACTIVA') as tur_inactivas,
-                (SELECT COUNT(*) FROM actividades_alimentarias WHERE estado != 'ACTIVA') as ali_inactivas,
-                (SELECT COUNT(*) FROM ubicaciones WHERE latitud = 0 OR longitud = 0 OR latitud IS NULL OR longitud IS NULL) as ubicaciones_sin_coords
+                (SELECT COUNT(*) FROM actividades_turisticas at WHERE at.estado = 'ACTIVA') as tur_activas,
+                (SELECT COUNT(*) FROM actividades_alimentarias aa WHERE aa.estado = 'ACTIVA') as ali_activas
         `);
-        const r = joinedCount.rows[0];
-        console.log(`[Debug-2] TURISTICA: ${r.tur_activas} activas, ${r.tur_inactivas} inactivas`);
-        console.log(`[Debug-2] ALIMENTARIA: ${r.ali_activas} activas, ${r.ali_inactivas} inactivas`);
-        console.log(`[Debug-2] Ubicaciones sin coordenadas válidas: ${r.ubicaciones_sin_coords}`);
+        console.log(`[Debug-2] Activas en DB: TUR=${joinedCount.rows[0].tur_activas}, ALI=${joinedCount.rows[0].ali_activas}`);
     } catch (e) {
         console.warn("[Debug] Error en conteos previos:", e.message);
     }
 
-    console.log(`[Search] Parámetros:`, { lat, lng, radius, guests, limit, type: filters.type });
+    console.log(`[Search-Params]`, { lat, lng, radius, city, province, type: filters.type, limit });
 
-    const pLat = lat ? addParam(parseFloat(lat)) : null;
-    const pLng = lng ? addParam(parseFloat(lng)) : null;
-    const pRadius = radius ? addParam(parseFloat(radius)) : null;
-    const pGuests = guests ? addParam(parseInt(guests)) : 1; 
+    const pLat = (lat && parseFloat(lat) !== 0) ? addParam(parseFloat(lat)) : null;
+    const pLng = (lng && parseFloat(lng) !== 0) ? addParam(parseFloat(lng)) : null;
+    const pRadius = (radius && parseFloat(radius) > 0) ? addParam(parseFloat(radius)) : null;
+    const pGuests = guests ? addParam(parseInt(guests)) : addParam(1); 
     const pStartDate = startDate ? addParam(startDate) : null;
     const pEndDate = endDate ? addParam(endDate) : null;
     const pLocation = location ? addParam(`%${location}%`) : null;
@@ -46,14 +40,15 @@ const findAll = async (filters = {}) => {
     const pCountry = country ? addParam(`%${country}%`) : null;
     const pType = filters.type ? addParam(filters.type) : null;
 
+    // Fórmula Haversine corregida y simplificada para Postgres
     let distanceFormula = 'NULL';
     if (pLat && pLng) {
         distanceFormula = `(
-            6371 * 2 * asin(sqrt(
-                power(sin(radians((u.latitud::numeric - ${pLat}::numeric) / 2)), 2) +
-                cos(radians(${pLat}::numeric)) * cos(radians(u.latitud::numeric)) *
-                power(sin(radians((u.longitud::numeric - ${pLng}::numeric) / 2)), 2)
-            ))
+            6371 * acos(
+                cos(radians(${pLat})) * cos(radians(u.latitud)) *
+                cos(radians(u.longitud) - radians(${pLng})) +
+                sin(radians(${pLat})) * sin(radians(u.latitud))
+            )
         )`;
     }
 
@@ -118,28 +113,30 @@ const findAll = async (filters = {}) => {
         WHERE ba.estado = 'ACTIVA' AND ba.is_available = TRUE
     `;
 
-    if (pGuests && guests > 1) query += ` AND ba.capacidad >= ${pGuests}`;
+    if (guests && parseInt(guests) > 1) query += ` AND ba.capacidad >= ${pGuests}`;
     if (pType) query += ` AND ba.tipo = ${pType}`;
     if (pCity) query += ` AND u.ciudad ILIKE ${pCity}`;
     if (pProvince) query += ` AND u.provincia ILIKE ${pProvince}`;
     if (pCountry) query += ` AND u.pais ILIKE ${pCountry}`;
     if (pLocation) query += ` AND (u.ciudad ILIKE ${pLocation} OR u.pais ILIKE ${pLocation} OR ba.title ILIKE ${pLocation})`;
 
-    // Filtro de distancia
+    // Filtro de distancia (SOLO si hay coordenadas y radio válidos)
     if (pRadius && pLat && pLng) {
-        query += ` AND (u.latitud IS NULL OR u.latitud = 0 OR ${distanceFormula} <= (${pRadius} + 2))`;
+        // Usamos una tolerancia de 0.5km para ser menos restrictivos si es necesario
+        query += ` AND (${distanceFormula} <= ${pRadius} + 0.5)`;
     }
 
     // Orden
     if (pLat && pLng) {
-        query += ` ORDER BY distance ASC, ba.vistas DESC`;
+        query += ` ORDER BY distance ASC NULLS LAST, ba.vistas DESC`;
     } else {
-        query += ` ORDER BY ba.vistas DESC, ba.id ASC`;
+        query += ` ORDER BY ba.vistas DESC, ba.id_num DESC`;
     }
 
-    // Límite
+    // Límite (Siempre al final)
     if (limit) {
-        query += ` LIMIT ${addParam(parseInt(limit))}`;
+        const pLimit = addParam(parseInt(limit));
+        query += ` LIMIT ${pLimit}`;
     }
 
     try {

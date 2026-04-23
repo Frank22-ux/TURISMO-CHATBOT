@@ -1,5 +1,6 @@
 const activityRepository = require('../repositories/activityRepository');
 const db = require('../config/database');
+const { reverseGeocode, isStreetAddress } = require('../utils/geocoding');
 
 const getAllActivities = async (filters = {}) => {
     return await activityRepository.findAll(filters);
@@ -17,9 +18,21 @@ const createActivity = async (activityData) => {
         punto_encuentro, latitud_encuentro, longitud_encuentro, direccion_encuentro
     } = activityData;
 
-    // 1. Create Location
+    // 1. Normalización de Ciudad/Provincia automática
+    let finalCiudad = ciudad;
+    let finalProvincia = provincia;
+
+    if (latitud && longitud && (isStreetAddress(ciudad) || !ciudad)) {
+        const normalized = await reverseGeocode(latitud, longitud);
+        if (normalized) {
+            finalCiudad = normalized.ciudad || ciudad;
+            finalProvincia = normalized.provincia || provincia;
+            console.log(`[Service] Ubicación normalizada: ${ciudad} -> ${finalCiudad}`);
+        }
+    }
+
     const id_ubicacion = await activityRepository.createLocation({
-        pais, ciudad, direccion, latitud, longitud, provincia
+        pais, ciudad: finalCiudad, direccion, latitud, longitud, provincia: finalProvincia
     });
 
     // 2. Create Activity
@@ -153,10 +166,21 @@ const updateActivity = async (id, data) => {
         direccion_encuentro
     });
 
-    // 2. Update Location
+    // 2. Update Location con Normalización
     if (id_ubicacion) {
+        let finalCiudad = ciudad;
+        let finalProvincia = provincia;
+
+        if (latitud && longitud && (isStreetAddress(ciudad) || !ciudad)) {
+            const normalized = await reverseGeocode(latitud, longitud);
+            if (normalized) {
+                finalCiudad = normalized.ciudad || ciudad;
+                finalProvincia = normalized.provincia || provincia;
+            }
+        }
+
         await activityRepository.updateLocation(id_ubicacion, {
-            pais, ciudad, direccion, latitud, longitud, provincia
+            pais, ciudad: finalCiudad, direccion, latitud, longitud, provincia: finalProvincia
         });
     }
 
