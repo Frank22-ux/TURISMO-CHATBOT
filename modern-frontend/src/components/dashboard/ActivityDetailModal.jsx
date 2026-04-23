@@ -177,7 +177,7 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
           initial={{ opacity: 0, scale: 0.9, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: 20 }}
-          className="bg-white w-full max-w-5xl max-h-[90vh] rounded-[40px] shadow-2xl relative flex flex-col overflow-hidden"
+          className="bg-white w-full max-w-5xl h-full sm:h-auto sm:max-h-[90vh] rounded-none sm:rounded-[40px] shadow-2xl relative flex flex-col overflow-hidden"
         >
           {/* Custom Toast Notification */}
           <AnimatePresence>
@@ -198,14 +198,14 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
           {/* Close Button */}
           <button 
             onClick={onClose}
-            className="absolute top-6 right-6 z-50 p-3 bg-white/10 backdrop-blur-md text-white rounded-2xl hover:bg-white hover:text-primary-dark transition-all shadow-xl border border-white/20"
+            className="absolute top-4 right-4 sm:top-6 sm:right-6 z-50 p-2.5 sm:p-3 bg-white/20 backdrop-blur-md text-white rounded-2xl hover:bg-white hover:text-primary-dark transition-all shadow-xl border border-white/20"
           >
-            <X className="w-6 h-6" />
+            <X className="w-5 h-5 sm:w-6 sm:h-6" />
           </button>
 
           <div className="flex-1 overflow-auto">
             {/* Hero Image Section */}
-            <div className="relative h-[450px] w-full bg-slate-100 group">
+            <div className="relative h-72 sm:h-[450px] w-full bg-slate-100 group">
               <AnimatePresence mode="wait">
                 <motion.img 
                   key={activeImage}
@@ -219,17 +219,17 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
                 />
               </AnimatePresence>
               
-              {/* Gallery Thumbnails Overlay (Tarea 5) */}
+              {/* Gallery Thumbnails Overlay */}
               {hasGallery && (
-                <div className="absolute bottom-32 left-10 right-10 flex gap-3 overflow-x-auto pb-4 no-scrollbar">
+                <div className="absolute bottom-4 sm:bottom-32 left-4 sm:left-10 right-4 sm:right-10 flex gap-2 sm:gap-3 overflow-x-auto pb-2 no-scrollbar">
                   {finalGallery.map((img, i) => (
                     <motion.button
                       key={i}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => setActiveImage(img)}
-                      className={`relative w-20 h-20 rounded-2xl overflow-hidden border-2 transition-all shrink-0 shadow-lg ${
-                        activeImage === img ? 'border-primary ring-4 ring-primary/20 scale-110' : 'border-white/50 hover:border-white'
+                      className={`relative w-12 h-12 sm:w-20 sm:h-20 rounded-xl sm:rounded-2xl overflow-hidden border-2 transition-all shrink-0 shadow-lg ${
+                        activeImage === img ? 'border-primary ring-2 sm:ring-4 ring-primary/20 scale-110' : 'border-white/50 hover:border-white'
                       }`}
                     >
                       <img src={img} className="w-full h-full object-cover" alt={`Gallery ${i}`} />
@@ -238,62 +238,62 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
                 </div>
               )}
               
-              <div className="absolute bottom-8 left-10 right-10 drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)]">
-                <div className="flex items-center gap-3 mb-4 flex-wrap">
-                  <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg ${
+              <div className="absolute bottom-4 sm:bottom-8 left-4 sm:left-10 right-4 sm:right-10 drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)]">
+                <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4 flex-wrap">
+                  <span className={`px-3 sm:px-4 py-1 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-widest shadow-lg ${
                     isActive ? 'bg-success text-white' : 'bg-warning text-white'
                   }`}>
                     {activity.estado}
                   </span>
-                  <span className="px-4 py-1.5 rounded-full bg-white/90 backdrop-blur-md text-primary-dark text-[10px] font-black uppercase tracking-widest shadow-lg">
+                  <span className="px-3 sm:px-4 py-1 rounded-full bg-white/90 backdrop-blur-md text-primary-dark text-[9px] sm:text-[10px] font-black uppercase tracking-widest shadow-lg">
                     {activity.id_categoria === '1' ? 'Aventura' : 'Cultura'}
                   </span>
                   {activity.nombre_anfitrion && (
-                    <span className="px-4 py-1.5 rounded-full bg-warning text-white text-[10px] font-black uppercase tracking-widest shadow-lg flex items-center gap-2">
-                      <User className="w-3.5 h-3.5" />
+                    <span className="px-3 sm:px-4 py-1 rounded-full bg-warning text-white text-[9px] sm:text-[10px] font-black uppercase tracking-widest shadow-lg flex items-center gap-2">
+                      <User className="w-3 sm:w-3.5 h-3 sm:h-3.5" />
                       Por: {activity.nombre_anfitrion}
                     </span>
                   )}
                 </div>
-                <h2 className="text-4xl sm:text-5xl font-display font-black text-slate-900 tracking-tight leading-tight">
+                <h2 className="text-2xl sm:text-5xl font-display font-black text-slate-900 tracking-tight leading-tight">
                   {activity.title || activity.titulo}
                 </h2>
               </div>
             </div>
 
             {/* Content Grid */}
-            <div className="p-10 grid grid-cols-1 lg:grid-cols-3 gap-12">
+            <div className="p-6 sm:p-10 grid grid-cols-1 lg:grid-cols-3 gap-8 sm:gap-12">
               {/* Left Column: Details */}
-              <div className="lg:col-span-2 space-y-10">
-                <div className="space-y-6">
-                  <h3 className="text-sm font-black text-primary uppercase tracking-[0.2em] flex items-center gap-2">
+              <div className="lg:col-span-2 space-y-8 sm:space-y-10">
+                <div className="space-y-4 sm:space-y-6">
+                  <h3 className="text-[10px] sm:text-sm font-black text-primary uppercase tracking-[0.2em] flex items-center gap-2">
                     <Info className="w-4 h-4" /> Descripción de la Experiencia
                   </h3>
-                  <p className="text-slate-600 text-lg leading-relaxed font-medium">
+                  <p className="text-slate-600 text-base sm:text-lg leading-relaxed font-medium">
                     {activity.descripcion || 'Sin descripción disponible.'}
                   </p>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 flex flex-col items-center text-center gap-2">
-                    <Clock className="w-6 h-6 text-primary" />
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Duración</p>
-                    <p className="font-bold text-slate-800">{activity.duracion_horas} Horas</p>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                  <div className="bg-slate-50 p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-100 flex flex-col items-center text-center gap-2">
+                    <Clock className="w-5 sm:w-6 h-5 sm:h-6 text-primary" />
+                    <p className="text-[8px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">Duración</p>
+                    <p className="font-bold text-sm sm:text-base text-slate-800">{activity.duracion_horas} Horas</p>
                   </div>
-                  <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 flex flex-col items-center text-center gap-2">
-                    <Signal className="w-6 h-6 text-primary" />
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Dificultad</p>
-                    <p className="font-bold text-slate-800">{activity.nivel_dificultad}</p>
+                  <div className="bg-slate-50 p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-100 flex flex-col items-center text-center gap-2">
+                    <Signal className="w-5 sm:w-6 h-5 sm:h-6 text-primary" />
+                    <p className="text-[8px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">Dificultad</p>
+                    <p className="font-bold text-sm sm:text-base text-slate-800">{activity.nivel_dificultad}</p>
                   </div>
-                  <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 flex flex-col items-center text-center gap-2">
-                    <Users className="w-6 h-6 text-primary" />
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Capacidad</p>
-                    <p className="font-bold text-slate-800">{activity.capacidad} Pers.</p>
+                  <div className="bg-slate-50 p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-100 flex flex-col items-center text-center gap-2">
+                    <Users className="w-5 sm:w-6 h-5 sm:h-6 text-primary" />
+                    <p className="text-[8px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">Capacidad</p>
+                    <p className="font-bold text-sm sm:text-base text-slate-800">{activity.capacidad} Pers.</p>
                   </div>
-                  <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 flex flex-col items-center text-center gap-2">
-                    <Star className="w-6 h-6 text-warning" />
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Rating</p>
-                    <p className="font-bold text-slate-800">
+                  <div className="bg-slate-50 p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-100 flex flex-col items-center text-center gap-2">
+                    <Star className="w-5 sm:w-6 h-5 sm:h-6 text-warning" />
+                    <p className="text-[8px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">Rating</p>
+                    <p className="font-bold text-sm sm:text-base text-slate-800">
                       {activity.avg_rating && parseFloat(activity.avg_rating) > 0 
                         ? `${parseFloat(activity.avg_rating).toFixed(1)}/5` 
                         : 'Nuevo'}
@@ -404,71 +404,65 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
 
               {/* Right Column: Pricing & Quick Actions */}
               <div className="space-y-6">
-                <div className="bg-primary-dark p-8 rounded-[40px] text-white shadow-2xl relative overflow-hidden">
-                  <Tag className="absolute -top-10 -right-10 w-40 h-40 opacity-10" />
-                  <p className="text-xs font-black uppercase tracking-[0.3em] opacity-60 mb-2">Precio por persona</p>
-                  <div className="flex items-baseline gap-1 mb-8">
-                    <span className="text-4xl font-display font-black">${activity.price || activity.precio}</span>
-                    <span className="text-sm opacity-60 font-bold uppercase tracking-widest">USD</span>
+                <div className="bg-primary-dark p-6 sm:p-8 rounded-3xl sm:rounded-[40px] text-white shadow-2xl relative overflow-hidden">
+                  <Tag className="absolute -top-10 -right-10 w-32 sm:w-40 h-32 sm:h-40 opacity-10" />
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-60 mb-2">Precio por persona</p>
+                  <div className="flex items-baseline gap-1 mb-6 sm:mb-8">
+                    <span className="text-3xl sm:text-4xl font-display font-black">${activity.price || activity.precio}</span>
+                    <span className="text-[10px] sm:text-sm opacity-60 font-bold uppercase tracking-widest">USD</span>
                   </div>
                   
-                  <div className="space-y-4">
-                    <div className="p-4 bg-white/10 rounded-2xl border border-white/10 flex items-center gap-4">
-                      <Calendar className="w-5 h-5 text-primary" />
+                  <div className="space-y-3 sm:space-y-4">
+                    <div className="p-3 sm:p-4 bg-white/10 rounded-xl sm:rounded-2xl border border-white/10 flex items-center gap-3 sm:gap-4">
+                      <Calendar className="w-4 sm:w-5 h-4 sm:h-5 text-primary" />
                       <div>
-                        <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Disponibilidad</p>
-                        <p className="text-xs font-bold font-display">Todo el año</p>
+                        <p className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest opacity-60">Disponibilidad</p>
+                        <p className="text-[10px] sm:text-xs font-bold font-display">Todo el año</p>
                       </div>
                     </div>
-                    <div className="p-4 bg-white/10 rounded-2xl border border-white/10 flex items-center gap-4">
-                      <Users className="w-5 h-5 text-primary" />
+                    <div className="p-3 sm:p-4 bg-white/10 rounded-xl sm:rounded-2xl border border-white/10 flex items-center gap-3 sm:gap-4">
+                      <Users className="w-4 sm:w-5 h-4 sm:h-5 text-primary" />
                       <div>
-                        <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Tipo de Grupo</p>
-                        <p className="text-xs font-bold font-display">Familiar / Individual</p>
+                        <p className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest opacity-60">Tipo de Grupo</p>
+                        <p className="text-[10px] sm:text-xs font-bold font-display">Familiar / Individual</p>
                       </div>
                     </div>
                   </div>
 
-                  <p className="text-[10px] text-center mt-8 opacity-40 uppercase font-black tracking-widest">
-                    Precios finales con impuestos incluidos
-                  </p>
+                  <div className="mt-6 sm:mt-8 flex flex-col gap-3">
+                    <button 
+                      onClick={handleAddToCart}
+                      disabled={added}
+                      className={`w-full py-4 sm:py-5 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm transition-all shadow-xl flex items-center justify-center gap-3 border ${
+                        added || isAlreadyInCart
+                        ? 'bg-success text-white border-success' 
+                        : 'bg-primary text-white border-primary-light hover:bg-white hover:text-primary-dark hover:scale-105 active:scale-95'
+                      }`}
+                    >
+                      {added || isAlreadyInCart ? (
+                        <> <CheckCircle2 className="w-5 h-5" /> En el Paquete </>
+                      ) : (
+                        <> <Plus className="w-5 h-5" /> Añadir al Paquete </>
+                      )}
+                    </button>
 
-                  {cart && (
-                    <div className="mt-6 flex flex-col gap-3">
-                      <button 
-                        onClick={handleAddToCart}
-                        disabled={added}
-                        className={`w-full py-4 rounded-2xl font-black text-xs transition-all shadow-xl flex items-center justify-center gap-3 border ${
-                          added || isAlreadyInCart
-                          ? 'bg-success text-white border-success' 
-                          : 'bg-primary text-white border-primary-light hover:bg-white hover:text-primary-dark hover:scale-105 active:scale-95'
-                        }`}
-                      >
-                        {added || isAlreadyInCart ? (
-                          <> <CheckCircle2 className="w-5 h-5" /> En el Paquete </>
-                        ) : (
-                          <> <Plus className="w-5 h-5" /> Añadir al Paquete </>
-                        )}
-                      </button>
-
-                      <button 
-                        onClick={handleSendMessage}
-                        disabled={isSendingMessage}
-                        className="w-full py-4 rounded-2xl font-black text-xs transition-all shadow-xl flex items-center justify-center gap-3 border bg-white/10 border-white/20 hover:bg-white hover:text-primary-dark text-white hover:scale-105 active:scale-95 disabled:opacity-50 disabled:scale-100"
-                      >
-                         <MessageSquare className="w-5 h-5" /> 
-                         {isSendingMessage ? 'Enviando...' : 'Consultar Anfitrión'}
-                      </button>
-                    </div>
-                  )}
+                    <button 
+                      onClick={handleSendMessage}
+                      disabled={isSendingMessage}
+                      className="w-full py-4 sm:py-5 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm transition-all shadow-xl flex items-center justify-center gap-3 border bg-white/10 border-white/20 hover:bg-white hover:text-primary-dark text-white hover:scale-105 active:scale-95 disabled:opacity-50"
+                    >
+                       <MessageSquare className="w-5 h-5" /> 
+                       {isSendingMessage ? 'Enviando...' : 'Consultar Anfitrión'}
+                    </button>
+                  </div>
                 </div>
 
-                <div className="p-8 bg-slate-50 rounded-[40px] border border-slate-100">
-                  <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Lo que incluye</h4>
-                  <ul className="space-y-3">
+                <div className="p-6 sm:p-8 bg-slate-50 rounded-2xl sm:rounded-[40px] border border-slate-100">
+                  <h4 className="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Lo que incluye</h4>
+                  <ul className="space-y-2 sm:space-y-3">
                     {['Guía profesional', 'Equipo de seguridad', 'Transporte local', 'Snacks y agua'].map((item, i) => (
-                      <li key={i} className="flex items-center gap-3 text-sm font-bold text-slate-600">
-                        <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                      <li key={i} className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm font-bold text-slate-600">
+                        <div className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-primary" />
                         {item}
                       </li>
                     ))}

@@ -11,101 +11,110 @@ import BookingSidebar from '../components/BookingSidebar';
 import MapView from '../components/dashboard/MapView';
 import { ecuadorData, provinces, countries } from '../data/ecuadorData';
 import { useCart, CartProvider } from '../contexts/CartContext';
+import hero1 from '../assets/carousel/hero1.png';
+import hero2 from '../assets/carousel/hero2.png';
+import hero3 from '../assets/carousel/hero3.png';
 
-const ActivityCard = ({ activity, onOpenDetail, onOpenBooking }) => (
-  <div className="group bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 border border-slate-50 relative flex flex-col h-full">
-    <div className="relative h-60 overflow-hidden">
-      <img 
-        src={activity.image} 
-        alt={activity.title}
-        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-        onError={(e) => {
-          e.target.style.display = 'none';
-          e.target.nextSibling.style.display = 'flex';
-        }}
-      />
-      <div className="hidden absolute inset-0 bg-gradient-to-br from-slate-100 to-slate-200 flex-col items-center justify-center text-primary gap-2">
-        <ImageIcon className="w-12 h-12 opacity-50" />
-        <span className="text-xs font-bold uppercase text-center px-4">{activity.title}</span>
-      </div>
-      <span className="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-full text-[10px] font-black uppercase text-primary-dark shadow-sm z-10">
-        {activity.tipo === 'TURISTICA' ? 'Experiencia' : 'Servicio'}
-      </span>
-      {activity.precio_oferta && (
-        <span className="absolute top-4 left-4 bg-success text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg z-10 animate-pulse">
-          OFERTA -{Math.round((1 - (activity.precio_oferta / activity.original_price)) * 100)}%
-        </span>
-      )}
-    </div>
-    <div className="p-6 flex flex-col flex-grow">
-      <div className="flex flex-col gap-1.5 mb-3">
-        <div className="flex items-center gap-2 text-primary text-xs font-bold uppercase tracking-wider">
-          <MapPin className="w-3 h-3" /> {activity.location}
+const ActivityCard = ({ activity, onOpenDetail, onOpenBooking }) => {
+  const handleViewMore = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/api/activities/${activity.id}`);
+      if (response.ok) {
+        const fullData = await response.json();
+        onOpenDetail(fullData);
+      } else {
+        onOpenDetail(activity);
+      }
+    } catch (error) {
+      console.error('Error fetching details:', error);
+      onOpenDetail(activity);
+    }
+  };
+
+  return (
+    <div className="group bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 border border-slate-50 relative flex flex-col h-full">
+      <div 
+        className="relative h-60 overflow-hidden cursor-pointer"
+        onClick={handleViewMore}
+      >
+        <img 
+          src={activity.image} 
+          alt={activity.title}
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+          onError={(e) => {
+            e.target.style.display = 'none';
+            e.target.nextSibling.style.display = 'flex';
+          }}
+        />
+        <div className="hidden absolute inset-0 bg-gradient-to-br from-slate-100 to-slate-200 flex-col items-center justify-center text-primary gap-2">
+          <ImageIcon className="w-12 h-12 opacity-50" />
+          <span className="text-xs font-bold uppercase text-center px-4">{activity.title}</span>
         </div>
-        {activity.nombre_anfitrion && (
-          <div className="flex items-center gap-1.5 text-slate-500 text-[10px] font-black uppercase tracking-widest pl-[1px]">
-            <User className="w-3.5 h-3.5 text-secondary" />
-            <span className="opacity-70">POR:</span> <span className="text-secondary">{activity.nombre_anfitrion}</span>
-          </div>
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+        <span className="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-full text-[10px] font-black uppercase text-primary-dark shadow-sm z-10">
+          {activity.tipo === 'TURISTICA' ? 'Experiencia' : 'Servicio'}
+        </span>
+        {activity.precio_oferta && (
+          <span className="absolute top-4 left-4 bg-success text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg z-10 animate-pulse">
+            OFERTA -{Math.round((1 - (activity.precio_oferta / activity.original_price)) * 100)}%
+          </span>
         )}
       </div>
-      <h3 className="text-lg font-bold text-slate-800 mb-6 group-hover:text-primary transition-colors leading-snug">
-        {activity.title}
-      </h3>
-      <div className="flex flex-col gap-4 pt-5 border-t border-slate-50 mt-auto">
-        <div className="flex justify-between items-center">
-          <div className="flex flex-col">
-            <div className="flex items-center gap-2">
-              <div className="font-display font-black text-xl text-primary-dark">
-                ${activity.price}
-              </div>
-              {activity.precio_oferta && (
-                <div className="text-xs font-bold text-slate-400 line-through">
-                  ${activity.original_price}
-                </div>
-              )}
-              <span className="text-xs font-normal text-slate-400">/ pers</span>
+      <div className="p-6 flex flex-col flex-grow">
+        <div className="flex flex-col gap-1.5 mb-3">
+          <div className="flex items-center gap-2 text-primary text-xs font-bold uppercase tracking-wider">
+            <MapPin className="w-3 h-3" /> {activity.location}
+          </div>
+          {activity.nombre_anfitrion && (
+            <div className="flex items-center gap-1.5 text-slate-500 text-[10px] font-black uppercase tracking-widest pl-[1px]">
+              <User className="w-3.5 h-3.5 text-secondary" />
+              <span className="opacity-70">POR:</span> <span className="text-secondary">{activity.nombre_anfitrion}</span>
             </div>
-            <span className="text-[9px] font-black uppercase text-success tracking-tighter mt-[-2px]">15% IVA Incluido</span>
+          )}
+        </div>
+        <h3 
+          className="text-lg font-bold text-slate-800 mb-6 group-hover:text-primary transition-colors cursor-pointer leading-snug"
+          onClick={handleViewMore}
+        >
+          {activity.title}
+        </h3>
+        <div className="flex flex-col gap-4 pt-5 border-t border-slate-50 mt-auto">
+          <div className="flex justify-between items-center">
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2">
+                <div className="font-display font-black text-xl text-primary-dark">
+                  ${activity.price}
+                </div>
+                {activity.precio_oferta && (
+                  <div className="text-xs font-bold text-slate-400 line-through">
+                    ${activity.original_price}
+                  </div>
+                )}
+                <span className="text-xs font-normal text-slate-400">/ pers</span>
+              </div>
+              <span className="text-[9px] font-black uppercase text-success tracking-tighter mt-[-2px]">15% IVA Incluido</span>
+            </div>
+            <button 
+              onClick={handleViewMore}
+              className="text-primary font-bold text-sm hover:text-primary-dark flex items-center gap-2 transition-all p-2"
+            >
+              Ver más <ArrowRight className="w-4 h-4" />
+            </button>
           </div>
           <button 
-            onClick={async () => {
-              try {
-                const response = await fetch(`${API_BASE}/api/activities/${activity.id}`);
-                if (response.ok) {
-                  const fullData = await response.json();
-                  onOpenDetail(fullData);
-                } else {
-                  onOpenDetail(activity);
-                }
-              } catch (error) {
-                console.error('Error fetching details:', error);
-                onOpenDetail(activity);
-              }
-            }}
-            className="text-primary font-bold text-sm hover:text-primary-dark flex items-center gap-2 transition-all p-2"
+            onClick={() => onOpenBooking(activity)}
+            className="w-full px-6 py-3 rounded-xl bg-primary hover:bg-primary-dark text-white font-bold text-sm transition-all shadow-lg shadow-primary/10 hover:shadow-primary/30 flex items-center justify-center gap-2 active:scale-95"
           >
-            Ver más <ArrowRight className="w-4 h-4" />
+            Reservar Ahora
           </button>
         </div>
-        <button 
-          onClick={() => onOpenBooking(activity)}
-          className="w-full px-6 py-3 rounded-xl bg-primary hover:bg-primary-dark text-white font-bold text-sm transition-all shadow-lg shadow-primary/10 hover:shadow-primary/30 flex items-center justify-center gap-2 active:scale-95"
-        >
-          Reservar Ahora
-        </button>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 
-const HERO_IMAGES = [
-  "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
-  "https://images.unsplash.com/photo-1589405709102-c246853add3c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
-  "https://images.unsplash.com/photo-1582234372722-50d7ccc30ebd?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
-  "https://images.unsplash.com/photo-1628155930542-3c7a64e2c833?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80"
-];
+const HERO_IMAGES = [hero1, hero2, hero3];
 
 const Home = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -138,7 +147,7 @@ const Home = () => {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % HERO_IMAGES.length);
-    }, 5000);
+    }, 4000);
     return () => clearInterval(timer);
   }, []);
 

@@ -35,17 +35,13 @@ const Navbar = () => {
   };
 
   return (
-    <header className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${
-      isScrolled || isMobileMenuOpen ? 'bg-white/95 backdrop-blur-md shadow-lg py-3' : 'bg-transparent py-5'
-    }`}>
+    <header className="fixed top-0 left-0 w-full z-50 transition-all duration-500 bg-white shadow-md py-3">
       <div className="container-wide flex justify-between items-center">
         <Link to="/" className="flex items-center gap-2 group">
           <div className="bg-primary p-2 rounded-lg group-hover:rotate-12 transition-transform">
             <Mountain className="text-white w-6 h-6" />
           </div>
-          <span className={`text-xl font-display font-black tracking-tighter transition-colors ${
-            isScrolled || isMobileMenuOpen ? 'text-primary-dark' : 'text-white'
-          }`}>
+          <span className="text-xl font-display font-black tracking-tighter transition-colors text-primary-dark">
             ISTPET <span className="text-primary">Turismo</span>
           </span>
         </Link>
@@ -56,7 +52,7 @@ const Navbar = () => {
             className={`text-sm font-bold transition-all relative py-1 ${
               isLinkActive('experiencias') 
                 ? 'text-primary' 
-                : (isScrolled || isMobileMenuOpen ? 'text-slate-600 hover:text-primary' : 'text-white/80 hover:text-white')
+                : 'text-slate-600 hover:text-primary'
             }`}
           >
             Experiencias
@@ -70,7 +66,7 @@ const Navbar = () => {
             className={`text-sm font-bold transition-all relative py-1 ${
               isLinkActive('servicios') 
                 ? 'text-primary' 
-                : (isScrolled || isMobileMenuOpen ? 'text-slate-600 hover:text-primary' : 'text-white/80 hover:text-white')
+                : 'text-slate-600 hover:text-primary'
             }`}
           >
             Servicios
@@ -87,9 +83,7 @@ const Navbar = () => {
               >
                 Hazte Anfitrión
               </button>
-              <Link to="/login" className={`flex items-center gap-2 text-sm font-bold transition-colors ${
-                isScrolled || isMobileMenuOpen ? 'text-slate-700' : 'text-white'
-              }`}>
+              <Link to="/login" className="flex items-center gap-2 text-sm font-bold transition-colors text-slate-700">
                 <UserCircle className="w-5 h-5" /> Ingresar
               </Link>
             </>
@@ -99,9 +93,7 @@ const Navbar = () => {
                     className="flex items-center gap-2 text-primary font-bold text-sm">
                 <LayoutDashboard className="w-4 h-4" /> Mi Panel
               </Link>
-              <button onClick={handleLogout} className={`flex items-center gap-2 text-sm font-bold p-2 rounded-lg transition-colors ${
-                isScrolled || isMobileMenuOpen ? 'hover:bg-slate-100 text-slate-700' : 'hover:bg-white/10 text-white'
-              }`}>
+              <button onClick={handleLogout} className="flex items-center gap-2 text-sm font-bold p-2 rounded-lg transition-colors hover:bg-slate-100 text-slate-700">
                 <LogOut className="w-4 h-4" /> Salir
               </button>
             </div>
