@@ -45,7 +45,7 @@ const findAll = async (filters = {}) => {
     const pCountry = country ? addParam(`%${country}%`) : null;
     const pType = filters.type ? addParam(filters.type) : null;
 
-    // Fórmula Haversine segura
+    // Fórmula Haversine robusta
     let distanceFormula = '0.0';
     if (pLat && pLng) {
         distanceFormula = `(
@@ -59,11 +59,35 @@ const findAll = async (filters = {}) => {
         )`;
     }
 
+    const buildAvailabilityCheck = (tableAlias, type) => {
+        if (!startDate || !endDate) return 'TRUE::boolean'; 
+        return `
+            NOT EXISTS (
+                SELECT 1 
+                FROM reservas r 
+                WHERE r.id_actividad = ${tableAlias}.id_actividad 
+                  AND r.tipo_actividad = '${type}'
+                  AND r.estado IN ('PENDIENTE', 'APROBADA', 'CONFIRMADA')
+                  AND r.fecha_experiencia BETWEEN ${pStartDate}::date AND ${pEndDate}::date
+                GROUP BY r.fecha_experiencia
+                HAVING SUM(r.cantidad_personas) + ${pGuests} > ${tableAlias}.capacidad
+            )
+        `;
+    };
+
     let query = `
         WITH BaseActivities AS (
             SELECT 
                 'TURISTICA' as tipo, at.id_actividad, 'T-' || at.id_actividad as id,
-                at.titulo as title, at.precio as price, at.capacidad, at.vistas, at.estado, at.id_anfitrion, at.id_ubicacion
+                at.titulo as title, at.precio as original_price,
+                CASE 
+                    WHEN at.precio_oferta IS NOT NULL AND (at.fecha_fin_oferta IS NULL OR at.fecha_fin_oferta > CURRENT_TIMESTAMP)
+                    THEN at.precio_oferta 
+                    ELSE at.precio 
+                END as price,
+                at.precio_oferta, at.fecha_fin_oferta,
+                at.capacidad, at.vistas, at.estado, at.id_anfitrion, at.id_ubicacion,
+                ${buildAvailabilityCheck('at', 'TURISTICA')} as is_available
             FROM actividades_turisticas at
             WHERE at.estado = 'ACTIVA'
             
@@ -71,7 +95,15 @@ const findAll = async (filters = {}) => {
             
             SELECT 
                 'ALIMENTARIA' as tipo, aa.id_actividad, 'A-' || aa.id_actividad as id,
-                aa.titulo as title, aa.precio as price, aa.capacidad, aa.vistas, aa.estado, aa.id_anfitrion, aa.id_ubicacion
+                aa.titulo as title, aa.precio as original_price,
+                CASE 
+                    WHEN aa.precio_oferta IS NOT NULL AND (aa.fecha_fin_oferta IS NULL OR aa.fecha_fin_oferta > CURRENT_TIMESTAMP)
+                    THEN aa.precio_oferta 
+                    ELSE aa.precio 
+                END as price,
+                aa.precio_oferta, aa.fecha_fin_oferta,
+                aa.capacidad, aa.vistas, aa.estado, aa.id_anfitrion, aa.id_ubicacion,
+                ${buildAvailabilityCheck('aa', 'ALIMENTARIA')} as is_available
             FROM actividades_alimentarias aa
             WHERE aa.estado = 'ACTIVA'
         )
@@ -81,18 +113,22 @@ const findAll = async (filters = {}) => {
             u.ciudad, u.provincia, u.pais, u.direccion, u.latitud, u.longitud,
             ip.url_imagen as image,
             us.nombre as nombre_anfitrion,
+            (SELECT COALESCE(AVG(v.puntuacion), 0) FROM valoraciones v WHERE v.id_actividad = ba.id_actividad AND v.tipo_actividad = ba.tipo) as avg_rating,
             CAST(${distanceFormula} AS FLOAT) as distance
         FROM BaseActivities ba
         LEFT JOIN ubicaciones u ON ba.id_ubicacion = u.id_ubicacion
         LEFT JOIN usuarios us ON ba.id_anfitrion = us.id_usuario
         LEFT JOIN imagen_portada ip ON ba.id_actividad = ip.id_actividad AND ba.tipo = ip.tipo_actividad
-        WHERE 1=1
+        WHERE ba.is_available = TRUE
     `;
 
-    if (pType) query += ` AND ba.tipo = ${pType}`;
-    if (pCity) query += ` AND u.ciudad ILIKE ${pCity}`;
-    if (pProvince) query += ` AND u.provincia ILIKE ${pProvince}`;
-    if (pLocation) query += ` AND (u.ciudad ILIKE ${pLocation} OR ba.title ILIKE ${pLocation})`;
+    // Filtros dinámicos con cast explícito para evitar error 42P18
+    if (pType) query += ` AND ba.tipo = ${pType}::text`;
+    if (guests && parseInt(guests) > 1) query += ` AND ba.capacidad >= ${pGuests}`;
+    if (pCity) query += ` AND u.ciudad ILIKE ${pCity}::text`;
+    if (pProvince) query += ` AND u.provincia ILIKE ${pProvince}::text`;
+    if (pCountry) query += ` AND u.pais ILIKE ${pCountry}::text`;
+    if (pLocation) query += ` AND (u.ciudad ILIKE ${pLocation}::text OR u.pais ILIKE ${pLocation}::text OR ba.title ILIKE ${pLocation}::text)`;
 
     if (pRadius && pLat && pLng) {
         query += ` AND (${distanceFormula} <= ${pRadius} + 0.5)`;
