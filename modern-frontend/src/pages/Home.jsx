@@ -335,6 +335,7 @@ const Home = () => {
       if (filters.city) params.append('city', filters.city);
       if (filters.province) params.append('province', filters.province);
       if (filters.country) params.append('country', filters.country);
+      if (filters.type) params.append('type', filters.type);
       
       if (filters.lat && filters.lng) {
         params.append('lat', filters.lat);
@@ -346,7 +347,8 @@ const Home = () => {
       if (guestsTotal > 1) {
         params.append('guests', guestsTotal);
       }
-      // Set to 10 for the homepage recommendations
+      
+      // Set limit for recommendations
       if (filters.limit !== undefined) {
          if (filters.limit) params.append('limit', filters.limit);
       } else {
@@ -356,7 +358,9 @@ const Home = () => {
       const response = await fetch(`${API_BASE}/api/activities?${params.toString()}`);
       if (response.ok) {
         const data = await response.json();
-        setActivities(data);
+        if (!filters.type) { 
+           setActivities(data);
+        }
         
         // Custom notification for empty location results
         if (data.length === 0 && filters.lat && filters.lng && !skipModal) {
@@ -419,13 +423,11 @@ const Home = () => {
            });
         }
         return data;
-      } else {
-        console.error('Failed to fetch activities');
       }
     } catch (error) {
       console.error('Error fetching activities:', error);
     } finally {
-      setLoading(false);
+      if (!filters.type) setLoading(false);
     }
   };
 
@@ -527,7 +529,20 @@ const Home = () => {
   };
 
   useEffect(() => {
-    fetchActivities({});
+    const loadInitialData = async () => {
+       setLoading(true);
+       try {
+          // Fetch both types separately to ensure both sections are full (max 10 each)
+          const [exp, ser] = await Promise.all([
+             fetchActivities({ type: 'TURISTICA', limit: 10 }, true),
+             fetchActivities({ type: 'ALIMENTARIA', limit: 10 }, true)
+          ]);
+          setActivities([...(exp || []), ...(ser || [])]);
+       } finally {
+          setLoading(false);
+       }
+    };
+    loadInitialData();
   }, []);
 
   return (

@@ -38,6 +38,7 @@ const findAll = async (filters = {}) => {
     const pCity = city ? addParam(`%${city}%`) : null;
     const pProvince = province ? addParam(`%${province}%`) : null;
     const pCountry = country ? addParam(`%${country}%`) : null;
+    const pType = filters.type ? addParam(filters.type) : null;
 
     let distanceFormula = 'NULL';
     if (pLat && pLng) {
@@ -125,6 +126,7 @@ const findAll = async (filters = {}) => {
     if (pProvince) query += ` AND provincia ILIKE ${pProvince}`;
     if (pCountry) query += ` AND pais ILIKE ${pCountry}`;
     if (pGuests) query += ` AND capacidad >= ${pGuests}`;
+    if (pType) query += ` AND tipo = ${pType}`;
 
     // Filtro de distancia CRÍTICO: Solo si hay coordenadas del usuario
     if (pRadius && pLat && pLng) {
