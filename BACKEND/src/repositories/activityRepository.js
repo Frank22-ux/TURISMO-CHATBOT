@@ -66,11 +66,11 @@ const findAll = async (filters = {}) => {
                 SELECT 1 
                 FROM reservas r 
                 WHERE r.id_actividad = ${tableAlias}.id_actividad 
-                  AND r.tipo_actividad = '${type}'
+                  AND r.tipo_actividad = '${type}'::text
                   AND r.estado IN ('PENDIENTE', 'APROBADA', 'CONFIRMADA')
                   AND r.fecha_experiencia BETWEEN ${pStartDate}::date AND ${pEndDate}::date
                 GROUP BY r.fecha_experiencia
-                HAVING SUM(r.cantidad_personas) + ${pGuests} > ${tableAlias}.capacidad
+                HAVING SUM(r.cantidad_personas) + ${pGuests}::integer > ${tableAlias}.capacidad
             )
         `;
     };
@@ -78,7 +78,7 @@ const findAll = async (filters = {}) => {
     let query = `
         WITH BaseActivities AS (
             SELECT 
-                'TURISTICA' as tipo, at.id_actividad, 'T-' || at.id_actividad as id,
+                'TURISTICA'::text as tipo, at.id_actividad, 'T-' || at.id_actividad as id,
                 at.titulo as title, at.precio as original_price,
                 CASE 
                     WHEN at.precio_oferta IS NOT NULL AND (at.fecha_fin_oferta IS NULL OR at.fecha_fin_oferta > CURRENT_TIMESTAMP)
@@ -94,7 +94,7 @@ const findAll = async (filters = {}) => {
             UNION ALL
             
             SELECT 
-                'ALIMENTARIA' as tipo, aa.id_actividad, 'A-' || aa.id_actividad as id,
+                'ALIMENTARIA'::text as tipo, aa.id_actividad, 'A-' || aa.id_actividad as id,
                 aa.titulo as title, aa.precio as original_price,
                 CASE 
                     WHEN aa.precio_oferta IS NOT NULL AND (aa.fecha_fin_oferta IS NULL OR aa.fecha_fin_oferta > CURRENT_TIMESTAMP)
@@ -113,25 +113,25 @@ const findAll = async (filters = {}) => {
             u.ciudad, u.provincia, u.pais, u.direccion, u.latitud, u.longitud,
             ip.url_imagen as image,
             us.nombre as nombre_anfitrion,
-            (SELECT COALESCE(AVG(v.puntuacion), 0) FROM valoraciones v WHERE v.id_actividad = ba.id_actividad AND v.tipo_actividad = ba.tipo) as avg_rating,
+            (SELECT COALESCE(AVG(v.puntuacion), 0) FROM valoraciones v WHERE v.id_actividad = ba.id_actividad AND v.tipo_actividad = ba.tipo::text) as avg_rating,
             CAST(${distanceFormula} AS FLOAT) as distance
         FROM BaseActivities ba
         LEFT JOIN ubicaciones u ON ba.id_ubicacion = u.id_ubicacion
         LEFT JOIN usuarios us ON ba.id_anfitrion = us.id_usuario
-        LEFT JOIN imagen_portada ip ON ba.id_actividad = ip.id_actividad AND ba.tipo = ip.tipo_actividad
+        LEFT JOIN imagen_portada ip ON ba.id_actividad = ip.id_actividad AND ba.tipo::text = ip.tipo_actividad::text
         WHERE ba.is_available = TRUE
     `;
 
     // Filtros dinámicos con cast explícito para evitar error 42P18
     if (pType) query += ` AND ba.tipo = ${pType}::text`;
-    if (guests && parseInt(guests) > 1) query += ` AND ba.capacidad >= ${pGuests}`;
+    if (guests && parseInt(guests) > 1) query += ` AND ba.capacidad >= ${pGuests}::integer`;
     if (pCity) query += ` AND u.ciudad ILIKE ${pCity}::text`;
     if (pProvince) query += ` AND u.provincia ILIKE ${pProvince}::text`;
     if (pCountry) query += ` AND u.pais ILIKE ${pCountry}::text`;
     if (pLocation) query += ` AND (u.ciudad ILIKE ${pLocation}::text OR u.pais ILIKE ${pLocation}::text OR ba.title ILIKE ${pLocation}::text)`;
 
     if (pRadius && pLat && pLng) {
-        query += ` AND (${distanceFormula} <= ${pRadius} + 0.5)`;
+        query += ` AND (${distanceFormula} <= ${pRadius}::float + 0.5)`;
     }
 
     if (pLat && pLng) {
