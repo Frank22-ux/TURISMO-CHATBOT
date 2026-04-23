@@ -32,10 +32,9 @@ const findAll = async (filters = {}) => {
     const pLng = (lng && !isNaN(parseFloat(lng)) && parseFloat(lng) !== 0) ? addParam(parseFloat(lng)) : null;
     const pRadius = (radius && !isNaN(parseFloat(radius)) && parseFloat(radius) > 0) ? addParam(parseFloat(radius)) : null;
     
-    // Validar guests para evitar NaN
-    let guestsValue = parseInt(guests);
-    if (isNaN(guestsValue) || guestsValue < 1) guestsValue = 1;
-    const pGuests = addParam(guestsValue);
+    // Validar guests para evitar NaN y usarlo como literal seguro en el SQL
+    let safeGuests = parseInt(guests);
+    if (isNaN(safeGuests) || safeGuests < 1) safeGuests = 1;
 
     const pStartDate = startDate ? addParam(startDate) : null;
     const pEndDate = endDate ? addParam(endDate) : null;
@@ -66,11 +65,11 @@ const findAll = async (filters = {}) => {
                 SELECT 1 
                 FROM reservas r 
                 WHERE r.id_actividad = ${tableAlias}.id_actividad 
-                  AND r.tipo_actividad = '${type}'::text
+                  AND r.tipo_actividad = '${type}'
                   AND r.estado IN ('PENDIENTE', 'APROBADA', 'CONFIRMADA')
                   AND r.fecha_experiencia BETWEEN ${pStartDate}::date AND ${pEndDate}::date
                 GROUP BY r.fecha_experiencia
-                HAVING SUM(r.cantidad_personas) + ${pGuests}::integer > ${tableAlias}.capacidad
+                HAVING SUM(r.cantidad_personas) + ${safeGuests} > ${tableAlias}.capacidad
             )
         `;
     };
@@ -113,18 +112,18 @@ const findAll = async (filters = {}) => {
             u.ciudad, u.provincia, u.pais, u.direccion, u.latitud, u.longitud,
             ip.url_imagen as image,
             us.nombre as nombre_anfitrion,
-            (SELECT COALESCE(AVG(v.puntuacion), 0) FROM valoraciones v WHERE v.id_actividad = ba.id_actividad AND v.tipo_actividad = ba.tipo::text) as avg_rating,
+            (SELECT COALESCE(AVG(v.puntuacion), 0) FROM valoraciones v WHERE v.id_actividad = ba.id_actividad AND v.tipo_actividad = ba.tipo) as avg_rating,
             CAST(${distanceFormula} AS FLOAT) as distance
         FROM BaseActivities ba
         LEFT JOIN ubicaciones u ON ba.id_ubicacion = u.id_ubicacion
         LEFT JOIN usuarios us ON ba.id_anfitrion = us.id_usuario
-        LEFT JOIN imagen_portada ip ON ba.id_actividad = ip.id_actividad AND ba.tipo::text = ip.tipo_actividad::text
+        LEFT JOIN imagen_portada ip ON ba.id_actividad = ip.id_actividad AND ba.tipo = ip.tipo_actividad
         WHERE ba.is_available = TRUE
     `;
 
     // Filtros dinámicos con cast explícito para evitar error 42P18
     if (pType) query += ` AND ba.tipo = ${pType}::text`;
-    if (guests && parseInt(guests) > 1) query += ` AND ba.capacidad >= ${pGuests}::integer`;
+    if (safeGuests > 1) query += ` AND ba.capacidad >= ${safeGuests}`;
     if (pCity) query += ` AND u.ciudad ILIKE ${pCity}::text`;
     if (pProvince) query += ` AND u.provincia ILIKE ${pProvince}::text`;
     if (pCountry) query += ` AND u.pais ILIKE ${pCountry}::text`;
