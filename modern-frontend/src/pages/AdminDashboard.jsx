@@ -332,6 +332,7 @@ const AdminDashboard = () => {
     const getCount = (role) => stats?.users.find(u => u.rol === role)?.count || 0;
 
     const kpis = [
+        {
             label: 'Total Usuarios', 
             value: stats?.users.reduce((acc, curr) => acc + parseInt(curr.count), 0) || 0, 
             icon: Users, color: 'bg-primary', 
