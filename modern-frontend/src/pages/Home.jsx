@@ -346,13 +346,11 @@ const Home = () => {
       if (guestsTotal > 1) {
         params.append('guests', guestsTotal);
       }
-      // Set to 10 for the homepage recommendations
+      // Set limit for recommendations
       if (filters.limit !== undefined) {
          if (filters.limit) params.append('limit', filters.limit);
-         // If filters.limit is null/false, we append nothing (meaning fetch all)
-      } else {
-         params.append('limit', 10);
       }
+      // No default limit to ensure Home shows all results initially as requested
 
       const response = await fetch(`${API_BASE}/api/activities?${params.toString()}`);
       if (response.ok) {

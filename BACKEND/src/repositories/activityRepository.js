@@ -9,7 +9,24 @@ const findAll = async (filters = {}) => {
         return `$${params.length}`;
     };
 
-    console.log(`[Search] Iniciando búsqueda con filtros:`, { lat, lng, radius, location, city, guests, startDate, endDate, limit });
+    // LOGS DE DEPURACIÓN OBLIGATORIOS (PASO A PASO)
+    try {
+        const rawCount = await db.query("SELECT (SELECT COUNT(*) FROM actividades_turisticas) + (SELECT COUNT(*) FROM actividades_alimentarias) as count");
+        console.log(`[Debug-1] Total actividades en tablas: ${rawCount.rows[0].count}`);
+
+        const joinedCount = await db.query(`
+            SELECT (
+                SELECT COUNT(*) FROM actividades_turisticas at JOIN ubicaciones u ON at.id_ubicacion = u.id_ubicacion WHERE at.estado = 'ACTIVA'
+            ) + (
+                SELECT COUNT(*) FROM actividades_alimentarias aa JOIN ubicaciones u ON aa.id_ubicacion = u.id_ubicacion WHERE aa.estado = 'ACTIVA'
+            ) as count
+        `);
+        console.log(`[Debug-2] Total después de JOIN y estado ACTIVA: ${joinedCount.rows[0].count}`);
+    } catch (e) {
+        console.warn("[Debug] Error en conteos previos:", e.message);
+    }
+
+    console.log(`[Search] Parámetros recibidos:`, { lat, lng, radius, location, city, guests, limit });
 
     const pLat = lat ? addParam(parseFloat(lat)) : null;
     const pLng = lng ? addParam(parseFloat(lng)) : null;
@@ -24,7 +41,6 @@ const findAll = async (filters = {}) => {
 
     let distanceFormula = 'NULL';
     if (pLat && pLng) {
-        // Fórmula de Haversine: 2 * R * asin(sqrt(sin²(Δlat/2) + cos(lat1) * cos(lat2) * sin²(Δlong/2)))
         distanceFormula = `(
             6371 * 2 * asin(sqrt(
                 power(sin(radians((u.latitud::numeric - ${pLat}::numeric) / 2)), 2) +
@@ -53,104 +69,91 @@ const findAll = async (filters = {}) => {
     let query = `
         SELECT * FROM (
             SELECT 
-                'T-' || at.id_actividad as id, 
-                at.titulo as title, 
-                at.precio as original_price,
+                'T-' || at.id_actividad as id, at.titulo as title, at.precio as original_price,
                 CASE 
                     WHEN at.precio_oferta IS NOT NULL AND (at.fecha_fin_oferta IS NULL OR at.fecha_fin_oferta > CURRENT_TIMESTAMP)
                     THEN at.precio_oferta 
                     ELSE at.precio 
                 END as price,
-                at.precio_oferta,
-                at.fecha_fin_oferta,
+                at.precio_oferta, at.fecha_fin_oferta,
                 u.ciudad || ', ' || u.pais as location,
                 u.ciudad, u.provincia, u.pais, u.direccion,
-                ip.url_imagen as image,
-                'TURISTICA' as tipo,
-                at.capacidad,
-                u.latitud,
-                u.longitud,
-                at.vistas,
+                ip.url_imagen as image, 'TURISTICA' as tipo,
+                at.capacidad, u.latitud, u.longitud, at.vistas,
                 COALESCE(AVG(v.puntuacion), 0) AS avg_rating,
-                u2.nombre as nombre_anfitrion,
-                at.id_anfitrion,
+                u2.nombre as nombre_anfitrion, at.id_anfitrion,
                 ${distanceFormula} as distance
             FROM actividades_turisticas at
             JOIN ubicaciones u ON at.id_ubicacion = u.id_ubicacion
             LEFT JOIN usuarios u2 ON at.id_anfitrion = u2.id_usuario
             LEFT JOIN imagen_portada ip ON at.id_actividad = ip.id_actividad AND ip.tipo_actividad = 'TURISTICA'
             LEFT JOIN valoraciones v ON (v.id_actividad = at.id_actividad AND v.tipo_actividad = 'TURISTICA')
-            WHERE at.estado = 'ACTIVA' 
-              AND ${buildAvailabilityCheck('at', 'TURISTICA')}
+            WHERE at.estado = 'ACTIVA' AND ${buildAvailabilityCheck('at', 'TURISTICA')}
             GROUP BY at.id_actividad, u.id_ubicacion, ip.url_imagen, u2.nombre, at.id_anfitrion
 
             UNION ALL
 
             SELECT 
-                'A-' || aa.id_actividad as id, 
-                aa.titulo as title, 
-                aa.precio as original_price,
+                'A-' || aa.id_actividad as id, aa.titulo as title, aa.precio as original_price,
                 CASE 
                     WHEN aa.precio_oferta IS NOT NULL AND (aa.fecha_fin_oferta IS NULL OR aa.fecha_fin_oferta > CURRENT_TIMESTAMP)
                     THEN aa.precio_oferta 
                     ELSE aa.precio 
                 END as price,
-                aa.precio_oferta,
-                aa.fecha_fin_oferta,
+                aa.precio_oferta, aa.fecha_fin_oferta,
                 u.ciudad || ', ' || u.pais as location,
                 u.ciudad, u.provincia, u.pais, u.direccion,
-                ip.url_imagen as image,
-                'ALIMENTARIA' as tipo,
-                aa.capacidad,
-                u.latitud,
-                u.longitud,
-                aa.vistas,
+                ip.url_imagen as image, 'ALIMENTARIA' as tipo,
+                aa.capacidad, u.latitud, u.longitud, aa.vistas,
                 COALESCE(AVG(v.puntuacion), 0) AS avg_rating,
-                u2.nombre as nombre_anfitrion,
-                aa.id_anfitrion,
+                u2.nombre as nombre_anfitrion, aa.id_anfitrion,
                 ${distanceFormula} as distance
             FROM actividades_alimentarias aa
             JOIN ubicaciones u ON aa.id_ubicacion = u.id_ubicacion
             LEFT JOIN usuarios u2 ON aa.id_anfitrion = u2.id_usuario
             LEFT JOIN imagen_portada ip ON aa.id_actividad = ip.id_actividad AND ip.tipo_actividad = 'ALIMENTARIA'
             LEFT JOIN valoraciones v ON (v.id_actividad = aa.id_actividad AND v.tipo_actividad = 'ALIMENTARIA')
-            WHERE aa.estado = 'ACTIVA'
-              AND ${buildAvailabilityCheck('aa', 'ALIMENTARIA')}
+            WHERE aa.estado = 'ACTIVA' AND ${buildAvailabilityCheck('aa', 'ALIMENTARIA')}
             GROUP BY aa.id_actividad, u.id_ubicacion, ip.url_imagen, u2.nombre, aa.id_anfitrion
         ) as combined_activities
         WHERE 1=1
     `;
 
-    // Filtros de texto flexibles
-    if (pLocation) {
-        query += ` AND (ciudad ILIKE ${pLocation} OR pais ILIKE ${pLocation} OR provincia ILIKE ${pLocation} OR direccion ILIKE ${pLocation} OR title ILIKE ${pLocation})`;
-    }
+    // Filtros
+    if (pLocation) query += ` AND (ciudad ILIKE ${pLocation} OR pais ILIKE ${pLocation} OR provincia ILIKE ${pLocation} OR direccion ILIKE ${pLocation} OR title ILIKE ${pLocation})`;
     if (pCity) query += ` AND ciudad ILIKE ${pCity}`;
     if (pProvince) query += ` AND provincia ILIKE ${pProvince}`;
     if (pCountry) query += ` AND pais ILIKE ${pCountry}`;
     if (pGuests) query += ` AND capacidad >= ${pGuests}`;
 
-    // Filtro de radio (la distancia ya está calculada)
-    if (pRadius) {
-        query += ` AND distance <= ${pRadius} AND latitud != 0 AND longitud != 0`;
+    // Filtro de distancia CRÍTICO: Solo si hay coordenadas del usuario
+    if (pRadius && pLat && pLng) {
+        query += ` AND distance <= (${pRadius} + 1) AND latitud != 0 AND longitud != 0`;
+        try {
+            // Log opcional para verificar cuántos quedan después del radio (sin aplicar limit todavía)
+            const distCountQuery = `SELECT COUNT(*) FROM (${query}) as sub`;
+            const distCountRes = await db.query(distCountQuery, params);
+            console.log(`[Debug-3] Total después de filtro de distancia (${radius}km + 1km): ${distCountRes.rows[0].count}`);
+        } catch (e) {}
+    } else {
+        console.log(`[Debug-3] Saltando filtro de distancia (faltan lat/lng o radio)`);
     }
 
-    // Orden Global
+    // Orden
     if (pLat && pLng) {
         query += ` ORDER BY distance ASC, avg_rating DESC, vistas DESC`;
     } else {
         query += ` ORDER BY avg_rating DESC, vistas DESC`;
     }
 
-    // Límite Global
+    // Límite final
     if (limit) {
-        const pLimit = addParam(parseInt(limit));
-        query += ` LIMIT ${pLimit}`;
+        query += ` LIMIT ${addParam(parseInt(limit))}`;
     }
 
     try {
         const { rows } = await db.query(query, params);
-        console.log(`[Search] Query completada. Resultados encontrados: ${rows.length}`);
+        console.log(`[Debug-4] Total final enviado al frontend: ${rows.length}`);
         return rows;
     } catch (err) {
         console.error('Error in search query:', err);
