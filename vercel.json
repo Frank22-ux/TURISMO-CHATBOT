@@ -1,4 +1,6 @@
 {
+  "buildCommand": "cd modern-frontend && npm install && npm run build",
+  "outputDirectory": "modern-frontend/dist",
   "rewrites": [
     {
       "source": "/(.*)",
