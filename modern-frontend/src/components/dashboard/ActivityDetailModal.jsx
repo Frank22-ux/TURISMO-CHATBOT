@@ -432,10 +432,29 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
                     <div className="p-3 sm:p-4 bg-white/10 rounded-xl sm:rounded-2xl border border-white/10 flex items-center gap-3 sm:gap-4">
                       <Calendar className="w-4 sm:w-5 h-4 sm:h-5 text-primary" />
                       <div>
-                        <p className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest opacity-60">Disponibilidad</p>
-                        <p className="text-[10px] sm:text-xs font-bold font-display">Todo el año</p>
+                        <p className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest opacity-60">Días Disponibles</p>
+                        <p className="text-[10px] sm:text-xs font-bold font-display">
+                          {activity.dias_disponibles?.split(',').length === 7 ? 'Lunes a Domingo' : (activity.dias_disponibles || 'Todo el año')}
+                        </p>
                       </div>
                     </div>
+                    
+                    <div className="p-3 sm:p-4 bg-white/10 rounded-xl sm:rounded-2xl border border-white/10 flex items-center gap-3 sm:gap-4">
+                      <Clock className="w-4 sm:w-5 h-4 sm:h-5 text-primary" />
+                      <div>
+                        <p className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest opacity-60">Horario de Servicio</p>
+                        <p className="text-[10px] sm:text-xs font-bold font-display">
+                          {activity.hora_inicio?.substring(0, 5) || '08:00'} - {activity.hora_fin?.substring(0, 5) || '18:00'}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="p-3 sm:p-4 bg-white/5 rounded-xl sm:rounded-2xl border border-dashed border-white/20">
+                      <p className="text-[9px] font-medium text-slate-300 leading-tight">
+                        * Horarios referenciales. Para coordinar la hora exacta de tu experiencia, por favor contacta al anfitrión por mensaje una vez realizada la reserva.
+                      </p>
+                    </div>
+
                     <div className="p-3 sm:p-4 bg-white/10 rounded-xl sm:rounded-2xl border border-white/10 flex items-center gap-3 sm:gap-4">
                       <Users className="w-4 sm:w-5 h-4 sm:h-5 text-primary" />
                       <div>
