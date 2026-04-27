@@ -36,21 +36,21 @@ const ForgotPassword = () => {
   if (success) {
     return (
       <AuthLayout 
-        title="¡Correo Enviado!" 
+        title="¡Enlace Enviado!" 
         subtitle="Revisa tu bandeja de entrada para continuar."
       >
         <div className="flex flex-col items-center justify-center py-8">
           <CheckCircle2 className="w-20 h-20 text-green-500 mb-6" />
           <h2 className="text-2xl font-black text-slate-800 text-center mb-4">Revisa tu correo electrónico</h2>
           <p className="text-slate-500 text-center mb-8">
-            Hemos enviado una contraseña temporal a <strong>{email}</strong>. Por favor, usa esta contraseña para iniciar sesión y luego cámbiala en la sección de Perfil/Seguridad.
+            Hemos enviado un enlace seguro para restablecer tu contraseña a <strong>{email}</strong>. El enlace expirará en 15 minutos.
           </p>
           <div className="flex justify-center w-full">
             <Link 
               to="/login"
               className="px-10 py-4 bg-primary hover:bg-primary-dark text-white rounded-2xl font-black shadow-xl shadow-primary/20 hover:shadow-primary/30 transform hover:-translate-y-1 active:scale-95 transition-all flex items-center justify-center gap-2 group"
             >
-              Volver a Iniciar Sesión
+              Volver al Login
             </Link>
           </div>
         </div>
@@ -61,7 +61,7 @@ const ForgotPassword = () => {
   return (
     <AuthLayout 
       title="Recupera tu acceso" 
-      subtitle="Te enviaremos una contraseña temporal a tu correo registrado."
+      subtitle="Te enviaremos un enlace seguro para cambiar tu contraseña."
     >
       <div className="flex items-center gap-2 mb-2 hidden md:flex text-primary">
         <Mountain className="w-8 h-8" />
@@ -102,7 +102,7 @@ const ForgotPassword = () => {
             disabled={loading}
             className="px-10 py-4 bg-primary hover:bg-primary-dark text-white rounded-2xl font-black shadow-xl shadow-primary/20 hover:shadow-primary/30 transform hover:-translate-y-1 active:scale-95 transition-all flex items-center justify-center gap-2 group disabled:opacity-70 disabled:pointer-events-none"
           >
-            {loading ? 'Enviando...' : 'Enviar Contraseña Temporal'}
+            {loading ? 'Enviando...' : 'Enviar Enlace de Recuperación'}
           </button>
         </div>
       </form>

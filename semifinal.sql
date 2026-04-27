@@ -39,7 +39,9 @@ CREATE TABLE usuarios (
     verificado BOOLEAN DEFAULT FALSE,
     fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     ultima_conexion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    codigo_reactivacion VARCHAR(10) DEFAULT NULL
+    codigo_reactivacion VARCHAR(10) DEFAULT NULL,
+    token_recuperacion TEXT DEFAULT NULL,
+    token_expiracion TIMESTAMP DEFAULT NULL
 );
 
 -- =====================================================

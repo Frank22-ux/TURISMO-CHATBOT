@@ -36,9 +36,9 @@ const createProfile = async (id_anfitrion) => {
 };
 
 const updatePassword = async (id_usuario, hashedContraseña) => {
-    // Cuando el usuario actualiza la clave, ya no requiere cambiarla.
+    // Al actualizar clave, ya no requiere cambio y limpiamos tokens de recuperación
     await db.query(
-        'UPDATE usuarios SET contraseña = $1, requiere_cambio_clave = false WHERE id_usuario = $2',
+        'UPDATE usuarios SET contraseña = $1, requiere_cambio_clave = false, token_recuperacion = NULL, token_expiracion = NULL WHERE id_usuario = $2',
         [hashedContraseña, id_usuario]
     );
 };
@@ -71,6 +71,21 @@ const reactivateUser = async (id_usuario) => {
     );
 };
 
+const updateResetToken = async (id_usuario, token, expiration) => {
+    await db.query(
+        'UPDATE usuarios SET token_recuperacion = $1, token_expiracion = $2 WHERE id_usuario = $3',
+        [token, expiration, id_usuario]
+    );
+};
+
+const findByResetToken = async (token) => {
+    const { rows } = await db.query(
+        'SELECT * FROM usuarios WHERE token_recuperacion = $1 AND token_expiracion > CURRENT_TIMESTAMP',
+        [token]
+    );
+    return rows[0];
+};
+
 module.exports = {
     findByEmail,
     findById,
@@ -81,5 +96,7 @@ module.exports = {
     setRequiresPasswordChange,
     updateLastConnection,
     suspendUserWithCode,
-    reactivateUser
+    reactivateUser,
+    updateResetToken,
+    findByResetToken
 };
