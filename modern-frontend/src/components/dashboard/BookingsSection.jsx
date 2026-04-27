@@ -166,10 +166,16 @@ const BookingsSection = ({ status: initialStatusFilter }) => {
     : ['ALL', 'PENDIENTE', 'APROBADA'];
 
   const filteredBookings = bookings.filter(b => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const expDate = new Date(b.fecha_experiencia);
+    const expDateOnly = new Date(b.fecha_experiencia);
+    expDateOnly.setHours(0, 0, 0, 0);
+
     if (initialStatusFilter === 'COMPLETADA') {
-      return b.estado === 'COMPLETADA' || b.estado === 'RECHAZADA' || b.estado === 'CANCELADA' || new Date(b.fecha_experiencia) < new Date();
+      return b.estado === 'COMPLETADA' || b.estado === 'RECHAZADA' || b.estado === 'CANCELADA' || expDateOnly < today;
     }
-    return (b.estado === 'PENDIENTE' || b.estado === 'APROBADA') && new Date(b.fecha_experiencia) >= new Date();
+    return (b.estado === 'PENDIENTE' || b.estado === 'APROBADA') && expDateOnly >= today;
   }).filter(b => filter === 'ALL' || b.estado === filter);
 
   if (loading) return <div className="p-20 text-center animate-pulse text-primary font-bold">Cargando tus aventuras...</div>;

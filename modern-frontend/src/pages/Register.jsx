@@ -169,13 +169,15 @@ const Register = () => {
           </div>
         </div>
 
-        <button 
-          type="submit" 
-          disabled={loading || (!isPhoneValid && formData.phone.length > 0)}
-          className={`w-full py-4 bg-primary hover:bg-primary-dark text-white rounded-2xl font-black shadow-xl shadow-primary/20 hover:shadow-primary/30 transform hover:-translate-y-1 active:scale-95 transition-all flex items-center justify-center gap-2 group ${(!isPhoneValid && formData.phone.length > 0) ? 'opacity-70 cursor-not-allowed' : ''}`}
-        >
-          {loading ? 'Creando cuenta...' : <>Crear cuenta y recibir clave por correo <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" /></>}
-        </button>
+        <div className="flex justify-center">
+          <button 
+            type="submit" 
+            disabled={loading || (!isPhoneValid && formData.phone.length > 0)}
+            className={`px-10 py-4 bg-primary hover:bg-primary-dark text-white rounded-2xl font-black shadow-xl shadow-primary/20 hover:shadow-primary/30 transform hover:-translate-y-1 active:scale-95 transition-all flex items-center justify-center gap-2 group ${(!isPhoneValid && formData.phone.length > 0) ? 'opacity-70 cursor-not-allowed' : ''}`}
+          >
+            {loading ? 'Creando cuenta...' : 'Crear cuenta y recibir clave por correo'}
+          </button>
+        </div>
       </form>
 
       <div className="mt-8 pt-6 border-t border-slate-100 text-center">
