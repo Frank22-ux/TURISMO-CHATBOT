@@ -1,4 +1,3 @@
-const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
@@ -147,57 +146,33 @@ const forgotPassword = async (email) => {
         throw new Error('No existe una cuenta con ese correo electrónico');
     }
 
-    // Generate secure token (hex string)
-    const token = crypto.randomBytes(32).toString('hex');
+    // Generate random password
+    const tempPassword = Math.random().toString(36).slice(-8) + 'A1!'; 
     
-    // Set expiration (15 minutes from now)
-    const expiration = new Date(Date.now() + 15 * 60 * 1000);
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashedContraseña = await bcrypt.hash(tempPassword, salt);
 
-    // Save token and expiration in DB
-    await authRepository.updateResetToken(user.id_usuario, token, expiration);
+    // Update in DB (Password + force flag)
+    await authRepository.updatePassword(user.id_usuario, hashedContraseña);
+    await authRepository.setRequiresPasswordChange(user.id_usuario, true);
 
-    // Build reset link
-    const resetLink = `${process.env.FRONTEND_URL || 'https://turismo-chatbot-frank22-uxs-projects.vercel.app'}/reset-password?token=${token}`;
-
-    // Send Email via template
+    // Send Email via beautiful template
     const msg = {
         from: `"ISTPET Turismo" <${process.env.EMAIL_USER || 'tucorreo@gmail.com'}>`, 
         to: email, 
         subject: 'Recuperación de Contraseña - ISTPET Turismo',
-        text: `Hola ${user.nombre}, para restablecer tu contraseña haz clic en el siguiente enlace: ${resetLink}. El enlace expira en 15 minutos.`,
-        html: emailTemplates.getResetPasswordTemplate(user.nombre, resetLink)
+        text: `Hola ${user.nombre}, tu contraseña temporal es: ${tempPassword}. Inicia sesión en: https://turismo-chatbot.vercel.app/login`,
+        html: emailTemplates.getForgotPasswordTemplate(user.nombre, tempPassword)
     };
 
     try {
         await transporter.sendMail(msg);
-        return { message: 'Enlace de recuperación enviado al correo' };
+        return { message: 'Contraseña temporal enviada al correo' };
     } catch (error) {
         console.error('Nodemailer Error:', error);
         throw new Error('Error al enviar el correo. Revisa las credenciales de tu correo SMTP.');
     }
-};
-
-const resetPassword = async (token, newPassword) => {
-    // Find user by valid (not expired) token
-    const user = await authRepository.findByResetToken(token);
-    if (!user) {
-        throw new Error('El enlace de recuperación es inválido o ha expirado');
-    }
-
-    // Validation for new password
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
-    if (!passwordRegex.test(newPassword)) {
-        throw new Error('La contraseña debe tener al menos 8 caracteres, una mayúscula, un número y un símbolo.');
-    }
-
-    // Hash new password
-    const salt = await bcrypt.genSalt(10);
-    const hashedContraseña = await bcrypt.hash(newPassword, salt);
-
-    // Update password (clears token fields)
-    await authRepository.updatePassword(user.id_usuario, hashedContraseña);
-
-    return { message: 'Contraseña actualizada exitosamente' };
 };
 
 const changePassword = async (id_usuario, currentPassword, newPassword) => {
@@ -244,7 +219,6 @@ module.exports = {
     register,
     login,
     forgotPassword,
-    resetPassword,
     changePassword,
     reactivateAccount
 };

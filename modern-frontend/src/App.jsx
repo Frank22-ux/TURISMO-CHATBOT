@@ -4,7 +4,6 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import RegisterHost from './pages/RegisterHost';
 import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
 import DashboardTourist from './pages/DashboardTourist';
 import DashboardHost from './pages/DashboardHost';
 import AdminDashboard from './pages/AdminDashboard';
@@ -21,7 +20,6 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/register-host" element={<RegisterHost />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
           <Route 
             path="/dashboard-tourist" 
             element={

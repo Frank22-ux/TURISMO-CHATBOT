@@ -1,4 +1,4 @@
-const FRONTEND_URL = process.env.FRONTEND_URL || 'https://turismo-chatbot-frank22-uxs-projects.vercel.app';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'https://turismo-chatbot.vercel.app';
 
 const styles = `
   body {
@@ -290,45 +290,7 @@ const getSuspensionReactivationTemplate = (nombre, activationCode) => `
 </html>
 `;
 
-const getResetPasswordTemplate = (nombre, resetLink) => `
-<!DOCTYPE html>
-<html>
-<head>
-    <style>${styles}</style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>ISTPET Turismo</h1>
-        </div>
-        <div class="content">
-            <h2>Restablecer Contraseña 🛡️</h2>
-            <p>Hola <strong>${nombre}</strong>,</p>
-            <p>Hemos recibido una solicitud para cambiar la contraseña de tu cuenta. Para proceder, por favor haz clic en el siguiente botón:</p>
-            
-            <center>
-                <a href="${resetLink}" class="btn">Restablecer mi Contraseña</a>
-            </center>
-            
-            <p style="margin-top: 30px; font-size: 13px; color: #94a3b8;">
-                <strong>Nota:</strong> Este enlace expirará en 15 minutos por motivos de seguridad. 
-                Si no solicitaste este cambio, puedes ignorar este correo de forma segura.
-            </p>
-        </div>
-        <div class="footer">
-            © ${new Date().getFullYear()} ISTPET Turismo. Seguridad Informática.
-        </div>
-    </div>
-</body>
-</html>
-`;
-
-module.exports = {
-    getWelcomeTemplate,
-    getForgotPasswordTemplate,
-    getPaymentSuccessTemplate,
     getPaymentRejectedTemplate,
     getFundsCreditedTemplate,
-    getSuspensionReactivationTemplate,
-    getResetPasswordTemplate
+    getSuspensionReactivationTemplate
 };

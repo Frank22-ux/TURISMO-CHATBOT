@@ -36,19 +36,6 @@ const forgotPassword = async (req, res) => {
     }
 };
 
-const resetPassword = async (req, res) => {
-    try {
-        const { token, password } = req.body;
-        if (!token || !password) {
-            return res.status(400).json({ message: 'Token y nueva contraseña son requeridos' });
-        }
-        const result = await authService.resetPassword(token, password);
-        res.status(200).json(result);
-    } catch (error) {
-        res.status(400).json({ message: error.message });
-    }
-};
-
 const changePassword = async (req, res) => {
     try {
         const id_usuario = req.user.id; // from authMiddleware
@@ -82,7 +69,6 @@ module.exports = {
     register,
     login,
     forgotPassword,
-    resetPassword,
     changePassword,
     reactivateAccount
 };
