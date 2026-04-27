@@ -164,6 +164,7 @@ const forgotPassword = async (email) => {
         from: `"ISTPET Turismo" <${process.env.EMAIL_USER || 'tucorreo@gmail.com'}>`, 
         to: email, 
         subject: 'Recuperación de Contraseña - ISTPET Turismo',
+        text: `Hola ${user.nombre}, para restablecer tu contraseña haz clic en el siguiente enlace: ${resetLink}. El enlace expira en 15 minutos.`,
         html: emailTemplates.getResetPasswordTemplate(user.nombre, resetLink)
     };
 

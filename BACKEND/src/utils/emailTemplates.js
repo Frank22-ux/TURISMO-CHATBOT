@@ -8,12 +8,13 @@ const styles = `
     padding: 0;
   }
   .container {
+    width: 100%;
     max-width: 600px;
-    margin: 40px auto;
+    margin: 0 auto;
     background: #ffffff;
     border-radius: 24px;
     overflow: hidden;
-    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.1);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
     border: 1px solid #e2e8f0;
   }
   .header {
