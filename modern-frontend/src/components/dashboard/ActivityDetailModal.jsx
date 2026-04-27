@@ -428,50 +428,61 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
                     <span className="text-[10px] sm:text-sm opacity-60 font-bold uppercase tracking-widest">USD</span>
                   </div>
                   
-                  <div className="space-y-3 sm:space-y-4">
-                    <div className="p-3 sm:p-4 bg-white/10 rounded-xl sm:rounded-2xl border border-white/10 flex items-center gap-3 sm:gap-4">
-                      <Calendar className="w-4 sm:w-5 h-4 sm:h-5 text-primary" />
+                  <div className="space-y-4">
+                    {/* Días Disponibles */}
+                    <div className="p-4 bg-white rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                        <Calendar className="w-6 h-6 text-primary" />
+                      </div>
                       <div>
-                        <p className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest opacity-60">Días Disponibles</p>
-                        <p className="text-[10px] sm:text-xs font-bold font-display">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Días Disponibles</p>
+                        <p className="text-sm font-bold text-slate-700">
                           {activity.dias_disponibles?.split(',').length === 7 ? 'Lunes a Domingo' : (activity.dias_disponibles || 'Todo el año')}
                         </p>
                       </div>
                     </div>
                     
-                    <div className="p-3 sm:p-4 bg-white/10 rounded-xl sm:rounded-2xl border border-white/10 flex items-center gap-3 sm:gap-4">
-                      <Clock className="w-4 sm:w-5 h-4 sm:h-5 text-primary" />
+                    {/* Horario */}
+                    <div className="p-4 bg-white rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                        <Clock className="w-6 h-6 text-primary" />
+                      </div>
                       <div>
-                        <p className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest opacity-60">Horario de Servicio</p>
-                        <p className="text-[10px] sm:text-xs font-bold font-display">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Horario de Servicio</p>
+                        <p className="text-sm font-bold text-slate-700">
                           {activity.hora_inicio?.substring(0, 5) || '08:00'} - {activity.hora_fin?.substring(0, 5) || '18:00'}
                         </p>
                       </div>
                     </div>
 
-                    <div className="p-3 sm:p-4 bg-white/5 rounded-xl sm:rounded-2xl border border-dashed border-white/20">
-                      <p className="text-[9px] font-medium text-slate-300 leading-tight">
-                        * Horarios referenciales. Para coordinar la hora exacta de tu experiencia, por favor contacta al anfitrión por mensaje una vez realizada la reserva.
+                    {/* Aviso */}
+                    <div className="p-4 bg-amber-50 rounded-2xl border border-amber-200 flex gap-3">
+                      <Info className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                      <p className="text-[11px] font-bold text-amber-800 leading-snug">
+                        Horarios referenciales. Coordina la hora exacta con tu anfitrión por mensaje tras reservar.
                       </p>
                     </div>
 
-                    <div className="p-3 sm:p-4 bg-white/10 rounded-xl sm:rounded-2xl border border-white/10 flex items-center gap-3 sm:gap-4">
-                      <Users className="w-4 sm:w-5 h-4 sm:h-5 text-primary" />
+                    {/* Tipo de Grupo */}
+                    <div className="p-4 bg-white rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                        <Users className="w-6 h-6 text-primary" />
+                      </div>
                       <div>
-                        <p className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest opacity-60">Tipo de Grupo</p>
-                        <p className="text-[10px] sm:text-xs font-bold font-display">Familiar / Individual</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Tipo de Grupo</p>
+                        <p className="text-sm font-bold text-slate-700">Familiar / Individual</p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="mt-6 sm:mt-8 flex flex-col gap-3">
+                  <div className="mt-8 flex flex-col gap-3">
                     <button 
                       onClick={handleAddToCart}
                       disabled={added}
-                      className={`w-full py-4 sm:py-5 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm transition-all shadow-xl flex items-center justify-center gap-3 border ${
+                      className={`w-full py-4 rounded-2xl font-black text-sm transition-all shadow-xl flex items-center justify-center gap-3 border ${
                         added || isAlreadyInCart
                         ? 'bg-success text-white border-success' 
-                        : 'bg-primary text-white border-primary-light hover:bg-white hover:text-primary-dark hover:scale-105 active:scale-95'
+                        : 'bg-primary text-white border-primary-light hover:bg-white hover:text-primary-dark hover:scale-[1.02] active:scale-95'
                       }`}
                     >
                       {added || isAlreadyInCart ? (
@@ -484,7 +495,7 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
                     <button 
                       onClick={handleSendMessage}
                       disabled={isSendingMessage}
-                      className="w-full py-4 sm:py-5 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm transition-all shadow-xl flex items-center justify-center gap-3 border bg-white/10 border-white/20 hover:bg-white hover:text-primary-dark text-white hover:scale-105 active:scale-95 disabled:opacity-50"
+                      className="w-full py-4 rounded-2xl font-black text-sm transition-all shadow-xl flex items-center justify-center gap-3 border bg-white/10 border-white/20 hover:bg-white hover:text-primary-dark text-white hover:scale-[1.02] active:scale-95 disabled:opacity-50"
                     >
                        <MessageSquare className="w-5 h-5" /> 
                        {isSendingMessage ? 'Enviando...' : 'Consultar Anfitrión'}
