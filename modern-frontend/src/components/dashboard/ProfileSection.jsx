@@ -178,18 +178,16 @@ const ProfileSection = ({ isHost = false, onUpdateProfile }) => {
       </div>
 
       <div className="relative group">
+        <div className="mb-4 flex items-center gap-2 ml-4">
+          <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+          <span className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Imagen de Portada</span>
+        </div>
         <div className="h-64 rounded-[40px] bg-slate-200 overflow-hidden relative border-4 border-white shadow-sm transition-all group-hover:shadow-xl">
           <img 
             src={previews.cover || profile?.cover_photo || "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80"} 
             className="w-full h-full object-cover"
             alt="Cover"
           />
-          {/* Etiqueta indicativa de Portada */}
-          <div className="absolute top-6 left-6 z-10">
-            <div className="bg-black/30 backdrop-blur-md border border-white/20 text-white text-[10px] font-black uppercase tracking-[0.2em] px-4 py-2 rounded-full shadow-xl">
-              Imagen de Portada
-            </div>
-          </div>
           <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
             <label className="bg-white/90 backdrop-blur-md p-3 rounded-full cursor-pointer hover:scale-110 transition-transform">
               <Camera className="w-6 h-6 text-primary-dark" />
@@ -198,7 +196,10 @@ const ProfileSection = ({ isHost = false, onUpdateProfile }) => {
           </div>
         </div>
 
-        <div className="absolute -bottom-16 left-12 w-32 h-32 rounded-3xl bg-white p-1.5 shadow-2xl relative">
+        <div className="absolute -bottom-16 left-12 w-32 h-32 rounded-3xl bg-white p-1.5 shadow-2xl">
+          <div className="absolute -top-8 left-0 w-max bg-white/80 backdrop-blur-sm px-3 py-1 rounded-lg border border-slate-100 shadow-sm">
+            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Imagen de Perfil</span>
+          </div>
           <div className="w-full h-full rounded-[22px] bg-primary flex items-center justify-center text-white text-4xl font-black overflow-hidden group/avatar">
             {previews.avatar || profile?.avatar ? (
               <img src={previews.avatar || profile.avatar} className="w-full h-full object-cover" alt="Avatar" />
@@ -210,12 +211,6 @@ const ProfileSection = ({ isHost = false, onUpdateProfile }) => {
                 <Pencil className="w-6 h-6" />
                 <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileChange(e, 'avatar')} />
               </label>
-            </div>
-          </div>
-          {/* Etiqueta indicativa de Perfil */}
-          <div className="absolute -right-28 top-1/2 -translate-y-1/2 hidden md:block">
-            <div className="bg-white border border-slate-100 text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] px-4 py-2 rounded-full shadow-sm">
-              Imagen de Perfil
             </div>
           </div>
         </div>
