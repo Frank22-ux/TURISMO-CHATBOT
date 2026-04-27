@@ -45,12 +45,14 @@ const ForgotPassword = () => {
           <p className="text-slate-500 text-center mb-8">
             Hemos enviado una contraseña temporal a <strong>{email}</strong>. Por favor, usa esta contraseña para iniciar sesión y luego cámbiala en la sección de Perfil/Seguridad.
           </p>
-          <Link 
-            to="/login"
-            className="w-full py-4 bg-primary hover:bg-primary-dark text-white rounded-2xl font-black shadow-xl shadow-primary/20 hover:shadow-primary/30 transform hover:-translate-y-1 active:scale-95 transition-all flex items-center justify-center gap-2 group"
-          >
-            Volver a Iniciar Sesión <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-          </Link>
+          <div className="flex justify-center w-full">
+            <Link 
+              to="/login"
+              className="px-10 py-4 bg-primary hover:bg-primary-dark text-white rounded-2xl font-black shadow-xl shadow-primary/20 hover:shadow-primary/30 transform hover:-translate-y-1 active:scale-95 transition-all flex items-center justify-center gap-2 group"
+            >
+              Volver a Iniciar Sesión
+            </Link>
+          </div>
         </div>
       </AuthLayout>
     );
@@ -94,13 +96,15 @@ const ForgotPassword = () => {
           </div>
         </div>
 
-        <button 
-          type="submit" 
-          disabled={loading}
-          className="w-full py-4 bg-primary hover:bg-primary-dark text-white rounded-2xl font-black shadow-xl shadow-primary/20 hover:shadow-primary/30 transform hover:-translate-y-1 active:scale-95 transition-all flex items-center justify-center gap-2 group disabled:opacity-70 disabled:pointer-events-none"
-        >
-          {loading ? 'Enviando...' : <>Enviar Contraseña Temporal <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" /></>}
-        </button>
+        <div className="flex justify-center">
+          <button 
+            type="submit" 
+            disabled={loading}
+            className="px-10 py-4 bg-primary hover:bg-primary-dark text-white rounded-2xl font-black shadow-xl shadow-primary/20 hover:shadow-primary/30 transform hover:-translate-y-1 active:scale-95 transition-all flex items-center justify-center gap-2 group disabled:opacity-70 disabled:pointer-events-none"
+          >
+            {loading ? 'Enviando...' : 'Enviar Contraseña Temporal'}
+          </button>
+        </div>
       </form>
 
       <div className="mt-12 pt-8 border-t border-slate-100 text-center">

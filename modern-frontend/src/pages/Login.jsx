@@ -207,13 +207,15 @@ const Login = () => {
           </div>
         </div>
 
-        <button 
-          type="submit" 
-          disabled={loading || (method === 'phone' && !isPhoneValid && formData.phone.length > 0)}
-          className={`w-full py-5 bg-primary hover:bg-primary-dark text-white rounded-2xl font-black shadow-xl shadow-primary/20 hover:shadow-primary/30 transform hover:-translate-y-1 active:scale-95 transition-all flex items-center justify-center gap-2 group ${(method === 'phone' && !isPhoneValid && formData.phone.length > 0) ? 'opacity-70 cursor-not-allowed' : ''}`}
-        >
-          {loading ? 'Ingresando...' : <>Ingresar <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" /></>}
-        </button>
+        <div className="flex justify-center">
+          <button 
+            type="submit" 
+            disabled={loading || (method === 'phone' && !isPhoneValid && formData.phone.length > 0)}
+            className={`px-14 py-4 bg-primary hover:bg-primary-dark text-white rounded-2xl font-black shadow-xl shadow-primary/20 hover:shadow-primary/30 transform hover:-translate-y-1 active:scale-95 transition-all flex items-center justify-center gap-2 group ${(method === 'phone' && !isPhoneValid && formData.phone.length > 0) ? 'opacity-70 cursor-not-allowed' : ''}`}
+          >
+            {loading ? 'Ingresando...' : 'Ingresar'}
+          </button>
+        </div>
       </form>
       </>
       )}
