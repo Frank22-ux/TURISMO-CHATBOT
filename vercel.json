@@ -1,11 +1,10 @@
 {
-  "routes": [
+  "buildCommand": "npm run build",
+  "outputDirectory": "modern-frontend/dist",
+  "rewrites": [
     {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/.*",
-      "dest": "/index.html"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
