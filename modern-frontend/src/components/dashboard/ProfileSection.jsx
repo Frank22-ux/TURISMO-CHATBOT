@@ -184,6 +184,12 @@ const ProfileSection = ({ isHost = false, onUpdateProfile }) => {
             className="w-full h-full object-cover"
             alt="Cover"
           />
+          {/* Etiqueta indicativa de Portada */}
+          <div className="absolute top-6 left-6 z-10">
+            <div className="bg-black/30 backdrop-blur-md border border-white/20 text-white text-[10px] font-black uppercase tracking-[0.2em] px-4 py-2 rounded-full shadow-xl">
+              Imagen de Portada
+            </div>
+          </div>
           <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
             <label className="bg-white/90 backdrop-blur-md p-3 rounded-full cursor-pointer hover:scale-110 transition-transform">
               <Camera className="w-6 h-6 text-primary-dark" />
@@ -204,6 +210,12 @@ const ProfileSection = ({ isHost = false, onUpdateProfile }) => {
                 <Pencil className="w-6 h-6" />
                 <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileChange(e, 'avatar')} />
               </label>
+            </div>
+          </div>
+          {/* Etiqueta indicativa de Perfil */}
+          <div className="absolute -right-28 top-1/2 -translate-y-1/2 hidden md:block">
+            <div className="bg-white border border-slate-100 text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] px-4 py-2 rounded-full shadow-sm">
+              Imagen de Perfil
             </div>
           </div>
         </div>
