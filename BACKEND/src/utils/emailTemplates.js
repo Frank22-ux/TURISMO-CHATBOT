@@ -1,7 +1,9 @@
+const FRONTEND_URL = process.env.FRONTEND_URL || 'https://turismo-chatbot-frank22-uxs-projects.vercel.app';
+
 const styles = `
   body {
     font-family: 'Helvetica Neue', Arial, sans-serif;
-    background-color: #f8fafc;
+    background-color: #f1f5f9;
     margin: 0;
     padding: 0;
   }
@@ -9,61 +11,73 @@ const styles = `
     max-width: 600px;
     margin: 40px auto;
     background: #ffffff;
-    border-radius: 20px;
+    border-radius: 24px;
     overflow: hidden;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.1);
+    border: 1px solid #e2e8f0;
   }
   .header {
-    background: #00BFA5;
-    padding: 40px 20px;
+    background: #1e293b;
+    padding: 50px 20px;
     text-align: center;
     color: #ffffff;
   }
   .header h1 {
     margin: 0;
-    font-size: 28px;
+    font-size: 32px;
     font-weight: 900;
+    letter-spacing: -1px;
   }
   .content {
     padding: 40px;
-    color: #334155;
-    line-height: 1.6;
+    color: #475569;
+    line-height: 1.7;
   }
   .content h2 {
     color: #0f172a;
-    font-size: 22px;
-    margin-top: 0;
-  }
-  .highlight-box {
-    background: #f0fdfa;
-    border: 2px dashed #00BFA5;
-    border-radius: 12px;
-    padding: 20px;
-    text-align: center;
-    margin: 25px 0;
-  }
-  .password {
     font-size: 24px;
     font-weight: 900;
-    color: #00BFA5;
-    letter-spacing: 2px;
+    margin-top: 0;
+    letter-spacing: -0.5px;
+  }
+  .highlight-box {
+    background: #f8fafc;
+    border: 2px dashed #cbd5e1;
+    border-radius: 16px;
+    padding: 30px;
+    text-align: center;
+    margin: 30px 0;
+  }
+  .password {
+    font-size: 28px;
+    font-weight: 900;
+    color: #1e293b;
+    letter-spacing: 3px;
   }
   .btn {
     display: inline-block;
-    background: #00BFA5;
-    color: #ffffff;
+    background: #1e293b;
+    color: #ffffff !important;
     text-decoration: none;
-    padding: 15px 30px;
-    border-radius: 12px;
-    font-weight: bold;
-    margin-top: 20px;
+    padding: 18px 35px;
+    border-radius: 16px;
+    font-weight: 900;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 25px;
+    box-shadow: 0 10px 20px rgba(30, 41, 59, 0.2);
   }
   .footer {
     text-align: center;
-    padding: 20px;
+    padding: 30px;
     color: #94a3b8;
-    font-size: 12px;
+    font-size: 11px;
     border-top: 1px solid #f1f5f9;
+    background: #f8fafc;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: bold;
   }
 `;
 
@@ -90,7 +104,7 @@ const getWelcomeTemplate = (nombre, tempPassword) => `
             <p><strong>Importante:</strong> Al iniciar sesión por primera vez, el sistema te pedirá que crees tu propia contraseña definitiva.</p>
             
             <center>
-                <a href="http://localhost:5173/login" class="btn">Iniciar Sesión Ahora</a>
+                <a href="${FRONTEND_URL}/login" class="btn">Iniciar Sesión Ahora</a>
             </center>
         </div>
         <div class="footer">
@@ -109,23 +123,23 @@ const getForgotPasswordTemplate = (nombre, tempPassword) => `
 </head>
 <body>
     <div class="container">
-        <div class="header" style="background: #1e293b;">
+        <div class="header">
             <h1>ISTPET Turismo</h1>
         </div>
         <div class="content">
             <h2>Recuperación de Acceso 🔒</h2>
-            <p>Hola ${nombre},</p>
+            <p>Hola <strong>${nombre}</strong>,</p>
             <p>Hemos recibido una solicitud para restablecer tu contraseña. Aquí tienes una clave temporal para ingresar a tu cuenta:</p>
             
-            <div class="highlight-box" style="border-color: #1e293b; background: #f8fafc;">
-                <span class="password" style="color: #1e293b;">${tempPassword}</span>
+            <div class="highlight-box">
+                <span class="password">${tempPassword}</span>
             </div>
             
             <p>Una vez ingreses al Panel, será <strong>obligatorio</strong> cambiar esta contraseña temporal por una nueva.</p>
             <p>Si no solicitaste este cambio, por favor ignora este correo y asegúrate de proteger tu cuenta.</p>
             
             <center>
-                <a href="http://localhost:5173/login" class="btn" style="background: #1e293b;">Ingresar al Panel</a>
+                <a href="${FRONTEND_URL}/login" class="btn">Ingresar al Panel</a>
             </center>
         </div>
         <div class="footer">
@@ -152,16 +166,16 @@ const getPaymentSuccessTemplate = (nombre, activityName, amount) => `
             <p>Tu pago ha sido procesado exitosamente. Ya tienes tu cupo asegurado para tu próxima aventura.</p>
             
             <div class="highlight-box">
-                <p style="margin: 0; color: #64748b; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Experiencia / Actividad</p>
-                <p style="font-size: 18px; font-weight: bold; color: #0f172a; margin: 10px 0;">${activityName}</p>
-                <p style="margin: 0; color: #64748b; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Monto Pagado</p>
-                <p class="password">$${amount}</p>
+                <p style="margin: 0; color: #94a3b8; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; font-weight: 900;">Experiencia / Actividad</p>
+                <p style="font-size: 20px; font-weight: 900; color: #1e293b; margin: 10px 0;">${activityName}</p>
+                <p style="margin: 20px 0 0 0; color: #94a3b8; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; font-weight: 900;">Monto Pagado</p>
+                <p class="password" style="margin: 5px 0 0 0;">$${amount}</p>
             </div>
             
             <p>Puedes ver los detalles de tu reserva, fechas y descargar tu ticket digital (QR) directamente desde tu panel de control.</p>
             
             <center>
-                <a href="http://localhost:5173/dashboard-tourist?section=bookings" class="btn">Ver Mis Reservas</a>
+                <a href="${FRONTEND_URL}/dashboard-tourist?section=bookings" class="btn">Ver Mis Reservas</a>
             </center>
         </div>
         <div class="footer">
@@ -188,14 +202,14 @@ const getPaymentRejectedTemplate = (nombre, activityName, reason) => `
             <p>Lamentablemente no pudimos procesar el cobro para tu reserva de <strong>${activityName}</strong>.</p>
             
             <div class="highlight-box" style="border-color: #fca5a5; background: #fef2f2;">
-                <p style="margin: 0; color: #991b1b; font-weight: bold;">Motivo del rechazo:</p>
-                <p style="color: #7f1d1d;">${reason || 'Fondos insuficientes o transacción negada por tu banco.'}</p>
+                <p style="margin: 0; color: #991b1b; font-weight: bold; text-transform: uppercase; font-size: 11px; letter-spacing: 1px;">Motivo del rechazo:</p>
+                <p style="color: #7f1d1d; font-weight: 900; font-size: 16px; margin: 10px 0;">${reason || 'Fondos insuficientes o transacción negada por tu banco.'}</p>
             </div>
             
             <p>No te preocupes, tu reserva sigue pendiente temporalmente. Por favor, intenta usar otro método de pago o comunícate con tu institución bancaria.</p>
             
             <center>
-                <a href="http://localhost:5173/dashboard-tourist" class="btn" style="background: #ef4444;">Intentar de Nuevo</a>
+                <a href="${FRONTEND_URL}/dashboard-tourist" class="btn" style="background: #ef4444;">Intentar de Nuevo</a>
             </center>
         </div>
         <div class="footer">
@@ -222,14 +236,14 @@ const getFundsCreditedTemplate = (nombre, amount) => `
             <p>Te informamos que hemos acreditado tus ingresos correspondientes al último periodo de actividad directamente en tu cuenta bancaria registrada.</p>
             
             <div class="highlight-box" style="border-color: #34d399; background: #ecfdf5;">
-                <p style="margin: 0; color: #065f46; font-weight: bold; font-size: 16px;">Monto Depositado</p>
-                <p style="font-size: 32px; font-weight: 900; color: #10b981; margin: 10px 0;">$${amount}</p>
+                <p style="margin: 0; color: #065f46; font-weight: bold; text-transform: uppercase; font-size: 11px; letter-spacing: 1px;">Monto Depositado</p>
+                <p style="font-size: 36px; font-weight: 900; color: #10b981; margin: 10px 0;">$${amount}</p>
             </div>
             
             <p>Gracias por ser parte vital de la comunidad y ofrecer experiencias increíbles a los turistas. Puedes revisar el desglose de estos ingresos en tu panel de Anfitrión.</p>
             
             <center>
-                <a href="http://localhost:5173/dashboard-host?section=payments" class="btn" style="background: #10b981;">Ver Detalles Financieros</a>
+                <a href="${FRONTEND_URL}/dashboard-host?section=payments" class="btn" style="background: #10b981;">Ver Detalles Financieros</a>
             </center>
         </div>
         <div class="footer">
@@ -249,7 +263,7 @@ const getSuspensionReactivationTemplate = (nombre, activationCode) => `
 <body>
     <div class="container">
         <div class="header" style="background: #f59e0b;">
-            <h1>Cuenta Suspendida por Inactividad ⚠️</h1>
+            <h1>Reactivación de Cuenta ⚠️</h1>
         </div>
         <div class="content">
             <h2>Hola ${nombre},</h2>
@@ -258,13 +272,13 @@ const getSuspensionReactivationTemplate = (nombre, activationCode) => `
             <p>Para restaurar el acceso de forma inmediata y volver a la app, por favor usa el siguiente código de reactivación en la pantalla de inicio de sesión:</p>
             
             <div class="highlight-box" style="border-color: #f59e0b; background: #fffbeb;">
-                <span class="password" style="color: #d97706; font-size: 32px;">${activationCode}</span>
+                <span class="password" style="color: #d97706; font-size: 36px;">${activationCode}</span>
             </div>
             
             <p>Una vez ingreses el código, tu cuenta quedará Activa automáticamente.</p>
             
             <center>
-                <a href="http://localhost:5173/login" class="btn" style="background: #f59e0b;">Ir a Reactivar Cuenta</a>
+                <a href="${FRONTEND_URL}/login" class="btn" style="background: #f59e0b;">Ir a Reactivar Cuenta</a>
             </center>
         </div>
         <div class="footer">

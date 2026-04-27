@@ -15,8 +15,9 @@ const app = express();
 
 // CORS — explicitly allow Vercel frontend and local dev environments
 const allowedOrigins = [
-    // Production frontend on Vercel (hardcoded as safe fallback)
+    // Production frontend on Vercel
     'https://turismo-chatbot.vercel.app',
+    'https://turismo-chatbot-frank22-uxs-projects.vercel.app',
     // Also allow any custom domain set via env var in Render dashboard
     process.env.FRONTEND_URL,
     // Local development
