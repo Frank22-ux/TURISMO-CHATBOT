@@ -1,6 +1,4 @@
 {
-  "buildCommand": "npm run build",
-  "outputDirectory": "modern-frontend/dist",
   "rewrites": [
     {
       "source": "/(.*)",
