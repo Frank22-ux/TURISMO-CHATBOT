@@ -202,11 +202,11 @@ const createActivity = async (activityData) => {
         INSERT INTO actividades_turisticas (
             titulo, descripcion, precio, duracion_horas, capacidad, 
             nivel_dificultad, id_anfitrion, id_categoria, id_clasificacion, id_ubicacion,
-            porcentaje_ganancia, tipo_reserva, incluye_recorrido, incluye_transporte, requiere_equipo,
+            porcentaje_ganancia, incluye_recorrido, incluye_transporte, requiere_equipo,
             hora_inicio, hora_fin, dias_disponibles, punto_encuentro,
             latitud_encuentro, longitud_encuentro, direccion_encuentro
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
         RETURNING id_actividad
     `;
     
@@ -214,7 +214,6 @@ const createActivity = async (activityData) => {
         titulo, descripcion, precio, duracion_hours, capacidad, 
         nivel_dificultad, id_anfitrion, id_categoria, id_clasificacion, id_ubicacion,
         activityData.porcentaje_ganancia || 10, 
-        activityData.tipo_reserva || 'MANUAL',
         activityData.incluye_recorrido ?? true,
         activityData.incluye_transporte || false,
         activityData.requiere_equipo || false,
@@ -345,17 +344,17 @@ const updateActivity = async (id, data) => {
         UPDATE actividades_turisticas
         SET titulo = $1, descripcion = $2, precio = $3, duracion_horas = $4, 
             capacidad = $5, nivel_dificultad = $6, id_categoria = $7, id_clasificacion = $8,
-            porcentaje_ganancia = $9, tipo_reserva = $10,
-            incluye_recorrido = $11, incluye_transporte = $12, requiere_equipo = $13,
-            precio_oferta = $14, fecha_fin_oferta = $15,
-            hora_inicio = $16, hora_fin = $17, dias_disponibles = $18,
-            punto_encuentro = $19, latitud_encuentro = $20, longitud_encuentro = $21, direccion_encuentro = $22
-        WHERE id_actividad = $23
+            porcentaje_ganancia = $9, 
+            incluye_recorrido = $10, incluye_transporte = $11, requiere_equipo = $12,
+            precio_oferta = $13, fecha_fin_oferta = $14,
+            hora_inicio = $15, hora_fin = $16, dias_disponibles = $17,
+            punto_encuentro = $18, latitud_encuentro = $19, longitud_encuentro = $20, direccion_encuentro = $21
+        WHERE id_actividad = $22
     `;
     await db.query(query, [
         titulo, descripcion, precio, duracion_horas, capacidad, 
         nivel_dificultad, id_categoria, id_clasificacion,
-        porcentaje_ganancia, tipo_reserva,
+        porcentaje_ganancia,
         incluye_recorrido, incluye_transporte, requiere_equipo,
         data.precio_oferta || null,
         data.fecha_fin_oferta || null,

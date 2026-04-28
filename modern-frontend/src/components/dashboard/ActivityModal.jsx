@@ -93,7 +93,6 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
     descuentos_promociones: '',
     // Common
     porcentaje_ganancia: 10,
-    tipo_reserva: 'INSTANTANEA',
     precio_oferta: '',
     fecha_fin_oferta: '',
     // Scheduling
@@ -187,7 +186,6 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
         incluye_transporte: initialData.incluye_transporte || false,
         requiere_equipo: initialData.requiere_equipo || false,
         porcentaje_ganancia: initialData.porcentaje_ganancia || 10,
-        tipo_reserva: initialData.tipo_reserva || 'INSTANTANEA',
         precio_oferta: initialData.precio_oferta || '',
         fecha_fin_oferta: initialData.fecha_fin_oferta ? new Date(initialData.fecha_fin_oferta).toISOString().split('T')[0] : '',
         hora_inicio: initialData.hora_inicio ? initialData.hora_inicio.substring(0, 5) : '08:00',
@@ -241,7 +239,7 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
         accesibilidad_silla_ruedas: false, accesibilidad_adultos_mayores: false,
         estacionamiento: false, musica_en_vivo: false, zona_infantil: false,
         eventos_privados: false, metodos_pago: '', descuentos_promociones: '',
-        porcentaje_ganancia: 10, tipo_reserva: 'INSTANTANEA',
+        porcentaje_ganancia: 10,
         precio_oferta: '', fecha_fin_oferta: '',
         hora_inicio: '08:00', hora_fin: '18:00',
         dias_disponibles: [0, 1, 2, 3, 4, 5, 6],
@@ -719,20 +717,7 @@ const ActivityModal = ({ isOpen, onClose, type = 'EXPERIENCE', initialData = nul
                           </div>
                         )}
 
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="w-5 h-5 flex items-center justify-center text-primary font-black">⚡</div>
-                            <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Reserva</span>
-                          </div>
-                          <select 
-                            value={formData.tipo_reserva || 'INSTANTANEA'}
-                            onChange={(e) => setFormData({...formData, tipo_reserva: e.target.value})}
-                            className="bg-white p-2 px-4 rounded-xl font-black border border-slate-100 focus:border-primary transition-all outline-none appearance-none cursor-pointer"
-                          >
-                            <option value="INSTANTANEA">Auto</option>
-                            <option value="MANUAL">Manual</option>
-                          </select>
-                        </div>
+
                       </div>
                     </div>
 

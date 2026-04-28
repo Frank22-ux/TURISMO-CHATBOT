@@ -166,7 +166,7 @@ INSERT INTO categorias_alimentarias (nombre, descripcion) VALUES
 ('Restaurante típico/local','Comida tradicional de la zona'),
 ('Marisquería','Especialidades de mar'),
 ('Parrillada / Asados','Carnes a la brasa'),
-('Cafetería','Café, snacks y desayunos'),
+('Cafetería','Café, snacks y deayunos'),
 ('Comida rápida','Servicio ágil y variado'),
 ('Cocina internacional','Gastronomía del mundo'),
 ('Panadería / Pastelería','Panes y dulces artesanales'),
@@ -199,8 +199,6 @@ CREATE TABLE actividades_turisticas (
     requiere_equipo BOOLEAN DEFAULT FALSE,
 
     porcentaje_ganancia INT NOT NULL CHECK (porcentaje_ganancia >= 1),
-    tipo_reserva VARCHAR(20)
-        CHECK (tipo_reserva IN ('INSTANTANEA','MANUAL')),
 
     estado VARCHAR(20) DEFAULT 'ACTIVA',
     vistas INT DEFAULT 0,
@@ -244,7 +242,6 @@ CREATE TABLE actividades_alimentarias (
     permite_mascotas BOOLEAN DEFAULT FALSE,
     wifi BOOLEAN DEFAULT FALSE,
 
-    -- Nuevos campos solicitados
     servicio_local BOOLEAN DEFAULT TRUE,
     servicio_para_llevar BOOLEAN DEFAULT FALSE,
     servicio_delivery BOOLEAN DEFAULT FALSE,
@@ -252,15 +249,13 @@ CREATE TABLE actividades_alimentarias (
     accesibilidad_silla_ruedas BOOLEAN DEFAULT FALSE,
     accesibilidad_adultos_mayores BOOLEAN DEFAULT FALSE,
     estacionamiento BOOLEAN DEFAULT FALSE,
-    metodos_pago TEXT, -- 'efectivo,tarjeta,qr,transferencia'
+    metodos_pago TEXT,
     descuentos_promociones TEXT,
     musica_en_vivo BOOLEAN DEFAULT FALSE,
     zona_infantil BOOLEAN DEFAULT FALSE,
     eventos_privados BOOLEAN DEFAULT FALSE,
 
     porcentaje_ganancia INT NOT NULL CHECK (porcentaje_ganancia >= 1),
-    tipo_reserva VARCHAR(20)
-        CHECK (tipo_reserva IN ('INSTANTANEA','MANUAL')),
 
     estado VARCHAR(20) DEFAULT 'ACTIVA',
     vistas INT DEFAULT 0,
@@ -446,7 +441,6 @@ CREATE TABLE mensajes (
     editado BOOLEAN DEFAULT FALSE,
     fecha_envio TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     
-    -- Nuevas columnas para soporte de gestión de mensajes
     eliminado_emisor BOOLEAN DEFAULT FALSE,
     eliminado_receptor BOOLEAN DEFAULT FALSE,
     archivado_emisor BOOLEAN DEFAULT FALSE,

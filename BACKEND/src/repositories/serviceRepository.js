@@ -77,10 +77,10 @@ const createService = async (data) => {
             servicio_local, servicio_para_llevar, servicio_delivery, nivel_picante,
             accesibilidad_silla_ruedas, accesibilidad_adultos_mayores, estacionamiento,
             metodos_pago, descuentos_promociones, musica_en_vivo, zona_infantil, eventos_privados,
-            porcentaje_ganancia, tipo_reserva,
+            porcentaje_ganancia,
             hora_inicio, hora_fin, dias_disponibles
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29)
         RETURNING id_actividad
     `;
     
@@ -94,7 +94,7 @@ const createService = async (data) => {
         accesibilidad_adultos_mayores || false, estacionamiento || false,
         metodos_pago || '', descuentos_promociones || '', 
         musica_en_vivo || false, zona_infantil || false, eventos_privados || false,
-        data.porcentaje_ganancia || 10, data.tipo_reserva || 'MANUAL',
+        data.porcentaje_ganancia || 10,
         hora_inicio || '08:00:00',
         hora_fin || '18:00:00',
         dias_disponibles || '0,1,2,3,4,5,6'
@@ -157,9 +157,9 @@ const updateService = async (id, data) => {
             accesibilidad_adultos_mayores = $18, estacionamiento = $19,
             metodos_pago = $20, descuentos_promociones = $21,
             musica_en_vivo = $22, zona_infantil = $23, eventos_privados = $24,
-            porcentaje_ganancia = $25, tipo_reserva = $26,
-            precio_oferta = $27, fecha_fin_oferta = $28,
-            hora_inicio = $29, hora_fin = $30, dias_disponibles = $31
+            porcentaje_ganancia = $25,
+            precio_oferta = $26, fecha_fin_oferta = $27,
+            hora_inicio = $28, hora_fin = $29, dias_disponibles = $30
         WHERE id_actividad = $12
     `;
     try {
@@ -169,7 +169,7 @@ const updateService = async (id, data) => {
             servicio_local, servicio_para_llevar, servicio_delivery, nivel_picante,
             accesibilidad_silla_ruedas, accesibilidad_adultos_mayores, estacionamiento,
             metodos_pago, descuentos_promociones, musica_en_vivo, zona_infantil, eventos_privados,
-            porcentaje_ganancia, tipo_reserva,
+            porcentaje_ganancia,
             data.precio_oferta || null,
             data.fecha_fin_oferta || null,
             hora_inicio || '08:00:00',
