@@ -69,64 +69,84 @@ const TermsModal = ({ isOpen, onClose, type = 'TURISTA', onAccept }) => {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 md:p-6">
+        {/* Backdrop con desenfoque más fuerte para aislar el modal */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+          className="absolute inset-0 bg-slate-900/80 backdrop-blur-md"
         />
 
+        {/* Ventana del Modal */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          initial={{ opacity: 0, scale: 0.9, y: 30 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="relative bg-white w-full max-w-2xl rounded-[32px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+          exit={{ opacity: 0, scale: 0.9, y: 30 }}
+          className="relative bg-white w-full max-w-3xl rounded-[32px] shadow-2xl flex flex-col max-h-[85vh] overflow-hidden"
         >
-          {/* Header */}
-          <div className="p-8 bg-slate-50 border-b border-slate-100 flex justify-between items-start shrink-0">
-            <div>
-              <div className="flex items-center gap-2 mb-2 text-primary">
+          {/* Header Fijo */}
+          <div className="p-6 md:p-8 bg-slate-50 border-b border-slate-100 flex justify-between items-center shrink-0">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
                 <Mountain className="w-6 h-6" />
-                <span className="font-display font-black tracking-tight">ISTPET Turismo</span>
               </div>
-              <h2 className="text-2xl font-display font-black text-slate-800">Términos y Privacidad</h2>
-              <p className="text-sm text-slate-500 mt-1">Acuerdo para {type === 'TURISTA' ? 'Turistas' : 'Anfitriones'}</p>
+              <div>
+                <h2 className="text-xl md:text-2xl font-display font-black text-slate-800 leading-tight">Términos y Privacidad</h2>
+                <p className="text-xs md:text-sm text-slate-500 font-bold uppercase tracking-wider mt-0.5">Acuerdo Legal para {type === 'TURISTA' ? 'Turistas' : 'Anfitriones'}</p>
+              </div>
             </div>
-            <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full transition-colors text-slate-400">
+            <button 
+              onClick={onClose} 
+              className="p-3 hover:bg-slate-200 rounded-full transition-all text-slate-400 hover:text-slate-600 hover:rotate-90"
+            >
               <X className="w-6 h-6" />
             </button>
           </div>
 
-          {/* Body */}
-          <div className="p-8 overflow-y-auto flex-1 space-y-8 custom-scrollbar">
+          {/* Body con Scroll Obligatorio */}
+          <div className="p-6 md:p-10 overflow-y-auto flex-1 bg-white space-y-10 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
             {currentContent.map((item, idx) => (
-              <div key={idx} className="flex gap-5">
-                <div className={`shrink-0 w-12 h-12 rounded-2xl bg-${item.color}-50 flex items-center justify-center text-${item.color}-600 border border-${item.color}-100`}>
-                  <item.icon className="w-6 h-6" />
+              <div key={idx} className="flex flex-col md:flex-row gap-6 items-start">
+                <div className={`shrink-0 w-14 h-14 rounded-2xl bg-${item.color}-50 flex items-center justify-center text-${item.color}-600 border border-${item.color}-100 shadow-sm`}>
+                  <item.icon className="w-7 h-7" />
                 </div>
-                <div>
-                  <h3 className="font-black text-slate-800 mb-2 uppercase text-xs tracking-widest">{item.title}</h3>
-                  <p className="text-sm text-slate-600 leading-relaxed font-medium">
+                <div className="flex-1">
+                  <h3 className="font-black text-slate-800 mb-3 uppercase text-xs tracking-widest flex items-center gap-2">
+                    <span className={`w-1.5 h-1.5 rounded-full bg-${item.color}-500`}></span>
+                    {item.title}
+                  </h3>
+                  <p className="text-sm md:text-base text-slate-600 leading-relaxed font-medium">
                     {item.text}
                   </p>
                 </div>
               </div>
             ))}
+            
+            {/* Disclaimer final */}
+            <div className="pt-6 border-t border-slate-50 text-center">
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                ISTPET TURISMO © 2024 - Todos los derechos reservados
+              </p>
+            </div>
           </div>
 
-          {/* Footer */}
-          <div className="p-8 border-t border-slate-100 bg-white flex flex-col sm:flex-row justify-end gap-3 shrink-0">
-            <button onClick={onClose} className="px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest text-slate-400 hover:bg-slate-50 transition-colors">
+          {/* Footer Fijo con Acciones */}
+          <div className="p-6 md:p-8 border-t border-slate-100 bg-slate-50 flex flex-col sm:flex-row justify-end gap-4 shrink-0">
+            <button 
+              onClick={onClose} 
+              className="px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest text-slate-500 hover:bg-slate-200 transition-all border border-slate-200"
+            >
               Cerrar
             </button>
             {onAccept && (
               <button 
                 onClick={() => { onAccept(); onClose(); }}
-                className="px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest bg-primary hover:bg-primary-dark text-white shadow-xl shadow-primary/20 transition-all flex items-center justify-center gap-2"
+                className="px-10 py-4 rounded-2xl font-black text-xs uppercase tracking-widest bg-primary hover:bg-primary-dark text-white shadow-xl shadow-primary/30 transition-all flex items-center justify-center gap-2 active:scale-95 group"
               >
-                Aceptar y Continuar <ArrowRight className="w-4 h-4" />
+                Aceptar y Continuar 
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
             )}
           </div>
