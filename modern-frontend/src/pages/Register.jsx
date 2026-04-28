@@ -5,6 +5,8 @@ import { User, Mail, Lock, Phone, Calendar, ArrowRight, Mountain, X, Check, Aler
 import { motion, AnimatePresence } from 'framer-motion';
 import AuthLayout from '../components/AuthLayout';
 import PhoneInputWithCountry from '../components/PhoneInputWithCountry';
+import TermsModal from '../components/TermsModal';
+import { ShieldCheck as ShieldIcon } from 'lucide-react';
 
 const Toast = ({ message, type = 'error', onClose }) => (
   <motion.div
@@ -39,6 +41,8 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState(null);
   const [isPhoneValid, setIsPhoneValid] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -52,6 +56,11 @@ const Register = () => {
     e.preventDefault();
     if (!isPhoneValid) {
       setNotification({ message: 'Por favor, ingresa un número de teléfono válido antes de continuar.', type: 'error' });
+      return;
+    }
+
+    if (!acceptedTerms) {
+      setNotification({ message: 'Debes aceptar los términos y condiciones para registrarte.', type: 'error' });
       return;
     }
 
@@ -169,16 +178,34 @@ const Register = () => {
           </div>
         </div>
 
+        <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:border-primary/30 transition-all cursor-pointer group" onClick={() => setAcceptedTerms(!acceptedTerms)}>
+          <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${acceptedTerms ? 'bg-primary border-primary' : 'bg-white border-slate-200 group-hover:border-primary/50'}`}>
+            {acceptedTerms && <Check className="w-4 h-4 text-white" />}
+          </div>
+          <div className="flex-1">
+             <p className="text-[11px] font-bold text-slate-500 leading-tight">
+               He leído y acepto los <button type="button" onClick={(e) => { e.stopPropagation(); setShowTerms(true); }} className="text-primary hover:underline font-black">Términos, Condiciones</button> y la <button type="button" onClick={(e) => { e.stopPropagation(); setShowTerms(true); }} className="text-primary hover:underline font-black">Política de Protección de Datos</button>.
+             </p>
+          </div>
+        </div>
+
         <div className="flex justify-center">
           <button 
             type="submit" 
-            disabled={loading || (!isPhoneValid && formData.phone.length > 0)}
-            className={`px-10 py-4 bg-primary hover:bg-primary-dark text-white rounded-2xl font-black shadow-xl shadow-primary/20 hover:shadow-primary/30 transform hover:-translate-y-1 active:scale-95 transition-all flex items-center justify-center gap-2 group ${(!isPhoneValid && formData.phone.length > 0) ? 'opacity-70 cursor-not-allowed' : ''}`}
+            disabled={loading || !acceptedTerms || (!isPhoneValid && formData.phone.length > 0)}
+            className={`px-10 py-4 bg-primary hover:bg-primary-dark text-white rounded-2xl font-black shadow-xl shadow-primary/20 hover:shadow-primary/30 transform hover:-translate-y-1 active:scale-95 transition-all flex items-center justify-center gap-2 group ${(loading || !acceptedTerms || (!isPhoneValid && formData.phone.length > 0)) ? 'opacity-70 cursor-not-allowed grayscale' : ''}`}
           >
             {loading ? 'Creando cuenta...' : 'Crear cuenta y recibir clave por correo'}
           </button>
         </div>
       </form>
+
+      <TermsModal 
+        isOpen={showTerms} 
+        onClose={() => setShowTerms(false)} 
+        type="TURISTA" 
+        onAccept={() => setAcceptedTerms(true)}
+      />
 
       <div className="mt-8 pt-6 border-t border-slate-100 text-center">
         <p className="text-slate-500 text-sm">
