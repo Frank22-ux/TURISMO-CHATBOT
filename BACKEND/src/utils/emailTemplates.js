@@ -290,6 +290,10 @@ const getSuspensionReactivationTemplate = (nombre, activationCode) => `
 </html>
 `;
 
+module.exports = {
+    getWelcomeTemplate,
+    getForgotPasswordTemplate,
+    getPaymentSuccessTemplate,
     getPaymentRejectedTemplate,
     getFundsCreditedTemplate,
     getSuspensionReactivationTemplate
