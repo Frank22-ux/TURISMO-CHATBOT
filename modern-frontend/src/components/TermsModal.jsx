@@ -9,52 +9,58 @@ const TermsModal = ({ isOpen, onClose, type = 'TURISTA', onAccept }) => {
       {
         icon: ShieldCheck,
         color: 'emerald',
-        title: '1. Protección de Datos Personales',
-        text: 'En cumplimiento con la LOPDP, tus datos personales (nombre, correo, teléfono) serán tratados exclusivamente para gestionar tus reservas, garantizar tu seguridad y enviarte comprobantes de tus transacciones. No compartiremos tu información con terceros sin tu consentimiento.'
+        title: '1. PROTECCIÓN DE DATOS Y PRIVACIDAD (LOPDP)',
+        text: 'En estricto cumplimiento con la Ley Orgánica de Protección de Datos Personales (LOPDP) de Ecuador, ISTPET Turismo garantiza que sus datos (nombre, identificación, contacto) serán tratados con protocolos de cifrado. Su información se utiliza únicamente para: a) Gestión de reservas y pagos, b) Verificación de identidad por seguridad del anfitrión, c) Emisión de comprobantes electrónicos. Usted conserva sus derechos ARCO (Acceso, Rectificación, Cancelación y Oposición) en todo momento a través de nuestro soporte técnico.'
       },
       {
         icon: Eye,
         color: 'blue',
-        title: '2. Uso de la Plataforma',
-        text: 'Como turista, te comprometes a proporcionar información verídica y a utilizar los servicios de ISTPET Turismo de buena fe, respetando las normativas locales y las reglas de cada anfitrión.'
+        title: '2. PROPIEDAD INTELECTUAL Y USO DE CONTENIDOS',
+        text: 'Todo el contenido visual, logotipos, algoritmos y textos presentes en la plataforma son propiedad exclusiva de ISTPET Turismo o sus licenciantes. El usuario se compromete a no reproducir, extraer o utilizar comercialmente la información de las experiencias sin autorización previa. Cualquier uso indebido de la marca resultará en acciones legales bajo la normativa de propiedad intelectual vigente.'
       },
       {
         icon: CreditCard,
         color: 'amber',
-        title: '3. Reservas y Pagos',
-        text: 'Al realizar un pago, tu reserva se confirma automáticamente. Eres responsable de presentarte en el lugar y hora acordados. Las cancelaciones están sujetas a las políticas de cada experiencia.'
+        title: '3. SEGURIDAD EN TRANSACCIONES Y PAGOS',
+        text: 'Los pagos son procesados externamente por Kushki, cumpliendo con los estándares PCI-DSS de seguridad bancaria. ISTPET Turismo no almacena los números de su tarjeta de crédito o débito. Al confirmar el pago, la reserva se genera automáticamente; es responsabilidad del turista verificar que la fecha y el número de personas sean correctos antes de finalizar la transacción.'
       },
       {
-        icon: Users,
-        color: 'purple',
-        title: '4. Responsabilidad',
-        text: 'ISTPET Turismo actúa como intermediario. Aunque validamos a nuestros anfitriones, la ejecución de la actividad es responsabilidad del proveedor del servicio.'
+        icon: Lock,
+        color: 'indigo',
+        title: '4. POLÍTICA DE COOKIES Y RASTREO',
+        text: 'Utilizamos cookies técnicas y de sesión para mejorar su experiencia de navegación, recordar sus preferencias de búsqueda y mantener la seguridad de su sesión activa. Al aceptar estos términos, usted consiente el uso de estas tecnologías necesarias para el funcionamiento óptimo de la aplicación web.'
+      },
+      {
+        icon: Scale,
+        color: 'rose',
+        title: '5. LIMITACIÓN DE RESPONSABILIDAD Y JURISDICCIÓN',
+        text: 'ISTPET Turismo actúa como un conector tecnológico entre turistas y proveedores. No somos responsables por eventos de fuerza mayor, accidentes o imprevistos climáticos durante la actividad. En caso de controversia legal, las partes se someten a las leyes de la República del Ecuador y a los juzgados competentes de la ciudad de Quito.'
       }
     ],
     ANFITRION: [
       {
-        icon: Lock,
+        icon: ShieldCheck,
         color: 'emerald',
-        title: '1. Seguridad y Datos',
-        text: 'Tus datos profesionales y los de tu negocio serán protegidos bajo estándares de seguridad. Te comprometes a manejar con absoluta confidencialidad los datos de los turistas que recibas.'
+        title: '1. RESPONSABILIDAD LEGAL Y PROTECCIÓN DE DATOS',
+        text: 'El anfitrión se compromete a dar un uso ético y confidencial a los datos de los turistas recibidos. Está prohibido utilizar la información de contacto de los clientes para fines ajenos a la reserva o para marketing no autorizado. El incumplimiento de la LOPDP conlleva sanciones administrativas y la expulsión inmediata de la plataforma.'
       },
       {
         icon: Scale,
         color: 'blue',
-        title: '2. Calidad del Servicio',
-        text: 'Eres responsable de la seguridad y calidad de las experiencias. Debes cumplir con los permisos legales vigentes en Ecuador para operar servicios turísticos o alimentarios.'
+        title: '2. CALIDAD, PERMISOS Y SEGUROS',
+        text: 'Es obligación irrenunciable del anfitrión contar con todos los permisos municipales y de turismo vigentes (LUAF, RUC/RIMPE). Para actividades de aventura o riesgo, el anfitrión debe garantizar que cuenta con los seguros de accidentes y guías especializados requeridos por la ley ecuatoriana. El sistema se reserva el derecho de auditar esta documentación en cualquier momento.'
       },
       {
         icon: CreditCard,
         color: 'amber',
-        title: '3. Pagos y Comisiones',
-        text: 'La plataforma retendrá un porcentaje por gestión operativa y pasarela de pagos. Los desembolsos se realizarán tras la validación exitosa de la actividad mediante el código QR.'
+        title: '3. TRANSPARENCIA EN PRECIOS Y COMISIONES',
+        text: 'El precio publicado debe ser final e incluir todos los impuestos de ley (IVA). La plataforma descontará automáticamente el porcentaje de comisión acordado por mantenimiento de infraestructura y pasarela de pagos. Los fondos serán liberados una vez que el turista valide su asistencia mediante el escaneo del código QR generado por el sistema.'
       },
       {
-        icon: ShieldCheck,
-        color: 'purple',
-        title: '4. Veracidad Informativa',
-        text: 'Cualquier contenido falso o engañoso resultará en la baja inmediata del sistema y posibles acciones legales por parte de los usuarios afectados.'
+        icon: Eye,
+        color: 'indigo',
+        title: '4. VERACIDAD PUBLICITARIA',
+        text: 'Las fotografías y descripciones de los servicios deben ser reales y actuales. El uso de imágenes con derechos de autor ajenos o que no correspondan a la experiencia ofrecida se considera fraude. Los anfitriones con bajas calificaciones persistentes o reportes de engaño serán suspendidos de forma permanente.'
       }
     ]
   };
