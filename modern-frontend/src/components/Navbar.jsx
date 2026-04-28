@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { UserCircle, LayoutDashboard, LogOut, Menu, Mountain, Utensils, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import HostTermsModal from './HostTermsModal';
+import TermsModal from './TermsModal';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -179,9 +179,11 @@ const Navbar = () => {
         </nav>
       </div>
 
-      <HostTermsModal 
+      <TermsModal 
         isOpen={isTermsModalOpen} 
         onClose={() => setIsTermsModalOpen(false)} 
+        type="ANFITRION"
+        onAccept={() => navigate('/register-host')}
       />
     </header>
   );

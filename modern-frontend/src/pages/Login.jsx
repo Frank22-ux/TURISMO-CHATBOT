@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Phone, ArrowRight, Mountain, AlertCircle } from 'lucide-react';
 import AuthLayout from '../components/AuthLayout';
 import PhoneInputWithCountry from '../components/PhoneInputWithCountry';
+import TermsModal from '../components/TermsModal';
 
 const Login = () => {
   const [method, setMethod] = useState('email');
@@ -13,6 +14,7 @@ const Login = () => {
   const [showReactivation, setShowReactivation] = useState(false);
   const [reactivationCode, setReactivationCode] = useState('');
   const [error, setError] = useState(null);
+  const [showTerms, setShowTerms] = useState(false);
   const navigate = useNavigate();
 
   const handleReactivate = async (e) => {
@@ -222,9 +224,16 @@ const Login = () => {
 
       <div className="mt-12 pt-8 border-t border-slate-100 text-center">
         <p className="text-slate-500 text-sm">
-          ¿No tienes una cuenta? <Link to="/register" className="text-primary font-black hover:underline">Regístrate gratis</Link>
+          ¿No tienes una cuenta? <button onClick={() => setShowTerms(true)} className="text-primary font-black hover:underline">Regístrate gratis</button>
         </p>
       </div>
+
+      <TermsModal 
+        isOpen={showTerms} 
+        onClose={() => setShowTerms(false)} 
+        type="TURISTA"
+        onAccept={() => navigate('/register')}
+      />
     </AuthLayout>
   );
 };
