@@ -363,9 +363,9 @@ const BookingSidebar = ({ isOpen, onClose }) => {
                         <p className="mt-4 text-sm font-medium text-slate-500 italic">* Las cancelaciones se procesan utilizando el código protector de tu boleto digital.</p>
                       </section>
                       <section className="bg-amber-50 p-6 rounded-3xl border border-amber-200">
-                        <h4 className="font-black text-amber-600 uppercase text-xs tracking-widest mb-3">3. Acreditación de Descuentos (Niños y Discapacitados)</h4>
+                        <h4 className="font-black text-amber-600 uppercase text-xs tracking-widest mb-3">3. Acreditación de Descuentos (Niños y Necesidades Especiales)</h4>
                         <p className="text-sm font-bold text-slate-700 leading-relaxed">
-                          Al reservar para niños (1-6 años) o personas con discapacidad, es obligatorio presentar el documento legal original al anfitrión. 
+                          Al reservar para niños (1-6 años) o personas con necesidades especiales, es obligatorio presentar el documento legal original al anfitrión. 
                         </p>
                         <p className="text-sm text-slate-600 mt-2">
                           En caso de no cumplir con los requisitos, se deberá pagar la diferencia del valor total del servicio. De lo contrario, no se permitirá el ingreso y no habrá devolución de dinero.
@@ -576,7 +576,7 @@ const BookingSidebar = ({ isOpen, onClose }) => {
                         {/* Seniors */}
                         <div className="flex justify-between items-center group">
                           <div>
-                            <div className="text-sm font-bold text-slate-700">Discapacitados</div>
+                            <div className="text-sm font-bold text-slate-700">Necesidades Especiales</div>
                             <p className="text-[9px] text-emerald-600 font-bold uppercase tracking-tighter">50% DESC.</p>
                           </div>
                           <div className="flex items-center gap-3">
@@ -605,7 +605,7 @@ const BookingSidebar = ({ isOpen, onClose }) => {
                                <div className="space-y-1">
                                  <p className="uppercase tracking-widest text-[9px] text-amber-600 font-black">Aviso de Acreditación</p>
                                  <p className="leading-relaxed text-slate-700">
-                                   Al reservar para niños (1-6 años) o personas con discapacidad, se debe presentar el documento legal correspondiente. 
+                                   Al reservar para niños (1-6 años) o personas con necesidades especiales, se debe presentar el documento legal correspondiente. 
                                    <span className="block mt-1 font-black text-amber-700">De lo contrario, se deberá pagar el valor completo o se negará el ingreso sin derecho a devolución.</span>
                                  </p>
                                </div>
