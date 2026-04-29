@@ -24,6 +24,7 @@ const BookingSidebar = ({ isOpen, onClose }) => {
   const [capacities, setCapacities] = useState({}); // { activityId: remaining }
   const [loadingCapacities, setLoadingCapacities] = useState({});
   const [toast, setToast] = useState(null); // { type: 'success' | 'error', message: string }
+  const [hasReadTerms, setHasReadTerms] = useState(false);
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
@@ -362,6 +363,7 @@ const BookingSidebar = ({ isOpen, onClose }) => {
 
                     <button 
                       onClick={() => {
+                        setHasReadTerms(true);
                         setAcceptedTerms(true);
                         setShowTermsModal(false);
                       }}
@@ -746,15 +748,27 @@ const BookingSidebar = ({ isOpen, onClose }) => {
                         <input 
                           type="checkbox"
                           checked={acceptedTerms}
-                          onChange={(e) => setAcceptedTerms(e.target.checked)}
+                          onChange={(e) => {
+                            if (!hasReadTerms) {
+                              setShowTermsModal(true);
+                            } else {
+                              setAcceptedTerms(e.target.checked);
+                            }
+                          }}
                           className="peer hidden"
                         />
-                        <div className={`w-5 h-5 rounded-md border-2 transition-all flex items-center justify-center ${acceptedTerms ? 'bg-secondary border-secondary' : 'border-white/20 group-hover:border-white/40'}`}>
+                        <div 
+                          onClick={() => {
+                            if (!hasReadTerms) setShowTermsModal(true);
+                          }}
+                          className={`w-5 h-5 rounded-md border-2 transition-all flex items-center justify-center ${acceptedTerms ? 'bg-secondary border-secondary' : 'border-white/20 group-hover:border-white/40'} ${!hasReadTerms ? 'cursor-help opacity-50' : 'cursor-pointer'}`}
+                        >
                           {acceptedTerms && <CheckCircle2 className="w-3.5 h-3.5 text-primary-dark" />}
                         </div>
                       </div>
                       <span className="text-[11px] font-medium text-white/50 leading-relaxed">
                         Acepto los <button type="button" onClick={() => setShowTermsModal(true)} className="text-secondary hover:underline font-black uppercase tracking-tighter">términos y condiciones</button> de reserva y cancelación.
+                        {!hasReadTerms && <span className="block text-[9px] text-amber-400 font-bold mt-1 uppercase tracking-widest animate-pulse italic">(Debes abrirlos y leerlos para continuar)</span>}
                       </span>
                     </label>
                   </div>
