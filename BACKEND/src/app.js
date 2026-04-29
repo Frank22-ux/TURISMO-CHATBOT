@@ -13,12 +13,15 @@ const adminRoutes = require('./routes/adminRoutes');
 
 const app = express();
 
-// CORS — explicitly allow Vercel frontend and local dev environments
+// CORS — explicitly allow all known frontend origins
 const allowedOrigins = [
-    // Production frontend on Vercel
+    // Production frontend — custom domain
+    'https://www.turismoecuadorapp.com',
+    'https://turismoecuadorapp.com',
+    // Production frontend on Vercel (legacy / fallback)
     'https://turismo-chatbot.vercel.app',
     'https://turismo-chatbot-frank22-uxs-projects.vercel.app',
-    // Also allow any custom domain set via env var in Render dashboard
+    // Dynamic domain from Render env var (FRONTEND_URL)
     process.env.FRONTEND_URL,
     // Local development
     'http://localhost:5173',
@@ -35,6 +38,11 @@ const corsOptions = {
         
         // Allow dynamically generated Vercel preview domains safely
         if (origin.startsWith('https://turismo-chatbot') && origin.endsWith('.vercel.app')) {
+            return callback(null, true);
+        }
+
+        // Allow any subdomain of turismoecuadorapp.com
+        if (origin.endsWith('.turismoecuadorapp.com') || origin === 'https://turismoecuadorapp.com') {
             return callback(null, true);
         }
 
