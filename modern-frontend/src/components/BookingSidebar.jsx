@@ -32,8 +32,16 @@ const BookingSidebar = ({ isOpen, onClose }) => {
   };
 
   const updateGuestCount = (activityId, type, delta) => {
+    const available = capacities[activityId];
     setGuestCounts(prev => {
       const counts = prev[activityId] || { adults: 1, children: 0, seniors: 0 };
+      const currentTotal = counts.adults + counts.children + counts.seniors;
+      
+      if (delta > 0 && available !== undefined && currentTotal + delta > available) {
+        showToast(`Lo sentimos, solo quedan ${available} cupos disponibles para esta fecha.`, 'error');
+        return prev;
+      }
+
       const newValue = Math.max(type === 'adults' ? 1 : 0, counts[type] + delta);
       return {
         ...prev,
@@ -160,6 +168,18 @@ const BookingSidebar = ({ isOpen, onClose }) => {
     if (conflictResult.conflict) {
       setError(`Conflicto de horario entre "${conflictResult.a}" y "${conflictResult.b}" el mismo día. Por favor elige horarios distintos.`);
       return;
+    }
+
+    // Capacity Validation
+    for (const item of selectedItems) {
+      const counts = guestCounts[item.id] || { adults: 1, children: 0, seniors: 0 };
+      const totalRequested = counts.adults + counts.children + counts.seniors;
+      const available = capacities[item.id];
+      
+      if (available !== undefined && totalRequested > available) {
+        setError(`No hay cupos suficientes para "${item.titulo}". Cupos disponibles: ${available}, Solicitados: ${totalRequested}. Por favor ajusta el número de personas o cambia la fecha.`);
+        return;
+      }
     }
 
     if (!cardName || !cardNumber || !expiry || !cvv) {
