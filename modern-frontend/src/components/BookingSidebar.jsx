@@ -341,12 +341,21 @@ const BookingSidebar = ({ isOpen, onClose }) => {
                         </p>
                         <p className="mt-4 text-sm font-medium text-slate-500 italic">* Las cancelaciones se procesan utilizando el código protector de tu boleto digital.</p>
                       </section>
+                      <section className="bg-amber-50 p-6 rounded-3xl border border-amber-200">
+                        <h4 className="font-black text-amber-600 uppercase text-xs tracking-widest mb-3">3. Acreditación de Descuentos (Niños y Discapacitados)</h4>
+                        <p className="text-sm font-bold text-slate-700 leading-relaxed">
+                          Al reservar para niños (1-6 años) o personas con discapacidad, es obligatorio presentar el documento legal original al anfitrión. 
+                        </p>
+                        <p className="text-sm text-slate-600 mt-2">
+                          En caso de no cumplir con los requisitos, se deberá pagar la diferencia del valor total del servicio. De lo contrario, no se permitirá el ingreso y no habrá devolución de dinero.
+                        </p>
+                      </section>
                       <section>
-                        <h4 className="font-black text-primary-dark uppercase text-xs tracking-widest mb-3 border-b border-slate-100 pb-1">3. Responsabilidad del Turista</h4>
+                        <h4 className="font-black text-primary-dark uppercase text-xs tracking-widest mb-3 border-b border-slate-100 pb-1">4. Responsabilidad del Turista</h4>
                         <p>El turista es responsable de llegar puntualmente al punto de encuentro y seguir las normas de seguridad establecidas por el anfitrión. Nuestra plataforma actúa como mediador, pero la ejecución de la actividad es responsabilidad directa del anfitrión.</p>
                       </section>
                       <section>
-                        <h4 className="font-black text-primary-dark uppercase text-xs tracking-widest mb-3 border-b border-slate-100 pb-1">4. Privacidad de Datos</h4>
+                        <h4 className="font-black text-primary-dark uppercase text-xs tracking-widest mb-3 border-b border-slate-100 pb-1">5. Privacidad de Datos</h4>
                         <p>Tus datos bancarios nunca son almacenados en nuestros servidores. Todo el procesamiento de tarjetas cumple con los estándares internacionales PCI DSS a través de Kushki para tu total tranquilidad.</p>
                       </section>
                     </div>
