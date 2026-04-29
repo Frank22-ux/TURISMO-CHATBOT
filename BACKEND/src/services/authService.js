@@ -5,16 +5,14 @@ const authRepository = require('../repositories/authRepository');
 const emailTemplates = require('../utils/emailTemplates');
 
 const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 465,
-  secure: true, // true for 465, false for other ports
+  service: 'gmail',
   auth: {
-    user: process.env.EMAIL_USER || 'tucorreo@gmail.com',
-    pass: process.env.EMAIL_PASS || 'TU_CONTRASEÑA_DE_APLICACIÓN',
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
   },
-  tls: {
-    rejectUnauthorized: false // Helps with some local/certificate issues
-  }
+  connectionTimeout: 10000, // 10 seconds
+  greetingTimeout: 10000,
+  socketTimeout: 15000,
 });
 
 const register = async (userData) => {
@@ -63,7 +61,7 @@ const register = async (userData) => {
 
     // Send Welcome Email containing the password
     const msg = {
-        from: `"ISTPET Turismo" <${process.env.EMAIL_USER || 'tucorreo@gmail.com'}>`, 
+        from: `"ISTPET Turismo" <${process.env.EMAIL_USER}>`, 
         to: email, 
         subject: '¡Bienvenido a ISTPET Turismo! Tu acceso interior.',
         html: emailTemplates.getWelcomeTemplate(nombre, tempPassword)
@@ -72,7 +70,7 @@ const register = async (userData) => {
     try {
         await transporter.sendMail(msg);
     } catch (error) {
-        console.error('Nodemailer Error during registration:', error);
+        console.error('Nodemailer Error during registration:', error.message);
         // We do not throw to prevent stopping registration if email fails, 
         // but ideally we should notify the user or log it.
     }
@@ -116,7 +114,7 @@ const login = async (identifier, contraseña) => {
             await authRepository.suspendUserWithCode(user.id_usuario, code);
             
             const msg = {
-                from: `"ISTPET Turismo" <${process.env.EMAIL_USER || 'tucorreo@gmail.com'}>`, 
+                from: `"ISTPET Turismo" <${process.env.EMAIL_USER}>`, 
                 to: user.email, 
                 subject: 'Reactivación de Cuenta - ISTPET Turismo',
                 html: emailTemplates.getSuspensionReactivationTemplate(user.nombre, code)
@@ -124,8 +122,8 @@ const login = async (identifier, contraseña) => {
             try {
                 await transporter.sendMail(msg);
             } catch (error) {
-                console.error('Nodemailer Error during suspension mail:', error);
-                throw new Error('Error al enviar el correo de reactivación.');
+                console.error('Nodemailer Error during suspension mail:', error.message);
+                // Do not rethrow: still suspend the user even if email fails
             }
             
             throw new Error('SUSPENDED_INACTIVITY');
@@ -165,7 +163,7 @@ const forgotPassword = async (email) => {
 
     // Send Email via beautiful template
     const msg = {
-        from: `"ISTPET Turismo" <${process.env.EMAIL_USER || 'tucorreo@gmail.com'}>`, 
+        from: `"ISTPET Turismo" <${process.env.EMAIL_USER}>`, 
         to: email, 
         subject: 'Recuperación de Contraseña - ISTPET Turismo',
         text: `Hola ${user.nombre}, tu contraseña temporal es: ${tempPassword}. Inicia sesión en: https://turismo-chatbot.vercel.app/login`,
@@ -176,8 +174,8 @@ const forgotPassword = async (email) => {
         await transporter.sendMail(msg);
         return { message: 'Contraseña temporal enviada al correo' };
     } catch (error) {
-        console.error('Nodemailer Error:', error);
-        throw new Error('Error al enviar el correo. Revisa las credenciales de tu correo SMTP.');
+        console.error('Nodemailer Error:', error.message);
+        throw new Error('Error al enviar el correo. Verifica que la contraseña de aplicación de Gmail sea correcta.');
     }
 };
 
