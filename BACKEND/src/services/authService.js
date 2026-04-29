@@ -10,9 +10,6 @@ const transporter = nodemailer.createTransport({
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
-  connectionTimeout: 10000, // 10 seconds
-  greetingTimeout: 10000,
-  socketTimeout: 15000,
 });
 
 const register = async (userData) => {
@@ -20,7 +17,6 @@ const register = async (userData) => {
     
     // Server-side validation for phone number
     if (telefono) {
-        // Regex: ensures it starts with + and has 7-15 digits after prefix
         const phoneRegex = /^\+[0-9]{7,18}$/;
         if (!phoneRegex.test(telefono)) {
             throw new Error('Formato de teléfono inválido. Debe incluir prefijo y entre 7 a 15 números.');
@@ -60,19 +56,16 @@ const register = async (userData) => {
     });
 
     // Send Welcome Email containing the password
-    const msg = {
-        from: `"ISTPET Turismo" <${process.env.EMAIL_USER}>`, 
-        to: email, 
-        subject: '¡Bienvenido a ISTPET Turismo! Tu acceso interior.',
-        html: emailTemplates.getWelcomeTemplate(nombre, tempPassword)
-    };
-
     try {
-        await transporter.sendMail(msg);
+        await transporter.sendMail({
+            from: `"ISTPET Turismo" <${process.env.EMAIL_USER}>`,
+            to: email,
+            subject: '¡Bienvenido a ISTPET Turismo! Tu acceso interior.',
+            html: emailTemplates.getWelcomeTemplate(nombre, tempPassword)
+        });
     } catch (error) {
-        console.error('Nodemailer Error during registration:', error.message);
-        // We do not throw to prevent stopping registration if email fails, 
-        // but ideally we should notify the user or log it.
+        console.error('Email Error during registration:', error.message);
+        // We do not throw to prevent stopping registration if email fails
     }
 
     // If host, initialize profile
@@ -110,19 +103,18 @@ const login = async (identifier, contraseña) => {
         const daysInactive = (Date.now() - lastConn.getTime()) / (1000 * 60 * 60 * 24);
         
         if (daysInactive >= 30 || user.estado === 'SUSPENDIDO') {
-            const code = Math.floor(100000 + Math.random() * 900000).toString(); // Generates 6-digit code
+            const code = Math.floor(100000 + Math.random() * 900000).toString();
             await authRepository.suspendUserWithCode(user.id_usuario, code);
             
-            const msg = {
-                from: `"ISTPET Turismo" <${process.env.EMAIL_USER}>`, 
-                to: user.email, 
-                subject: 'Reactivación de Cuenta - ISTPET Turismo',
-                html: emailTemplates.getSuspensionReactivationTemplate(user.nombre, code)
-            };
             try {
-                await transporter.sendMail(msg);
+                await transporter.sendMail({
+                    from: `"ISTPET Turismo" <${process.env.EMAIL_USER}>`,
+                    to: user.email,
+                    subject: 'Reactivación de Cuenta - ISTPET Turismo',
+                    html: emailTemplates.getSuspensionReactivationTemplate(user.nombre, code)
+                });
             } catch (error) {
-                console.error('Nodemailer Error during suspension mail:', error.message);
+                console.error('Email Error during suspension mail:', error.message);
                 // Do not rethrow: still suspend the user even if email fails
             }
             
@@ -162,21 +154,18 @@ const forgotPassword = async (email) => {
     await authRepository.setRequiresPasswordChange(user.id_usuario, true);
 
     // Send Email via beautiful template
-    const msg = {
-        from: `"ISTPET Turismo" <${process.env.EMAIL_USER}>`, 
-        to: email, 
-        subject: 'Recuperación de Contraseña - ISTPET Turismo',
-        text: `Hola ${user.nombre}, tu contraseña temporal es: ${tempPassword}. Inicia sesión en: https://turismo-chatbot.vercel.app/login`,
-        html: emailTemplates.getForgotPasswordTemplate(user.nombre, tempPassword)
-    };
-
     try {
-        await transporter.sendMail(msg);
+        await transporter.sendMail({
+            from: `"ISTPET Turismo" <${process.env.EMAIL_USER}>`,
+            to: email,
+            subject: 'Recuperación de Contraseña - ISTPET Turismo',
+            text: `Hola ${user.nombre}, tu contraseña temporal es: ${tempPassword}. Inicia sesión en: https://turismo-chatbot.vercel.app/login`,
+            html: emailTemplates.getForgotPasswordTemplate(user.nombre, tempPassword)
+        });
         return { message: 'Contraseña temporal enviada al correo' };
     } catch (error) {
-        const detail = `Code: ${error.code || 'N/A'} | Response: ${error.response || error.message}`;
-        console.error('=== SMTP ERROR ===', detail);
-        throw new Error(`Error al enviar el correo. Detalle: ${detail}`);
+        console.error('Email Error:', error.message);
+        throw new Error('Error al enviar el correo. Verifica la configuración de Gmail en el servidor.');
     }
 };
 
