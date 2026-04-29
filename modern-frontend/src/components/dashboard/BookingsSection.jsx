@@ -176,7 +176,15 @@ const BookingsSection = ({ status: initialStatusFilter }) => {
       return b.estado === 'COMPLETADA' || b.estado === 'RECHAZADA' || b.estado === 'CANCELADA' || expDateOnly < today;
     }
     return (b.estado === 'PENDIENTE' || b.estado === 'APROBADA') && expDateOnly >= today;
-  }).filter(b => filter === 'ALL' || b.estado === filter);
+  }).filter(b => filter === 'ALL' || b.estado === filter)
+    .sort((a, b) => {
+      const dateA = new Date(a.fecha_experiencia).getTime();
+      const dateB = new Date(b.fecha_experiencia).getTime();
+      if (dateA !== dateB) {
+        return dateB - dateA;
+      }
+      return b.id_reserva - a.id_reserva;
+    });
 
   if (loading) return <div className="p-20 text-center animate-pulse text-primary font-bold">Cargando tus aventuras...</div>;
 
@@ -217,10 +225,8 @@ const BookingsSection = ({ status: initialStatusFilter }) => {
               className="w-full pl-10 pr-4 py-3 rounded-2xl bg-slate-50 border border-slate-50 focus:ring-4 focus:ring-primary/10 transition-all outline-none text-sm"
             />
           </div>
-          <button className="flex items-center gap-2 text-slate-400 font-bold text-sm hover:text-primary transition-all">
-            <Filter className="w-4 h-4" /> Filtros Avanzados
-          </button>
-        </div>
+          </div>
+
 
         <div className="overflow-x-auto">
           <table className="w-full text-left">
