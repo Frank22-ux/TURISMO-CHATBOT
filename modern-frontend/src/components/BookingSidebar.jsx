@@ -521,7 +521,7 @@ const BookingSidebar = ({ isOpen, onClose }) => {
                         <div className="flex justify-between items-center group">
                           <div>
                             <div className="text-sm font-bold text-slate-700">Niños</div>
-                            <p className="text-[9px] text-emerald-600 font-bold uppercase tracking-tighter">50% DESC.</p>
+                            <p className="text-[9px] text-emerald-600 font-bold uppercase tracking-tighter">50% DESC. (1-6 AÑOS)</p>
                           </div>
                           <div className="flex items-center gap-3">
                             <button 
@@ -567,11 +567,18 @@ const BookingSidebar = ({ isOpen, onClose }) => {
                           </div>
                         </div>
 
-                        {(guestCounts[item.id]?.seniors > 0) && (
+                        {(guestCounts[item.id]?.children > 0 || guestCounts[item.id]?.seniors > 0) && (
                           <div className="pt-2">
-                             <p className="text-[9px] font-bold text-warning bg-warning-light p-3 rounded-xl border border-warning flex items-center gap-2">
-                               <Shield className="w-3 h-3 shrink-0" /> Requiere acreditación
-                             </p>
+                             <div className="text-[10px] font-bold text-warning bg-warning-light/30 p-4 rounded-2xl border border-warning/50 flex items-start gap-3 shadow-sm">
+                               <Shield className="w-4 h-4 shrink-0 mt-0.5 text-warning" />
+                               <div className="space-y-1">
+                                 <p className="uppercase tracking-widest text-[9px] text-amber-600 font-black">Aviso de Acreditación</p>
+                                 <p className="leading-relaxed text-slate-700">
+                                   Al reservar para niños (1-6 años) o personas con discapacidad, se debe presentar el documento legal correspondiente. 
+                                   <span className="block mt-1 font-black text-amber-700">De lo contrario, se deberá pagar el valor completo o se negará el ingreso sin derecho a devolución.</span>
+                                 </p>
+                               </div>
+                             </div>
                           </div>
                         )}
                       </div>
