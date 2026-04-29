@@ -174,8 +174,9 @@ const forgotPassword = async (email) => {
         await transporter.sendMail(msg);
         return { message: 'Contraseña temporal enviada al correo' };
     } catch (error) {
-        console.error('Nodemailer Error:', error.message);
-        throw new Error('Error al enviar el correo. Verifica que la contraseña de aplicación de Gmail sea correcta.');
+        const detail = `Code: ${error.code || 'N/A'} | Response: ${error.response || error.message}`;
+        console.error('=== SMTP ERROR ===', detail);
+        throw new Error(`Error al enviar el correo. Detalle: ${detail}`);
     }
 };
 
