@@ -5,11 +5,16 @@ const authRepository = require('../repositories/authRepository');
 const emailTemplates = require('../utils/emailTemplates');
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true, // true for 465, false for other ports
   auth: {
     user: process.env.EMAIL_USER || 'tucorreo@gmail.com',
     pass: process.env.EMAIL_PASS || 'TU_CONTRASEÑA_DE_APLICACIÓN',
   },
+  tls: {
+    rejectUnauthorized: false // Helps with some local/certificate issues
+  }
 });
 
 const register = async (userData) => {
@@ -120,6 +125,7 @@ const login = async (identifier, contraseña) => {
                 await transporter.sendMail(msg);
             } catch (error) {
                 console.error('Nodemailer Error during suspension mail:', error);
+                throw new Error('Error al enviar el correo de reactivación.');
             }
             
             throw new Error('SUSPENDED_INACTIVITY');

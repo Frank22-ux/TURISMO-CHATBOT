@@ -130,7 +130,7 @@ const RegisterHost = () => {
             <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Segundo Nombre</label>
             <div className="relative">
               <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
-              <input type="text" name="secondName" className="auth-input" placeholder="Andrés" onChange={handleChange} />
+              <input type="text" name="secondName" required className="auth-input" placeholder="Andrés" onChange={handleChange} />
             </div>
           </div>
         </div>
@@ -147,7 +147,7 @@ const RegisterHost = () => {
             <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Segundo Apellido</label>
             <div className="relative">
               <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
-              <input type="text" name="lastName2" className="auth-input" placeholder="Sánchez" onChange={handleChange} />
+              <input type="text" name="lastName2" required className="auth-input" placeholder="Sánchez" onChange={handleChange} />
             </div>
           </div>
         </div>
