@@ -133,6 +133,10 @@ const Home = () => {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [infoModal, setInfoModal] = useState({ isOpen: false, title: '', content: '' });
   const [isLocating, setIsLocating] = useState(false);
+  const [lat, setLat] = useState(null);
+  const [lng, setLng] = useState(null);
+  const [radius, setRadius] = useState(10);
+  const [showLocationPrompt, setShowLocationPrompt] = useState(false);
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [viewMode, setViewMode] = useState('grid');
@@ -145,6 +149,16 @@ const Home = () => {
       setCurrentImageIndex((prev) => (prev + 1) % HERO_IMAGES.length);
     }, 4000);
     return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    const hasSeenPrompt = localStorage.getItem('location_prompt_seen');
+    if (!hasSeenPrompt) {
+      const timer = setTimeout(() => {
+        setShowLocationPrompt(true);
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
   }, []);
 
   const handleOpenBookingRequest = async (act) => {
@@ -867,7 +881,7 @@ const Home = () => {
                     <button 
                       onClick={() => {
                         setSearchParams({ category: 'experiencias' });
-                        fetchActivities({ ...{searchQuery, lat, lng, radius, adults, childrenCount}, limit: null });
+                        fetchActivities({ ...{searchQuery, lat, lng, radius}, limit: null });
                       }}
                       className="px-6 py-3 bg-secondary/10 text-primary font-bold rounded-xl hover:bg-secondary hover:text-white transition-all shadow-sm flex items-center gap-2"
                     >
@@ -908,7 +922,7 @@ const Home = () => {
                     <button 
                       onClick={() => {
                         setSearchParams({ category: 'servicios' });
-                        fetchActivities({ ...{searchQuery, lat, lng, radius, adults, childrenCount}, limit: null });
+                        fetchActivities({ ...{searchQuery, lat, lng, radius}, limit: null });
                       }}
                       className="px-8 py-3 bg-primary/10 text-primary font-bold rounded-2xl hover:bg-primary hover:text-white transition-all shadow-sm flex items-center gap-2"
                     >
@@ -965,6 +979,66 @@ const Home = () => {
       />
 
       <Footer />
+
+      {/* Location Permission Prompt */}
+      <AnimatePresence>
+        {showLocationPrompt && (
+          <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
+              onClick={() => {
+                setShowLocationPrompt(false);
+                localStorage.setItem('location_prompt_seen', 'true');
+              }}
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md relative z-10 overflow-hidden p-10 flex flex-col items-center text-center border border-white/20"
+            >
+              <div className="w-24 h-24 bg-primary/10 rounded-3xl flex items-center justify-center mb-8 relative">
+                <div className="absolute inset-0 bg-primary/20 rounded-3xl animate-ping opacity-20"></div>
+                <MapPin className="w-12 h-12 text-primary" />
+              </div>
+              
+              <h2 className="text-3xl font-display font-black text-slate-800 mb-4 leading-tight">
+                Disfruta al máximo tu experiencia
+              </h2>
+              
+              <p className="text-slate-500 mb-10 leading-relaxed font-medium">
+                Para encontrar las mejores aventuras, tours y gastronomía cerca de ti, necesitamos acceso a tu ubicación.
+              </p>
+              
+              <div className="flex flex-col gap-4 w-full">
+                <button 
+                  onClick={() => {
+                    handleGetLocation();
+                    setShowLocationPrompt(false);
+                    localStorage.setItem('location_prompt_seen', 'true');
+                  }}
+                  className="w-full py-5 bg-primary text-white rounded-2xl font-black text-sm shadow-xl shadow-primary/30 hover:bg-primary-dark transition-all active:scale-95 flex items-center justify-center gap-3"
+                >
+                  <Navigation className="w-5 h-5" />
+                  Activar Ubicación
+                </button>
+                <button 
+                  onClick={() => {
+                    setShowLocationPrompt(false);
+                    localStorage.setItem('location_prompt_seen', 'true');
+                  }}
+                  className="w-full py-4 text-slate-400 font-bold text-sm hover:text-slate-600 transition-all"
+                >
+                  Quizás más tarde
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       <InfoModal 
         isOpen={infoModal.isOpen}
