@@ -43,6 +43,7 @@ const findAll = async (filters = {}) => {
     const pProvince = province ? addParam(`%${province}%`) : null;
     const pCountry = country ? addParam(`%${country}%`) : null;
     const pType = filters.type ? addParam(filters.type) : null;
+    const pCategory = filters.id_categoria ? addParam(filters.id_categoria) : null;
 
     // Fórmula Haversine robusta
     let distanceFormula = '0.0';
@@ -123,6 +124,7 @@ const findAll = async (filters = {}) => {
 
     // Filtros dinámicos con cast explícito para evitar error 42P18
     if (pType) query += ` AND ba.tipo = ${pType}::text`;
+    if (pCategory) query += ` AND ba.id_categoria = ${pCategory}::integer`;
     if (safeGuests > 1) query += ` AND ba.capacidad >= ${safeGuests}`;
     if (pCity) query += ` AND u.ciudad ILIKE ${pCity}::text`;
     if (pProvince) query += ` AND u.provincia ILIKE ${pProvince}::text`;

@@ -130,11 +130,7 @@ const Home = () => {
   const [city, setCity] = useState('');
   const [province, setProvince] = useState('');
   const [country, setCountry] = useState('');
-  const [lat, setLat] = useState(null);
-  const [lng, setLng] = useState(null);
-  const [radius, setRadius] = useState(10);
-  const [adults, setAdults] = useState(1);
-  const [childrenCount, setChildrenCount] = useState(0);
+  const [selectedCategory, setSelectedCategory] = useState('');
   const [infoModal, setInfoModal] = useState({ isOpen: false, title: '', content: '' });
   const [isLocating, setIsLocating] = useState(false);
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
@@ -343,8 +339,7 @@ const Home = () => {
         params.append('radius', filters.radius || 10);
       }
       
-      const guestsTotal = (filters.adults || 1) + (filters.childrenCount || 0);
-      if (guestsTotal > 1) params.append('guests', guestsTotal);
+      if (filters.id_categoria) params.append('id_categoria', filters.id_categoria);
       
       // Limit: si se pasa explicitamente null/false, no limitar
       if (filters.limit !== undefined) {
@@ -440,8 +435,8 @@ const Home = () => {
       setLoading(true);
       try {
         const [exp, ser] = await Promise.all([
-          fetchActivities({ city, province, country, lat, lng, radius, adults, childrenCount, type: 'TURISTICA', limit: 10 }, true),
-          fetchActivities({ city, province, country, lat, lng, radius, adults, childrenCount, type: 'ALIMENTARIA', limit: 10 }, true)
+          fetchActivities({ city, province, country, lat, lng, radius, id_categoria: selectedCategory, type: 'TURISTICA', limit: 10 }, true),
+          fetchActivities({ city, province, country, lat, lng, radius, id_categoria: selectedCategory, type: 'ALIMENTARIA', limit: 10 }, true)
         ]);
         setActivities([...(exp || []), ...(ser || [])]);
       } catch (e) {
@@ -452,7 +447,7 @@ const Home = () => {
     } else {
       // Búsqueda específica por categoría
       fetchActivities({
-        city, province, country, lat, lng, radius, adults, childrenCount,
+        city, province, country, lat, lng, radius, id_categoria: selectedCategory,
         type: activeCategory === 'experiencias' ? 'TURISTICA' : 'ALIMENTARIA'
       });
     }
@@ -499,8 +494,7 @@ const Home = () => {
                  lat: latitude, 
                  lng: longitude, 
                  radius: r, 
-                 adults, 
-                 childrenCount
+                 id_categoria: selectedCategory
               }, true); // skipModal = true
 
               if (results && results.length > 0) {
@@ -626,8 +620,7 @@ const Home = () => {
                     className="w-full pl-9 pr-4 py-3 rounded-xl border border-slate-100 bg-slate-50 focus:ring-2 focus:ring-primary outline-none transition-all text-slate-700 font-medium appearance-none"
                   >
                     <option value="">Seleccionar País</option>
-                    {countries.map(c => <option key={c} value={c}>{c}</option>)}
-                    <option value="OTRO">Otro (Escribir...)</option>
+                    <option value="Ecuador">Ecuador</option>
                   </select>
                 </div>
               </div>
@@ -704,33 +697,43 @@ const Home = () => {
             </div>
 
 
-            <div className="w-full xl:w-[280px] shrink-0 grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-[10px] md:text-xs font-bold text-primary mb-2 tracking-widest uppercase">Adultos</label>
-                <div className="relative">
-                  <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input 
-                    type="number" 
-                    min="1"
-                    value={adults}
-                    onChange={(e) => setAdults(Number(e.target.value))}
-                    className="w-full pl-9 pr-2 py-3 rounded-xl border border-slate-100 bg-slate-50 focus:ring-2 focus:ring-primary outline-none transition-all text-slate-700 font-medium" 
-                  />
+            <div className="w-full xl:w-[280px] shrink-0">
+                <label className="block text-[10px] font-black text-primary mb-2 tracking-widest uppercase ml-1">Categoría</label>
+                <div className="relative group">
+                  <LayoutGrid className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-colors" />
+                  <select 
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    className="w-full pl-9 pr-4 py-3 rounded-xl border border-slate-100 bg-slate-50 focus:ring-2 focus:ring-primary outline-none transition-all text-slate-700 font-medium appearance-none"
+                  >
+                    <option value="">Todas las categorías</option>
+                    {(activeCategory === 'servicios' ? [
+                      { id: '1', name: 'Restaurante típico' },
+                      { id: '2', name: 'Marisquería' },
+                      { id: '3', name: 'Parrillada' },
+                      { id: '4', name: 'Cafetería' },
+                      { id: '5', name: 'Comida rápida' },
+                      { id: '6', name: 'Cocina internacional' },
+                      { id: '7', name: 'Panadería' },
+                      { id: '8', name: 'Buffet' },
+                      { id: '9', name: 'Comida saludable' },
+                      { id: '10', name: 'Food Truck' }
+                    ] : [
+                      { id: '1', name: 'Aventura' },
+                      { id: '2', name: 'Cultural' },
+                      { id: '3', name: 'Naturaleza' },
+                      { id: '4', name: 'Relajación' },
+                      { id: '5', name: 'Familiar' },
+                      { id: '6', name: 'Deportiva' },
+                      { id: '7', name: 'Nocturna' },
+                      { id: '8', name: 'Educativa' },
+                      { id: '9', name: 'Fotográfica' },
+                      { id: '10', name: 'Exploración' }
+                    ]).map(cat => (
+                      <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    ))}
+                  </select>
                 </div>
-              </div>
-              <div>
-                <label className="block text-[10px] md:text-xs font-bold text-primary mb-2 tracking-widest uppercase">Niños</label>
-                <div className="relative">
-                  <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 scale-90" />
-                  <input 
-                    type="number" 
-                    min="0"
-                    value={childrenCount}
-                    onChange={(e) => setChildrenCount(Number(e.target.value))}
-                    className="w-full pl-9 pr-2 py-3 rounded-xl border border-slate-100 bg-slate-50 focus:ring-2 focus:ring-primary outline-none transition-all text-slate-700 font-medium" 
-                  />
-                </div>
-              </div>
             </div>
 
             <div className="flex w-full xl:w-auto gap-2 shrink-0">
@@ -742,8 +745,7 @@ const Home = () => {
                    setLat(null);
                    setLng(null);
                    setRadius(10);
-                   setAdults(1);
-                   setChildrenCount(0);
+                   setSelectedCategory('');
                    
                    setSearchParams({});
                     loadBalancedActivities();
