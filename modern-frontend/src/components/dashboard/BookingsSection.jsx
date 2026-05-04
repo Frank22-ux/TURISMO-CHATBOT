@@ -166,16 +166,16 @@ const BookingsSection = ({ status: initialStatusFilter }) => {
     : ['ALL', 'PENDIENTE', 'APROBADA'];
 
   const filteredBookings = bookings.filter(b => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const now = new Date();
     const expDate = new Date(b.fecha_experiencia);
-    const expDateOnly = new Date(b.fecha_experiencia);
-    expDateOnly.setHours(0, 0, 0, 0);
+    // Margen de 24 horas después de la fecha de la experiencia
+    const expirationTime = new Date(expDate.getTime() + 24 * 60 * 60 * 1000);
+    const isPast = now > expirationTime;
 
     if (initialStatusFilter === 'COMPLETADA') {
-      return b.estado === 'COMPLETADA' || b.estado === 'RECHAZADA' || b.estado === 'CANCELADA' || expDateOnly < today;
+      return b.estado === 'COMPLETADA' || b.estado === 'RECHAZADA' || b.estado === 'CANCELADA' || isPast;
     }
-    return (b.estado === 'PENDIENTE' || b.estado === 'APROBADA') && expDateOnly >= today;
+    return (b.estado === 'PENDIENTE' || b.estado === 'APROBADA') && !isPast;
   }).filter(b => filter === 'ALL' || b.estado === filter)
     .sort((a, b) => {
       const dateA = new Date(a.fecha_experiencia).getTime();

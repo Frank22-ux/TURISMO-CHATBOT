@@ -3,13 +3,13 @@ const db = require('../config/database');
 const getTouristStats = async (id_turista) => {
     // 1. Active bookings
     const { rows: activeRows } = await db.query(
-        "SELECT COUNT(*) as active FROM reservas WHERE id_turista = $1 AND estado IN ('PENDIENTE', 'APROBADA') AND fecha_experiencia >= CURRENT_DATE",
+        "SELECT COUNT(*) as active FROM reservas WHERE id_turista = $1 AND estado IN ('PENDIENTE', 'APROBADA') AND fecha_experiencia + INTERVAL '24 hours' >= CURRENT_TIMESTAMP",
         [id_turista]
     );
 
     // 2. Completed bookings
     const { rows: completedRows } = await db.query(
-        "SELECT COUNT(*) as completed FROM reservas WHERE id_turista = $1 AND estado = 'APROBADA' AND fecha_experiencia < CURRENT_DATE",
+        "SELECT COUNT(*) as completed FROM reservas WHERE id_turista = $1 AND estado = 'APROBADA' AND fecha_experiencia + INTERVAL '24 hours' < CURRENT_TIMESTAMP",
         [id_turista]
     );
 
@@ -25,7 +25,7 @@ const getTouristStats = async (id_turista) => {
          FROM reservas r
          WHERE r.id_turista = $1 
          AND r.estado = 'APROBADA' 
-         AND r.fecha_experiencia < CURRENT_DATE
+         AND r.fecha_experiencia + INTERVAL '24 hours' < CURRENT_TIMESTAMP
          AND NOT EXISTS (
             SELECT 1 FROM valoraciones v 
             WHERE v.id_turista = r.id_turista 
