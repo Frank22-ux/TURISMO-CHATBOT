@@ -121,6 +121,9 @@ const Home = () => {
   const activeCategory = searchParams.get('category') || 'todas';
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [lat, setLat] = useState(null);
+  const [lng, setLng] = useState(null);
+  const [radius, setRadius] = useState(10);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState(null);
@@ -133,16 +136,25 @@ const Home = () => {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [infoModal, setInfoModal] = useState({ isOpen: false, title: '', content: '' });
   const [isLocating, setIsLocating] = useState(false);
-  const [lat, setLat] = useState(null);
-  const [lng, setLng] = useState(null);
-  const [radius, setRadius] = useState(10);
   const [showLocationPrompt, setShowLocationPrompt] = useState(false);
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [viewMode, setViewMode] = useState('grid');
   const locationDropdownRef = useRef(null);
+  const resultsRef = useRef(null);
   const navigate = useNavigate();
   const { addToCart, selectedItems } = useCart();
+
+  // Scroll to results when category changes
+  useEffect(() => {
+    if (activeCategory !== 'todas' && resultsRef.current) {
+      // Small timeout to ensure the DOM has updated and the header/hero doesn't interfere
+      const timer = setTimeout(() => {
+        resultsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [activeCategory]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -780,7 +792,10 @@ const Home = () => {
         </div>
 
         {/* Activities Grid Header & Tabs */}
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-12">
+        <div 
+          ref={resultsRef}
+          className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-12 scroll-mt-24"
+        >
           <div>
             <h2 className="text-3xl font-display font-black text-slate-800">Nuestras Recomendaciones</h2>
             <div className="h-1.5 w-20 bg-primary mt-2 rounded-full"></div>
@@ -881,7 +896,7 @@ const Home = () => {
                     <button 
                       onClick={() => {
                         setSearchParams({ category: 'experiencias' });
-                        fetchActivities({ ...{searchQuery, lat, lng, radius}, limit: null });
+                        fetchActivities({ searchQuery, lat, lng, radius, limit: null });
                       }}
                       className="px-6 py-3 bg-secondary/10 text-primary font-bold rounded-xl hover:bg-secondary hover:text-white transition-all shadow-sm flex items-center gap-2"
                     >
@@ -922,7 +937,7 @@ const Home = () => {
                     <button 
                       onClick={() => {
                         setSearchParams({ category: 'servicios' });
-                        fetchActivities({ ...{searchQuery, lat, lng, radius}, limit: null });
+                        fetchActivities({ searchQuery, lat, lng, radius, limit: null });
                       }}
                       className="px-8 py-3 bg-primary/10 text-primary font-bold rounded-2xl hover:bg-primary hover:text-white transition-all shadow-sm flex items-center gap-2"
                     >
