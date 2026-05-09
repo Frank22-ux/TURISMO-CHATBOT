@@ -649,7 +649,24 @@ const BookingSidebar = ({ isOpen, onClose }) => {
               {/* Cleanup: Global counter removed */}
 
               {/* Checkout Card */}
-              <div className="mt-16 bg-primary-dark rounded-[3rem] p-8 text-white relative overflow-hidden shadow-2xl">
+              {!sessionStorage.getItem('user') ? (
+                <div className="mt-16 bg-white rounded-[3rem] p-10 border-2 border-dashed border-slate-200 text-center space-y-6">
+                  <div className="w-20 h-20 bg-slate-50 rounded-[2rem] flex items-center justify-center mx-auto text-slate-300">
+                    <User className="w-10 h-10" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-display font-black text-slate-800">Inicia sesión para continuar</h3>
+                    <p className="text-slate-500 mt-2 text-sm font-medium">Debes estar ingresado con tu cuenta para poder procesar el pago y confirmar tu reserva.</p>
+                  </div>
+                  <button 
+                    onClick={() => navigate('/login')}
+                    className="w-full bg-primary hover:bg-primary-dark text-white py-4 rounded-2xl font-black shadow-xl shadow-primary/20 transition-all flex items-center justify-center gap-3"
+                  >
+                    Ingresar Ahora <ChevronRight className="w-5 h-5" />
+                  </button>
+                </div>
+              ) : (
+                <div className="mt-16 bg-primary-dark rounded-[3rem] p-8 text-white relative overflow-hidden shadow-2xl">
                 <div className="relative z-10">
                   <div className="flex items-center gap-3 mb-8">
                     <CreditCard className="w-5 h-5 opacity-40" />
@@ -820,7 +837,8 @@ const BookingSidebar = ({ isOpen, onClose }) => {
                 <div className="absolute top-0 right-0 p-4 opacity-5">
                   <Star className="w-32 h-32 rotate-12" />
                 </div>
-              </div>
+                </div>
+              )}
             </div>
           </motion.div>
         </>

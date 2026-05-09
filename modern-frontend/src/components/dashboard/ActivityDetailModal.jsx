@@ -51,6 +51,11 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
   });
 
   const handleAddToCart = () => {
+    const userData = sessionStorage.getItem('user');
+    if (!userData) {
+      showToast('Debes iniciar sesión para añadir actividades a tu paquete.', 'error');
+      return;
+    }
     const result = addToCart(activity);
     if (result.success || result.error === 'DUPLICATE') {
       setAdded(true);
