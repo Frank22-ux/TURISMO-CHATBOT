@@ -43,7 +43,7 @@ const ActivityCard = ({ activity, onView, onEdit, onDelete, onToggleStatus }) =>
         <div className="flex justify-between items-center pt-6 border-t border-slate-50">
           <div>
             <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-1">
-              {activity.precio_oferta ? 'Precio de Oferta' : 'Desde'}
+              {activity.precio_oferta ? 'Precio de Oferta' : (activity.tipo === 'TURISTICA' ? 'Costo Experiencia' : 'Valor Reserva')}
             </p>
             <div className="flex items-center gap-2">
               <p className="text-2xl font-display font-black text-primary">

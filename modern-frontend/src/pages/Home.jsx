@@ -81,6 +81,9 @@ const ActivityCard = ({ activity, onOpenDetail, onOpenBooking }) => {
         <div className="flex flex-col gap-4 pt-5 border-t border-slate-50 mt-auto">
           <div className="flex justify-between items-center">
             <div className="flex flex-col">
+              <span className="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-1">
+                {activity.tipo === 'TURISTICA' ? 'Costo de la experiencia' : 'Valor de la reserva'}
+              </span>
               <div className="flex items-center gap-2">
                 <div className="font-display font-black text-xl text-primary-dark">
                   ${activity.price}

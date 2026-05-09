@@ -422,7 +422,9 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
               <div className="space-y-6">
                 <div className="bg-primary-dark p-6 sm:p-8 rounded-3xl sm:rounded-[40px] text-white shadow-2xl relative overflow-hidden">
                   <Tag className="absolute -top-10 -right-10 w-32 sm:w-40 h-32 sm:h-40 opacity-10" />
-                  <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-60 mb-2">Precio por persona</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-60 mb-2">
+                    {activity.tipo === 'TURISTICA' ? 'Costo de la experiencia' : 'Valor de la reserva'}
+                  </p>
                   <div className="flex items-baseline gap-1 mb-6 sm:mb-8">
                     <span className="text-3xl sm:text-4xl font-display font-black">${activity.price || activity.precio}</span>
                     <span className="text-[10px] sm:text-sm opacity-60 font-bold uppercase tracking-widest">USD</span>
