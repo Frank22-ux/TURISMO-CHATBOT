@@ -26,8 +26,9 @@ const Sidebar = ({ activeSection, setActiveSection }) => {
           </div>
           
           <div className="flex md:hidden items-center gap-2">
-            <Link to="/" className="p-2 rounded-xl text-primary hover:bg-primary/5 transition-all">
+            <Link to="/" className="flex items-center gap-2 px-3 py-2 rounded-xl bg-primary/5 text-primary hover:bg-primary/10 transition-all">
               <Compass className="w-5 h-5" />
+              <span className="text-xs font-bold">Explorar</span>
             </Link>
             <button 
               onClick={() => {
