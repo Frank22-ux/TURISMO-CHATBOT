@@ -58,7 +58,7 @@ const CustomCalendar = ({ selectedDate, onSelect, availableDays = [0, 1, 2, 3, 4
   };
 
   return (
-    <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-xl overflow-hidden w-80 mx-auto">
+    <div className="bg-white rounded-3xl p-4 sm:p-5 border border-slate-100 shadow-xl overflow-hidden w-full max-w-[320px] mx-auto">
       <div className="flex justify-between items-center mb-5">
         <h4 className="font-display font-black text-slate-800 text-base">
           {monthNames[currentMonth.getMonth()]} <small className="font-normal opacity-40">{currentMonth.getFullYear()}</small>

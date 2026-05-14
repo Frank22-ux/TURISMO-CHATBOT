@@ -300,7 +300,7 @@ const BookingSidebar = ({ isOpen, onClose }) => {
             animate={{ x: 0 }}
             exit={{ x: '-100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 200 }}
-            className="fixed top-0 left-0 h-full w-full max-w-lg bg-slate-50 shadow-2xl z-[60] overflow-y-auto"
+            className="fixed top-0 left-0 h-full w-full max-w-lg bg-slate-50 shadow-2xl z-[60] overflow-y-auto custom-scrollbar"
           >
             {/* Custom Toast Notification */}
             <AnimatePresence>
@@ -396,7 +396,7 @@ const BookingSidebar = ({ isOpen, onClose }) => {
               )}
             </AnimatePresence>
 
-            <div className="bg-white p-8">
+            <div className="bg-white p-4 sm:p-8">
               <div className="flex justify-between items-center mb-8">
                 <div>
                   <h2 className="text-3xl font-display font-black text-primary-dark leading-none pb-2 tracking-tight">Tu Paquete</h2>
@@ -450,7 +450,7 @@ const BookingSidebar = ({ isOpen, onClose }) => {
               {/* Multi-Activity List */}
               <div className="space-y-8">
                 {selectedItems.map((item) => (
-                  <div key={item.id} className="relative bg-white rounded-[2.5rem] p-6 border border-slate-100 shadow-sm animate-fade-in group hover:border-primary/30 transition-all">
+                  <div key={item.id} className="relative bg-white rounded-[2.5rem] p-4 sm:p-6 border border-slate-100 shadow-sm animate-fade-in group hover:border-primary/30 transition-all">
                     <button 
                       onClick={() => removeFromCart(item.id)}
                       className="absolute -top-3 -right-3 p-2 bg-red-100 text-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-all shadow-md z-20 hover:bg-red-500 hover:text-white"
@@ -459,8 +459,8 @@ const BookingSidebar = ({ isOpen, onClose }) => {
                       <Trash2 className="w-4 h-4" />
                     </button>
 
-                    <div className="flex gap-6 mb-6">
-                      <div className="w-24 h-24 rounded-3xl overflow-hidden shrink-0 shadow-lg group-hover:scale-105 transition-transform">
+                    <div className="flex gap-4 sm:gap-6 mb-6">
+                      <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl overflow-hidden shrink-0 shadow-lg group-hover:scale-105 transition-transform">
                         <img src={item.portada || item.image} alt={item.titulo} className="w-full h-full object-cover" />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -522,7 +522,7 @@ const BookingSidebar = ({ isOpen, onClose }) => {
                     </div>
 
                     {/* Guest Selection per activity */}
-                    <div className="mt-8 space-y-4 bg-slate-50/50 p-6 rounded-3xl border border-slate-100">
+                    <div className="mt-8 space-y-4 bg-slate-50/50 p-4 sm:p-6 rounded-3xl border border-slate-100">
                       <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Compañeros de viaje</p>
                       
                       <div className="space-y-4">
@@ -666,7 +666,7 @@ const BookingSidebar = ({ isOpen, onClose }) => {
                   </button>
                 </div>
               ) : (
-                <div className="mt-16 bg-primary-dark rounded-[3rem] p-8 text-white relative overflow-hidden shadow-2xl">
+                <div className="mt-16 bg-primary-dark rounded-[3rem] p-6 sm:p-8 text-white relative overflow-hidden shadow-2xl">
                 <div className="relative z-10">
                   <div className="flex items-center gap-3 mb-8">
                     <CreditCard className="w-5 h-5 opacity-40" />
