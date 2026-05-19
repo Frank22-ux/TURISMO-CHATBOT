@@ -25,19 +25,23 @@ const getMessagesBetweenUsers = async (user1Id, user2Id) => {
 
 const getConversationsForUser = async (userId) => {
     const { rows } = await db.query(
-        `WITH LastMessages AS (
+        `WITH NonDeletedMessages AS (
+            SELECT *
+            FROM mensajes
+            WHERE (id_emisor = $1 AND eliminado_emisor = FALSE)
+               OR (id_receptor = $1 AND eliminado_receptor = FALSE)
+        ),
+        LastMessages AS (
             SELECT 
                 CASE WHEN id_emisor = $1 THEN id_receptor ELSE id_emisor END as partner_id,
                 contenido, 
                 fecha_envio,
                 CASE WHEN id_emisor = $1 THEN archivado_emisor ELSE archivado_receptor END as is_archived,
-                CASE WHEN id_emisor = $1 THEN eliminado_emisor ELSE eliminado_receptor END as is_deleted,
                 ROW_NUMBER() OVER(PARTITION BY CASE WHEN id_emisor = $1 THEN id_receptor ELSE id_emisor END ORDER BY fecha_envio DESC) as rn
-            FROM mensajes
-            WHERE id_emisor = $1 OR id_receptor = $1
+            FROM NonDeletedMessages
         ),
         PartnerFilter AS (
-            SELECT * FROM LastMessages WHERE partner_id IS NOT NULL AND is_deleted = FALSE
+            SELECT * FROM LastMessages WHERE partner_id IS NOT NULL
         )
         SELECT 
             lm.partner_id as id_receptor, 
