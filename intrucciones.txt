@@ -1,1 +1,109 @@
+# GUÍA DE INSTALACIÓN LOCAL: TURISMO-CHATBOT
+
+Esta guía contiene todos los pasos y requisitos para clonar e instalar el proyecto por primera vez en un nuevo dispositivo de forma local.
+
+## 1. REQUISITOS PREVIOS
+
+Antes de comenzar, asegúrate de tener instalado el siguiente software en tu equipo:
+
+*   **Node.js**: Descargar e instalar la versión LTS más reciente desde [nodejs.org](https://nodejs.org/). Incluye `npm` (Node Package Manager).
+*   **Git**: Para clonar el repositorio. Descargar desde [git-scm.com](https://git-scm.com/).
+*   **PostgreSQL**: Base de datos requerida para el backend. Descargar desde [postgresql.org](https://www.postgresql.org/).
+*   **Editor de código**: Se recomienda Visual Studio Code (VS Code).
+
+## 2. DESCARGAR / CLONAR EL PROYECTO
+
+Si usas Git, abre una terminal y ejecuta:
+```bash
+git clone <URL_DEL_REPOSITORIO>
+cd TURISMO-CHATBOT
+```
+*(Si no usas Git, simplemente descarga el archivo ZIP del proyecto y descomprímelo).*
+
+## 3. INSTALACIÓN DE DEPENDENCIAS
+
+El proyecto está dividido en dos partes principales: BACKEND y modern-frontend. Debes instalar las dependencias en ambas carpetas.
+
+### A) Dependencias del BACKEND
+Abre una terminal en la raíz del proyecto y navega a la carpeta BACKEND:
+```bash
+cd BACKEND
+npm install
+```
+**Dependencias principales que se instalarán:** `express`, `pg` (PostgreSQL), `cors`, `dotenv`, `bcryptjs`, `jsonwebtoken`, `axios`, `nodemailer`, `resend`, `morgan`.
+
+### B) Dependencias del FRONTEND
+Abre una nueva terminal en la raíz del proyecto (o retrocede) y navega a la carpeta modern-frontend:
+```bash
+cd modern-frontend
+npm install
+```
+**Dependencias principales que se instalarán:** `react`, `vite`, `tailwindcss`, `react-router-dom`, `mapbox-gl`, `framer-motion`, `axios`, `lucide-react`, entre otras.
+
+## 4. CONFIGURACIÓN DE VARIABLES DE ENTORNO (.env)
+
+Necesitarás configurar las variables de entorno para que el proyecto pueda conectarse a la base de datos local y a otras APIs. Crea un archivo `.env` en cada carpeta si no existe.
+
+> **IMPORTANTE:** Por motivos de seguridad, las credenciales reales de las APIs no se incluyen en este repositorio. Deberás solicitarlas al administrador del proyecto y reemplazar `<PEDIR_AL_ADMINISTRADOR>` por los valores reales.
+
+### A) En la carpeta BACKEND
+Crea un archivo `.env` con el siguiente contenido (asegúrate de que los datos de PostgreSQL coincidan con tu configuración local y que DATABASE_URL esté comentada o ausente para que use la base local):
+
+```env
+# PUERTO
+PORT=3000
+
+# AUTH
+JWT_SECRET=<PEDIR_AL_ADMINISTRADOR>
+
+# CONFIGURACIÓN LOCAL (PostgreSQL)
+DB_USER=postgres
+DB_PASSWORD=1234
+DB_HOST=localhost
+DB_NAME=turismo_istpet
+DB_PORT=5432
+
+# PAGOS KUSHKI
+KUSHKI_PRIVATE_KEY=<PEDIR_AL_ADMINISTRADOR>
+KUSHKI_PUBLIC_KEY=<PEDIR_AL_ADMINISTRADOR>
+KUSHKI_MERCHANT_ID=<PEDIR_AL_ADMINISTRADOR>
+
+# EMAIL (Resend)
+RESEND_API_KEY=<PEDIR_AL_ADMINISTRADOR>
+
+# MAPBOX
+MAPBOX_ACCESS_TOKEN=<PEDIR_AL_ADMINISTRADOR>
+```
+
+### B) En la carpeta modern-frontend
+Crea un archivo `.env` en la raíz del frontend. La variable `VITE_API_URL` es clave para que el frontend apunte a tu backend local en lugar del backend de producción:
+
+```env
+VITE_MAPBOX_ACCESS_TOKEN=<PEDIR_AL_ADMINISTRADOR>
+VITE_KUSHKI_PUBLIC_KEY=<PEDIR_AL_ADMINISTRADOR>
+VITE_KUSHKI_MERCHANT_ID=<PEDIR_AL_ADMINISTRADOR>
+
+# Apuntar al backend local para desarrollo
+VITE_API_URL=http://localhost:3000
+```
+
+## 5. BASE DE DATOS
+
+1. Abre tu gestor de PostgreSQL (por ejemplo, pgAdmin o la terminal de psql).
+2. Crea una base de datos vacía (el nombre debe coincidir con el que pongas en el archivo `.env` del BACKEND).
+3. Importa el archivo `semifinal.sql` que se encuentra en la raíz del proyecto para crear todas las tablas necesarias y cargar datos de prueba:
+   ```bash
+   psql -U tu_usuario -d nombre_base_datos -f semifinal.sql
+   ```
+
+## 6. CÓMO EJECUTAR EL PROYECTO
+
+Para facilitar el levantamiento del proyecto completo con un solo comando, abre una terminal en la **raíz del proyecto** (la carpeta `TURISMO-CHATBOT`) y ejecuta el siguiente comando:
+
+```bash
 npx concurrently "node BACKEND/src/server.js" "cd modern-frontend && npm run dev"
+```
+
+*   **¿Qué hace este comando?** Ejecuta el servidor de Node.js del backend y el servidor de desarrollo de Vite del frontend al mismo tiempo en la misma terminal.
+*   El Backend normalmente correrá en el puerto 3000 (o el puerto que indique tu .env).
+*   El Frontend normalmente correrá en `http://localhost:5173`.
