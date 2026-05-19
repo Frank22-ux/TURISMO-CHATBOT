@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { API_BASE } from '../../config/api';
-import { Star, MessageSquare } from 'lucide-react';
+import { Star, MessageSquare, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const MyReviewsSection = () => {
   const [reviewsData, setReviewsData] = useState({ reviews: [], promedio: "0.0", total: 0 });
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
   
   const userStr = sessionStorage.getItem('user');
   const userObj = userStr ? JSON.parse(userStr) : null;
@@ -39,6 +40,13 @@ const MyReviewsSection = () => {
   const emptyTitle = rol === 'TURISTA' ? 'Aún no has escrito reseñas' : 'Aún no tienes reseñas';
   const emptySubtitle = rol === 'TURISTA' ? 'Califica tus viajes para ayudar a la comunidad.' : 'Pronto recibirás calificaciones de tus viajes o anfitriones.';
 
+  // Paginación
+  const reviewsPerPage = 5;
+  const indexOfLastReview = currentPage * reviewsPerPage;
+  const indexOfFirstReview = indexOfLastReview - reviewsPerPage;
+  const currentReviews = reviewsData.reviews.slice(indexOfFirstReview, indexOfLastReview);
+  const totalPages = Math.ceil(reviewsData.reviews.length / reviewsPerPage);
+
   return (
     <div className="space-y-10 animate-fade-in relative max-w-5xl mx-auto">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
@@ -52,19 +60,25 @@ const MyReviewsSection = () => {
         {/* Puntuación Media Card */}
         <div className="md:col-span-1 bg-white p-8 rounded-[2rem] shadow-sm border border-slate-50 flex flex-col items-center justify-center text-center h-fit sticky top-8">
           <div className="w-16 h-16 bg-orange-50 text-orange-400 rounded-full flex items-center justify-center mb-4">
-            <Star className="w-8 h-8" fill="currentColor" />
+            {rol === 'TURISTA' ? <MessageSquare className="w-8 h-8" fill="currentColor" /> : <Star className="w-8 h-8" fill="currentColor" />}
           </div>
-          <h3 className="text-6xl font-black font-display text-slate-800 mb-2">{reviewsData.promedio}</h3>
-          <div className="flex gap-1 justify-center mb-4">
-            {[1, 2, 3, 4, 5].map((star) => (
-              <Star 
-                key={star} 
-                className={`w-5 h-5 ${star <= Math.round(Number(reviewsData.promedio)) ? 'text-orange-400' : 'text-slate-200'}`} 
-                fill="currentColor" 
-              />
-            ))}
-          </div>
-          <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">{reviewsData.total} valoraciones</p>
+          <h3 className="text-6xl font-black font-display text-slate-800 mb-2">
+            {rol === 'TURISTA' ? reviewsData.total : reviewsData.promedio}
+          </h3>
+          {rol !== 'TURISTA' && (
+            <div className="flex gap-1 justify-center mb-4">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <Star 
+                  key={star} 
+                  className={`w-5 h-5 ${star <= Math.round(Number(reviewsData.promedio)) ? 'text-orange-400' : 'text-slate-200'}`} 
+                  fill="currentColor" 
+                />
+              ))}
+            </div>
+          )}
+          <p className="text-sm font-bold text-slate-500 uppercase tracking-widest mt-2">
+            {rol === 'TURISTA' ? 'Reseñas Escritas' : `${reviewsData.total} valoraciones`}
+          </p>
         </div>
 
         {/* Lista de Reseñas */}
@@ -76,7 +90,7 @@ const MyReviewsSection = () => {
               <p className="text-slate-500 text-sm">{emptySubtitle}</p>
             </div>
           ) : (
-            reviewsData.reviews.map((rev, i) => (
+            currentReviews.map((rev, i) => (
               <motion.div 
                 key={rev.id_resena}
                 initial={{ opacity: 0, y: 10 }}
@@ -124,6 +138,29 @@ const MyReviewsSection = () => {
                 )}
               </motion.div>
             ))
+          )}
+
+          {/* Paginación */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-4 mt-8 pt-6 border-t border-slate-50">
+              <button 
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="p-3 rounded-xl text-slate-400 hover:text-primary hover:bg-primary/5 disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-slate-400 transition-colors"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <span className="text-sm font-bold text-slate-500 bg-slate-50 px-4 py-2 rounded-xl">
+                Página {currentPage} de {totalPages}
+              </span>
+              <button 
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="p-3 rounded-xl text-slate-400 hover:text-primary hover:bg-primary/5 disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-slate-400 transition-colors"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </div>
           )}
         </div>
       </div>
