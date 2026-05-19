@@ -35,6 +35,9 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
   const { addToCart, selectedItems } = cart || { addToCart: () => {}, selectedItems: [] };
   const [added, setAdded] = useState(false);
   const isAlreadyInCart = selectedItems?.some(item => item.id === activity?.id);
+  const [reviews, setReviews] = useState([]);
+  const [loadingReviews, setLoadingReviews] = useState(false);
+  const [showReviews, setShowReviews] = useState(false);
 
   const [viewState, setViewState] = useState({
     latitude: -0.180653,
@@ -150,6 +153,28 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
           longitude: parseFloat(activity.longitud_encuentro)
         }));
       }
+
+      // Fetch reviews
+      const fetchReviews = async () => {
+        setLoadingReviews(true);
+        try {
+            const typePrefix = activity.tipo === 'TURISTICA' || activity.id_categoria === '1' || activity.id_categoria === '2' ? 'T' : 'A';
+            const activityId = activity.id || activity.id_actividad;
+            const idParam = activityId.toString().includes('-') ? activityId : `${typePrefix}-${activityId}`;
+            
+            const response = await fetch(`${API_BASE}/api/reviews/activity/${idParam}`);
+            if (response.ok) {
+                const data = await response.json();
+                setReviews(data.reviews || []);
+            }
+        } catch (error) {
+            console.error('Error fetching reviews:', error);
+        } finally {
+            setLoadingReviews(false);
+        }
+      };
+      
+      fetchReviews();
     }
   }, [activity]);
 
@@ -311,7 +336,7 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
                     <p className="text-[8px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">Capacidad</p>
                     <p className="font-bold text-sm sm:text-base text-slate-800">{activity.capacidad} Pers.</p>
                   </div>
-                  <div className="bg-slate-50 p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-100 flex flex-col items-center text-center gap-2">
+                  <div className="bg-slate-50 p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-100 flex flex-col items-center text-center gap-2 cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => setShowReviews(!showReviews)}>
                     <Star className="w-5 sm:w-6 h-5 sm:h-6 text-warning" />
                     <p className="text-[8px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">Rating</p>
                     <p className="font-bold text-sm sm:text-base text-slate-800">
@@ -319,8 +344,56 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
                         ? `${parseFloat(activity.avg_rating).toFixed(1)}/5` 
                         : 'Nuevo'}
                     </p>
+                    {reviews.length > 0 && <p className="text-[8px] font-bold text-primary mt-1">Ver {reviews.length} reseñas</p>}
                   </div>
                 </div>
+
+                <AnimatePresence>
+                  {showReviews && (
+                    <motion.div 
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="p-6 sm:p-8 bg-slate-50 rounded-[32px] border border-slate-100 space-y-4">
+                        <h4 className="text-sm font-black text-slate-800 flex items-center gap-2 mb-4">
+                          <MessageSquare className="w-5 h-5 text-primary" /> Reseñas de la comunidad
+                        </h4>
+                        
+                        {loadingReviews ? (
+                           <p className="text-sm text-slate-500 font-bold animate-pulse">Cargando reseñas...</p>
+                        ) : reviews.length === 0 ? (
+                           <p className="text-sm text-slate-500 italic">No hay reseñas para esta experiencia aún. ¡Sé el primero en calificarla!</p>
+                        ) : (
+                          <div className="space-y-4 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
+                            {reviews.map(rev => (
+                              <div key={rev.id_resena} className="bg-white p-4 rounded-2xl shadow-sm border border-slate-50">
+                                <div className="flex justify-between items-start mb-2">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-full bg-slate-100 overflow-hidden flex items-center justify-center text-slate-400 font-bold text-xs">
+                                      {rev.autor_avatar ? <img src={rev.autor_avatar} alt="avatar" className="w-full h-full object-cover"/> : rev.autor_nombre[0].toUpperCase()}
+                                    </div>
+                                    <div>
+                                      <p className="text-xs font-bold text-slate-800">{rev.autor_nombre}</p>
+                                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{new Date(rev.fecha_creacion).toLocaleDateString()}</p>
+                                    </div>
+                                  </div>
+                                  <div className="flex">
+                                    {[1, 2, 3, 4, 5].map(star => (
+                                      <Star key={star} className={`w-3 h-3 ${star <= rev.puntuacion ? 'text-warning' : 'text-slate-200'}`} fill="currentColor" />
+                                    ))}
+                                  </div>
+                                </div>
+                                {rev.comentario && <p className="text-sm text-slate-600 mt-2">"{rev.comentario}"</p>}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
                 <div className="space-y-6">
                   <h3 className="text-sm font-black text-primary uppercase tracking-[0.2em] flex items-center gap-2">

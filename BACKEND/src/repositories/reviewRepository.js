@@ -37,8 +37,25 @@ const checkReviewExists = async (id_reserva, autor_id) => {
     return rows.length > 0;
 };
 
+const getReviewsByActivityId = async (id_actividad, tipo_actividad) => {
+    const { rows } = await db.query(
+        `SELECT r.*, u.nombre as autor_nombre, 
+         CASE WHEN r.rol_autor = 'TURISTA' THEN pt.url_foto_perfil ELSE pa.url_foto_perfil END as autor_avatar
+         FROM resenas r
+         JOIN usuarios u ON r.autor_id = u.id_usuario
+         JOIN reservas res ON r.id_reserva = res.id_reserva
+         LEFT JOIN perfil_turista pt ON r.autor_id = pt.id_turista AND r.rol_autor = 'TURISTA'
+         LEFT JOIN perfil_anfitrion pa ON r.autor_id = pa.id_anfitrion AND r.rol_autor = 'ANFITRION'
+         WHERE res.id_actividad = $1 AND res.tipo_actividad = $2
+         ORDER BY r.fecha_creacion DESC`,
+        [id_actividad, tipo_actividad]
+    );
+    return rows;
+};
+
 module.exports = {
     createReview,
     getReviewsByReceptorId,
-    checkReviewExists
+    checkReviewExists,
+    getReviewsByActivityId
 };

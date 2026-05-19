@@ -76,7 +76,32 @@ const getReceivedReviews = async (req, res) => {
     }
 };
 
+const getActivityReviews = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const parts = id.split('-');
+        if (parts.length !== 2) {
+            return res.status(400).json({ message: 'ID de actividad inválido' });
+        }
+        const tipo_actividad = parts[0] === 'T' ? 'TURISTICA' : 'ALIMENTARIA';
+        const id_actividad = parseInt(parts[1], 10);
+        
+        const reviews = await reviewRepository.getReviewsByActivityId(id_actividad, tipo_actividad);
+        
+        let promedio = 0;
+        if (reviews.length > 0) {
+            promedio = reviews.reduce((acc, rev) => acc + rev.puntuacion, 0) / reviews.length;
+        }
+        
+        res.json({ reviews, promedio: parseFloat(promedio.toFixed(1)), total: reviews.length });
+    } catch (error) {
+         console.error('Error fetching activity reviews:', error);
+         res.status(500).json({ message: 'Error interno del servidor' });
+    }
+};
+
 module.exports = {
     createReview,
-    getReceivedReviews
+    getReceivedReviews,
+    getActivityReviews
 };
