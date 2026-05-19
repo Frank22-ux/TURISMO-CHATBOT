@@ -728,7 +728,7 @@ const BookingSidebar = ({ isOpen, onClose }) => {
                           type="text"
                           placeholder="Nombre en la Tarjeta"
                           value={cardName}
-                          onChange={e => setCardName(e.target.value)}
+                          onChange={e => setCardName(e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, ''))}
                           className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-secondary/50 focus:bg-white/[0.08] transition-all"
                         />
                         <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-20 group-focus-within:opacity-100 transition-opacity">
