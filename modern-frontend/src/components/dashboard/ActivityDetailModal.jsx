@@ -350,48 +350,65 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
 
                 <AnimatePresence>
                   {showReviews && (
-                    <motion.div 
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="p-6 sm:p-8 bg-slate-50 rounded-[32px] border border-slate-100 space-y-4">
-                        <h4 className="text-sm font-black text-slate-800 flex items-center gap-2 mb-4">
-                          <MessageSquare className="w-5 h-5 text-primary" /> Reseñas de la comunidad
-                        </h4>
+                    <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
+                      <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setShowReviews(false)}
+                        className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+                      />
+                      <motion.div 
+                        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                        className="bg-slate-50 w-full max-w-2xl max-h-[85vh] rounded-[32px] shadow-2xl relative z-10 flex flex-col overflow-hidden"
+                      >
+                        <div className="p-6 sm:p-8 border-b border-slate-200 flex justify-between items-center bg-white shrink-0">
+                          <h4 className="text-lg font-black text-slate-800 flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                               <MessageSquare className="w-5 h-5" />
+                            </div>
+                            Reseñas de la comunidad
+                          </h4>
+                          <button onClick={() => setShowReviews(false)} className="p-2 hover:bg-slate-100 rounded-xl text-slate-400 transition-colors">
+                            <X className="w-6 h-6" />
+                          </button>
+                        </div>
                         
-                        {loadingReviews ? (
-                           <p className="text-sm text-slate-500 font-bold animate-pulse">Cargando reseñas...</p>
-                        ) : reviews.length === 0 ? (
-                           <p className="text-sm text-slate-500 italic">No hay reseñas para esta experiencia aún. ¡Sé el primero en calificarla!</p>
-                        ) : (
-                          <div className="space-y-4 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
-                            {reviews.map(rev => (
-                              <div key={rev.id_resena} className="bg-white p-4 rounded-2xl shadow-sm border border-slate-50">
-                                <div className="flex justify-between items-start mb-2">
-                                  <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-slate-100 overflow-hidden flex items-center justify-center text-slate-400 font-bold text-xs">
-                                      {rev.autor_avatar ? <img src={rev.autor_avatar} alt="avatar" className="w-full h-full object-cover"/> : rev.autor_nombre[0].toUpperCase()}
+                        <div className="p-6 sm:p-8 overflow-y-auto custom-scrollbar flex-1">
+                          {loadingReviews ? (
+                             <p className="text-sm text-slate-500 font-bold animate-pulse text-center py-10">Cargando reseñas...</p>
+                          ) : reviews.length === 0 ? (
+                             <p className="text-sm text-slate-500 italic text-center py-10">No hay reseñas para esta experiencia aún. ¡Sé el primero en calificarla!</p>
+                          ) : (
+                            <div className="space-y-4">
+                              {reviews.map(rev => (
+                                <div key={rev.id_resena} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 transition-all hover:shadow-md">
+                                  <div className="flex justify-between items-start mb-4">
+                                    <div className="flex items-center gap-4">
+                                      <div className="w-10 h-10 rounded-full bg-slate-100 overflow-hidden flex items-center justify-center text-slate-400 font-black text-sm">
+                                        {rev.autor_avatar ? <img src={rev.autor_avatar} alt="avatar" className="w-full h-full object-cover"/> : rev.autor_nombre[0].toUpperCase()}
+                                      </div>
+                                      <div>
+                                        <p className="text-sm font-black text-slate-800 leading-none">{rev.autor_nombre}</p>
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">{new Date(rev.fecha_creacion).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                                      </div>
                                     </div>
-                                    <div>
-                                      <p className="text-xs font-bold text-slate-800">{rev.autor_nombre}</p>
-                                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{new Date(rev.fecha_creacion).toLocaleDateString()}</p>
+                                    <div className="flex gap-0.5">
+                                      {[1, 2, 3, 4, 5].map(star => (
+                                        <Star key={star} className={`w-4 h-4 ${star <= rev.puntuacion ? 'text-warning' : 'text-slate-200'}`} fill="currentColor" />
+                                      ))}
                                     </div>
                                   </div>
-                                  <div className="flex">
-                                    {[1, 2, 3, 4, 5].map(star => (
-                                      <Star key={star} className={`w-3 h-3 ${star <= rev.puntuacion ? 'text-warning' : 'text-slate-200'}`} fill="currentColor" />
-                                    ))}
-                                  </div>
+                                  {rev.comentario && <p className="text-sm text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-xl italic">"{rev.comentario}"</p>}
                                 </div>
-                                {rev.comentario && <p className="text-sm text-slate-600 mt-2">"{rev.comentario}"</p>}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </motion.div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </motion.div>
+                    </div>
                   )}
                 </AnimatePresence>
 
