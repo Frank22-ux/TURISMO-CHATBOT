@@ -163,7 +163,7 @@ const BookingsSection = ({ status: initialStatusFilter }) => {
 
   const filterTabs = initialStatusFilter === 'COMPLETADA' 
     ? ['ALL', 'COMPLETADA', 'RECHAZADA', 'CANCELADA']
-    : ['ALL', 'PENDIENTE', 'APROBADA'];
+    : ['ALL', 'APROBADA'];
 
   const filteredBookings = bookings.filter(b => {
     const now = new Date();
