@@ -2,6 +2,8 @@ const reservationRepository = require('../repositories/reservationRepository');
 const activityRepository = require('../repositories/activityRepository');
 const paymentService = require('./paymentService');
 const messageRepository = require('../repositories/messageRepository');
+const authRepository = require('../repositories/authRepository');
+const emailService = require('./emailService');
 
 const getHostReservations = async (id_anfitrion) => {
     return await reservationRepository.findReservationsByHostId(id_anfitrion);
@@ -63,6 +65,22 @@ const createReservation = async (data, paymentToken) => {
         monto_plataforma,
         estado: 'CONFIRMADO'
     });
+
+    // 5. Send Email to Host
+    try {
+        const tourist = await authRepository.findById(id_turista);
+        const host = await authRepository.findById(activity.id_anfitrion);
+        if (host && tourist) {
+            await emailService.sendHostReservationNotification(
+                host.email,
+                host.nombre,
+                tourist.nombre,
+                [activity.titulo]
+            );
+        }
+    } catch (err) {
+        console.error('Error sending host email notification:', err);
+    }
 
     return reservation;
 };
@@ -161,11 +179,14 @@ const createPackageReservation = async (data, paymentToken) => {
 
     const generateCode = () => Math.random().toString(36).substring(2, 12).toUpperCase();
     const reservations = [];
+    const activityTitles = [];
 
     // 2. Crear cada reserva individualmente
     for (const item of items) {
         const activity = await activityRepository.findFullById(item.id_actividad);
         if (!activity) continue;
+        
+        activityTitles.push(activity.titulo);
 
         const porcentajePlataforma = activity.porcentaje_ganancia || 10;
         const monto_plataforma = (item.final_total * porcentajePlataforma) / 100;
@@ -199,6 +220,22 @@ const createPackageReservation = async (data, paymentToken) => {
         });
 
         reservations.push(reservation);
+    }
+
+    // 3. Send Email to Host
+    try {
+        const tourist = await authRepository.findById(id_turista);
+        const host = await authRepository.findById(hostId);
+        if (host && tourist && activityTitles.length > 0) {
+            await emailService.sendHostReservationNotification(
+                host.email,
+                host.nombre,
+                tourist.nombre,
+                activityTitles
+            );
+        }
+    } catch (err) {
+        console.error('Error sending host package email notification:', err);
     }
 
     return reservations;

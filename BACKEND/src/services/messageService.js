@@ -1,7 +1,26 @@
 const messageRepository = require('../repositories/messageRepository');
+const authRepository = require('../repositories/authRepository');
+const emailService = require('./emailService');
 
 const sendMessage = async (messageData) => {
-    return await messageRepository.createMessage(messageData);
+    const message = await messageRepository.createMessage(messageData);
+
+    try {
+        const sender = await authRepository.findById(messageData.id_emisor);
+        const receiver = await authRepository.findById(messageData.id_receptor);
+        
+        if (sender && receiver) {
+            await emailService.sendNewMessageNotification(
+                receiver.email,
+                receiver.nombre,
+                sender.nombre
+            );
+        }
+    } catch (err) {
+        console.error('Error sending message notification email:', err);
+    }
+
+    return message;
 };
 
 const getMessages = async (user1Id, user2Id) => {

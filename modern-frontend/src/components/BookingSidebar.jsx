@@ -22,6 +22,7 @@ const BookingSidebar = ({ isOpen, onClose }) => {
   const [cvv, setCvv] = useState('');
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [hostDiscount, setHostDiscount] = useState(0);
   const [capacities, setCapacities] = useState({}); // { activityId: remaining }
   const [loadingCapacities, setLoadingCapacities] = useState({});
@@ -115,10 +116,7 @@ const BookingSidebar = ({ isOpen, onClose }) => {
       if (!response.ok) throw new Error(result.message || 'Error al procesar la reserva');
 
       setSuccess(true);
-      setTimeout(() => {
-        onClose();
-        navigate('/dashboard-tourist?section=bookings');
-      }, 2000);
+      setShowSuccessModal(true);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -242,6 +240,7 @@ const BookingSidebar = ({ isOpen, onClose }) => {
       setExpiry('');
       setCvv('');
       setSuccess(false);
+      setShowSuccessModal(false);
       setAcceptedTerms(false);
       setDates({});
       setGuestCounts({});
@@ -392,6 +391,44 @@ const BookingSidebar = ({ isOpen, onClose }) => {
                       className="w-full mt-8 bg-primary text-white py-5 rounded-2xl font-black shadow-xl shadow-primary/20 hover:bg-primary-dark transition-all"
                     >
                       Aceptar y Continuar
+                    </button>
+                  </motion.div>
+                </div>
+              )}
+            </AnimatePresence>
+
+            {/* SUCCESS MODAL */}
+            <AnimatePresence>
+              {showSuccessModal && (
+                <div className="fixed inset-0 flex items-center justify-center p-6 z-[100]">
+                  <motion.div 
+                    initial={{ opacity: 0 }} 
+                    animate={{ opacity: 1 }} 
+                    exit={{ opacity: 0 }}
+                    className="absolute inset-0 bg-black/80 backdrop-blur-md"
+                  />
+                  <motion.div 
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.9, opacity: 0 }}
+                    className="relative bg-white w-full max-w-md rounded-[3rem] p-10 shadow-2xl text-center"
+                  >
+                    <div className="w-20 h-20 bg-success/10 rounded-[2rem] flex items-center justify-center mx-auto mb-6 text-success shadow-inner">
+                      <CheckCircle2 className="w-10 h-10" />
+                    </div>
+                    <h3 className="text-2xl font-black text-slate-800 mb-2">¡Reserva Confirmada!</h3>
+                    <p className="text-slate-500 mb-8 font-medium">
+                      Tu pago ha sido procesado con éxito. Por favor, <strong className="text-slate-800">ponte en contacto con el anfitrión</strong> a través del panel de mensajería para confirmar todos los detalles y recibir más información sobre tu experiencia.
+                    </p>
+                    <button 
+                      onClick={() => {
+                        setShowSuccessModal(false);
+                        onClose();
+                        navigate('/dashboard-tourist?section=bookings');
+                      }}
+                      className="w-full bg-success text-white py-4 rounded-2xl font-black shadow-xl shadow-success/20 hover:bg-success/90 transition-all"
+                    >
+                      Entendido
                     </button>
                   </motion.div>
                 </div>

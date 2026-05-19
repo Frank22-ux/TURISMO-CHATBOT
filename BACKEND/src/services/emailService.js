@@ -104,8 +104,89 @@ const sendReactivationEmail = async (to, nombre, html) => {
   }
 };
 
+/**
+ * Envía correo al anfitrión notificándole sobre una nueva reserva.
+ * @param {string} to - Email del anfitrión
+ * @param {string} hostName - Nombre del anfitrión
+ * @param {string} touristName - Nombre del turista
+ * @param {Array<string>} activityTitles - Títulos de las actividades reservadas
+ */
+const sendHostReservationNotification = async (to, hostName, touristName, activityTitles) => {
+  try {
+    const activitiesList = activityTitles.map(title => `<li>${title}</li>`).join('');
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+        <h2 style="color: #2563eb;">¡Tienes una nueva reserva!</h2>
+        <p>Hola <strong>${hostName}</strong>,</p>
+        <p>El turista <strong>${touristName}</strong> acaba de realizar una reserva para tu(s) siguiente(s) actividad(es):</p>
+        <ul>
+          ${activitiesList}
+        </ul>
+        <p>Por favor, ponte en contacto con el turista a través de la plataforma para confirmar todos los detalles adicionales y proporcionarle más información para su experiencia.</p>
+        <br/>
+        <a href="https://turismo-chatbot.vercel.app/dashboard-host" style="background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Ir a mi Panel de Anfitrión</a>
+        <br/><br/>
+        <p>Saludos,<br/>El equipo de ISTPET Turismo</p>
+      </div>
+    `;
+
+    const response = await resend.emails.send({
+      from: FROM_ADDRESS,
+      to,
+      reply_to: REPLY_TO,
+      subject: '¡Nueva Reserva Confirmada! - ISTPET Turismo',
+      html,
+    });
+
+    if (response.error) throw new Error(response.error.message);
+    console.log(`[Email] Host Reservation Notification → ${to} | ID: ${response.data?.id}`);
+    return response;
+  } catch (error) {
+    console.error(`[Email] Error sending reservation notification → ${to}:`, error.message);
+  }
+};
+
+/**
+ * Envía correo al usuario notificándole sobre un nuevo mensaje.
+ * @param {string} to - Email destino
+ * @param {string} receiverName - Nombre de quien recibe
+ * @param {string} senderName - Nombre de quien envía el mensaje
+ */
+const sendNewMessageNotification = async (to, receiverName, senderName) => {
+  try {
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+        <h2 style="color: #2563eb;">¡Tienes un nuevo mensaje!</h2>
+        <p>Hola <strong>${receiverName}</strong>,</p>
+        <p><strong>${senderName}</strong> te ha enviado un nuevo mensaje a través de la plataforma de ISTPET Turismo.</p>
+        <p>Inicia sesión en tu cuenta para leer el mensaje y responder a tiempo.</p>
+        <br/>
+        <a href="https://turismo-chatbot.vercel.app/login" style="background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Ver Mensaje</a>
+        <br/><br/>
+        <p>Saludos,<br/>El equipo de ISTPET Turismo</p>
+      </div>
+    `;
+
+    const response = await resend.emails.send({
+      from: FROM_ADDRESS,
+      to,
+      reply_to: REPLY_TO,
+      subject: `Nuevo mensaje de ${senderName} - ISTPET Turismo`,
+      html,
+    });
+
+    if (response.error) throw new Error(response.error.message);
+    console.log(`[Email] New Message Notification → ${to} | ID: ${response.data?.id}`);
+    return response;
+  } catch (error) {
+    console.error(`[Email] Error sending message notification → ${to}:`, error.message);
+  }
+};
+
 module.exports = {
   sendWelcomeEmail,
   sendRecoveryEmail,
   sendReactivationEmail,
+  sendHostReservationNotification,
+  sendNewMessageNotification,
 };
