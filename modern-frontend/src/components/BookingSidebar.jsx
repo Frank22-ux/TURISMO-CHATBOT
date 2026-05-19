@@ -357,10 +357,10 @@ const BookingSidebar = ({ isOpen, onClose }) => {
                       <section className="bg-danger-light/50 p-6 rounded-3xl border border-danger-light">
                         <h4 className="font-black text-danger uppercase text-xs tracking-widest mb-3">2. Política de Cancelación y Reembolsos</h4>
                         <p className="font-bold text-slate-700 mb-3">
-                          Se devolverá únicamente el <span className="text-danger">30% del total</span> de la experiencia en caso de cancelación por cualquier motivo.
+                          En caso de cancelación por parte del turista <span className="text-danger">no se devolverá nada</span> del valor total del tour.
                         </p>
                         <p className="text-sm font-medium text-slate-600">
-                          Solo por factores externos comprobables se podrá solicitar una reprogramación de la fecha, sujeto a disponibilidad del anfitrión.
+                          Solo se podrá coordinar otra fecha de forma interna con el anfitrión.
                         </p>
                         <p className="mt-4 text-sm font-medium text-slate-500 italic">* Las cancelaciones se procesan utilizando el código protector de tu boleto digital.</p>
                       </section>
