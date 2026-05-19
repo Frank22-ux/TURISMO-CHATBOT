@@ -100,8 +100,26 @@ const getActivityReviews = async (req, res) => {
     }
 };
 
+const getAuthoredReviews = async (req, res) => {
+    try {
+        const userId = req.user.userId || req.user.id;
+        const reviews = await reviewRepository.getReviewsByAutorId(userId);
+        
+        let promedio = 0;
+        if (reviews.length > 0) {
+            promedio = reviews.reduce((acc, rev) => acc + rev.puntuacion, 0) / reviews.length;
+        }
+        
+        res.json({ reviews, promedio: parseFloat(promedio.toFixed(1)), total: reviews.length });
+    } catch (error) {
+         console.error('Error fetching authored reviews:', error);
+         res.status(500).json({ message: 'Error interno del servidor' });
+    }
+};
+
 module.exports = {
     createReview,
     getReceivedReviews,
-    getActivityReviews
+    getActivityReviews,
+    getAuthoredReviews
 };

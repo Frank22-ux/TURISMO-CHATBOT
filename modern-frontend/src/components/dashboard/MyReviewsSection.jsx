@@ -6,12 +6,14 @@ import { motion } from 'framer-motion';
 const MyReviewsSection = () => {
   const [reviewsData, setReviewsData] = useState({ reviews: [], promedio: "0.0", total: 0 });
   const [loading, setLoading] = useState(true);
+  const rol = sessionStorage.getItem('rol');
 
   useEffect(() => {
     const fetchReviews = async () => {
       try {
         const token = sessionStorage.getItem('token');
-        const response = await fetch(`${API_BASE}/api/reviews/received`, {
+        const endpoint = rol === 'TURISTA' ? '/api/reviews/authored' : '/api/reviews/received';
+        const response = await fetch(`${API_BASE}${endpoint}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await response.json();
@@ -29,12 +31,17 @@ const MyReviewsSection = () => {
 
   if (loading) return <div className="p-20 text-center animate-pulse text-primary font-bold">Cargando tus reseñas...</div>;
 
+  const title = rol === 'TURISTA' ? 'Mis Reseñas Escritas' : 'Mis Reseñas';
+  const subtitle = rol === 'TURISTA' ? 'Las calificaciones que has dejado sobre tus experiencias.' : 'Descubre lo que la comunidad opina sobre tus experiencias.';
+  const emptyTitle = rol === 'TURISTA' ? 'Aún no has escrito reseñas' : 'Aún no tienes reseñas';
+  const emptySubtitle = rol === 'TURISTA' ? 'Califica tus viajes para ayudar a la comunidad.' : 'Pronto recibirás calificaciones de tus viajes o anfitriones.';
+
   return (
     <div className="space-y-10 animate-fade-in relative max-w-5xl mx-auto">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-          <h2 className="text-3xl font-display font-black text-slate-800">Mis Reseñas</h2>
-          <p className="text-slate-500 mt-1">Descubre lo que la comunidad opina sobre tus experiencias.</p>
+          <h2 className="text-3xl font-display font-black text-slate-800">{title}</h2>
+          <p className="text-slate-500 mt-1">{subtitle}</p>
         </div>
       </div>
 
@@ -62,8 +69,8 @@ const MyReviewsSection = () => {
           {reviewsData.reviews.length === 0 ? (
             <div className="bg-white p-16 rounded-[2rem] border border-slate-50 text-center flex flex-col items-center">
               <MessageSquare className="w-16 h-16 text-slate-200 mb-4" />
-              <h3 className="text-xl font-bold text-slate-700 mb-2">Aún no tienes reseñas</h3>
-              <p className="text-slate-500 text-sm">Pronto recibirás calificaciones de tus viajes o anfitriones.</p>
+              <h3 className="text-xl font-bold text-slate-700 mb-2">{emptyTitle}</h3>
+              <p className="text-slate-500 text-sm">{emptySubtitle}</p>
             </div>
           ) : (
             reviewsData.reviews.map((rev, i) => (
@@ -77,16 +84,16 @@ const MyReviewsSection = () => {
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-full overflow-hidden bg-slate-100 flex items-center justify-center text-slate-400 font-bold">
-                      {rev.autor_avatar ? (
-                        <img src={rev.autor_avatar} alt="Avatar" className="w-full h-full object-cover" />
+                      {(rev.autor_avatar || rev.receptor_avatar) ? (
+                        <img src={rev.autor_avatar || rev.receptor_avatar} alt="Avatar" className="w-full h-full object-cover" />
                       ) : (
-                        rev.autor_nombre[0].toUpperCase()
+                        (rev.autor_nombre || rev.receptor_nombre || 'U')[0].toUpperCase()
                       )}
                     </div>
                     <div>
-                      <h4 className="font-bold text-slate-800">{rev.autor_nombre}</h4>
+                      <h4 className="font-bold text-slate-800">{rev.autor_nombre || rev.receptor_nombre}</h4>
                       <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                        {new Date(rev.fecha_creacion).toLocaleDateString('es-ES', { year: 'numeric', month: 'long' })} • {rev.rol_autor}
+                        {new Date(rev.fecha_creacion).toLocaleDateString('es-ES', { year: 'numeric', month: 'long' })} • {rol === 'TURISTA' ? 'Anfitrión' : rev.rol_autor}
                       </p>
                     </div>
                   </div>
