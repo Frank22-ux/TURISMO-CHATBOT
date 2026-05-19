@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { API_BASE } from '../../config/api';
-import { Camera, Pencil, Save, User, Mail, Phone, Calendar, Globe, Shield, Activity, Plus, X, Check, AlertCircle } from 'lucide-react';
+import { Camera, Pencil, Save, User, Mail, Phone, Calendar, Globe, Shield, Activity, Plus, X, Check, AlertCircle, Eye, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const TOP_LANGUAGES = [
@@ -56,7 +56,8 @@ const ProfileSection = ({ isHost = false, onUpdateProfile }) => {
           experiencia_anios: data.experiencia_anios || 0,
           idiomas: data.idiomas || '',
           nombre: data.nombre || '',
-          descuento_paquete: data.descuento_paquete || 0
+          descuento_paquete: data.descuento_paquete || 0,
+          url_documento_legal_frontal: data.url_documento_legal_frontal || null
         };
         setProfile(mappedData);
       } catch (error) {
@@ -91,12 +92,35 @@ const ProfileSection = ({ isHost = false, onUpdateProfile }) => {
     const file = e.target.files[0];
     if (file) {
       if (file.type === 'application/pdf') {
-        setDocumentFile(file);
-        // Note: For actual upload, this would need to be integrated with a backend endpoint
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setDocumentFile({ name: file.name });
+          setProfile(prev => ({ ...prev, url_documento_legal_frontal: reader.result }));
+        };
+        reader.readAsDataURL(file);
       } else {
         setNotification({ message: 'Por favor, selecciona únicamente un archivo PDF', type: 'error' });
       }
     }
+  };
+
+  const handleViewDocument = () => {
+    const docUrl = profile?.url_documento_legal_frontal;
+    if (docUrl) {
+      if (docUrl.startsWith('data:application/pdf;base64,')) {
+        const newWindow = window.open();
+        newWindow.document.write(`
+          <iframe width="100%" height="100%" src="${docUrl}" frameborder="0" style="border:none; margin:0; padding:0; overflow:hidden; z-index:999999;"></iframe>
+        `);
+      } else {
+        window.open(docUrl, '_blank');
+      }
+    }
+  };
+
+  const handleRemoveDocument = () => {
+    setDocumentFile(null);
+    setProfile(prev => ({ ...prev, url_documento_legal_frontal: null }));
   };
 
   const toggleLanguage = (lang) => {
@@ -401,20 +425,48 @@ const ProfileSection = ({ isHost = false, onUpdateProfile }) => {
             <Shield className="absolute -top-10 -right-10 w-40 h-40 opacity-10" />
             <h3 className="text-xl font-display font-black mb-6 relative z-10">{isHost ? 'Credenciales' : 'Verificación'}</h3>
             <div className="space-y-6 relative z-10">
-              <label className="p-8 bg-white/10 backdrop-blur-md rounded-3xl border border-white/10 flex flex-col items-center gap-4 group cursor-pointer hover:bg-white/20 transition-all w-full relative">
-                <input type="file" className="hidden" accept="application/pdf" onChange={handleDocumentChange} />
-                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-colors ${documentFile ? 'bg-green-500/80 text-white' : 'bg-white/20'}`}>
-                  {documentFile ? <Check className="w-8 h-8" /> : <Shield className="w-8 h-8" />}
+              {profile?.url_documento_legal_frontal ? (
+                <div className="p-8 bg-white/10 backdrop-blur-md rounded-3xl border border-white/10 flex flex-col items-center gap-4 transition-all w-full relative">
+                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-green-500/80 text-white">
+                    <Check className="w-8 h-8" />
+                  </div>
+                  <div className="text-center">
+                    <p className="font-black text-sm uppercase tracking-widest">Documento Cargado</p>
+                    <p className="text-[10px] opacity-80 mt-2 max-w-[200px] truncate mx-auto">
+                      {documentFile ? documentFile.name : 'Documento guardado en tu perfil'}
+                    </p>
+                  </div>
+                  <div className="flex gap-4 mt-4 w-full">
+                    <button 
+                      onClick={handleViewDocument}
+                      className="flex-1 bg-white/20 hover:bg-white/30 px-4 py-3 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-2"
+                    >
+                      <Eye className="w-4 h-4" /> Ver
+                    </button>
+                    <button 
+                      onClick={handleRemoveDocument}
+                      className="flex-1 bg-red-500/80 hover:bg-red-500 px-4 py-3 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-2 text-white"
+                    >
+                      <Trash2 className="w-4 h-4" /> Quitar
+                    </button>
+                  </div>
                 </div>
-                <div className="text-center">
-                  <p className="font-black text-sm uppercase tracking-widest">
-                    {documentFile ? 'Documento Cargado' : (isHost ? 'Subir Licencia (PDF)' : 'Subir Documento (PDF)')}
-                  </p>
-                  <p className="text-[10px] opacity-80 mt-2 max-w-[200px] truncate mx-auto">
-                    {documentFile ? documentFile.name : (isHost ? 'Certificado o Licencia Turística' : 'Cédula o Pasaporte escaneado')}
-                  </p>
-                </div>
-              </label>
+              ) : (
+                <label className="p-8 bg-white/10 backdrop-blur-md rounded-3xl border border-white/10 flex flex-col items-center gap-4 group cursor-pointer hover:bg-white/20 transition-all w-full relative">
+                  <input type="file" className="hidden" accept="application/pdf" onChange={handleDocumentChange} />
+                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-white/20 transition-colors">
+                    <Shield className="w-8 h-8" />
+                  </div>
+                  <div className="text-center">
+                    <p className="font-black text-sm uppercase tracking-widest">
+                      {isHost ? 'Subir Licencia (PDF)' : 'Subir Documento (PDF)'}
+                    </p>
+                    <p className="text-[10px] opacity-80 mt-2 max-w-[200px] truncate mx-auto">
+                      {isHost ? 'Certificado o Licencia Turística' : 'Cédula o Pasaporte escaneado'}
+                    </p>
+                  </div>
+                </label>
+              )}
             </div>
             <p className="text-[10px] text-center mt-8 opacity-40 uppercase font-black tracking-widest">
               Tu información está cifrada y segura
