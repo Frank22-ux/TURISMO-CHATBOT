@@ -3,11 +3,13 @@ import { API_BASE } from '../config/api';
 import { X, FileText, Download, AlertCircle, CheckCircle, ShieldCheck, Eye } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
+import { useScrollLock } from '../hooks/useScrollLock';
 
 const DocumentViewerModal = ({ isOpen, onClose, hostId, hostName, onVerify }) => {
     const [documents, setDocuments] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    useScrollLock(isOpen);
 
     useEffect(() => {
         if (isOpen && hostId) {

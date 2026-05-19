@@ -5,6 +5,7 @@ import MapboxMap, { Marker, Source } from 'react-map-gl/mapbox';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../../contexts/CartContext';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { useScrollLock } from '../../hooks/useScrollLock';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 const Map = MAPBOX_TOKEN ? MapboxMap : ({ children, style, className }) => (
@@ -32,6 +33,7 @@ const ActivityDetailModal = ({ isOpen, onClose, activity }) => {
   const [position, setPosition] = useState({ lat: -0.180653, lng: -78.467834 });
   const [showTerrain, setShowTerrain] = useState(true);
   const cart = useCart();
+  useScrollLock(isOpen);
   const { addToCart, selectedItems } = cart || { addToCart: () => {}, selectedItems: [] };
   const [added, setAdded] = useState(false);
   const isAlreadyInCart = selectedItems?.some(item => item.id === activity?.id);

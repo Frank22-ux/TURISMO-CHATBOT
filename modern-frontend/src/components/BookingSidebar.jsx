@@ -5,12 +5,14 @@ import { X, Calendar, Users, Minus, Plus, CreditCard, ChevronRight, Clock, Shiel
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
 import CustomCalendar from './CustomCalendar';
+import { useScrollLock } from '../hooks/useScrollLock';
 
 const BookingSidebar = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
   const { selectedItems, removeFromCart, checkConflicts, hostId } = useCart();
   const [dates, setDates] = useState({}); // { activityId: dateString }
   const [guestCounts, setGuestCounts] = useState({}); // { activityId: { adults, children, seniors } }
+  useScrollLock(isOpen);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
