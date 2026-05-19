@@ -6,7 +6,10 @@ import { motion } from 'framer-motion';
 const MyReviewsSection = () => {
   const [reviewsData, setReviewsData] = useState({ reviews: [], promedio: "0.0", total: 0 });
   const [loading, setLoading] = useState(true);
-  const rol = sessionStorage.getItem('rol');
+  
+  const userStr = sessionStorage.getItem('user');
+  const userObj = userStr ? JSON.parse(userStr) : null;
+  const rol = userObj?.rol;
 
   useEffect(() => {
     const fetchReviews = async () => {
