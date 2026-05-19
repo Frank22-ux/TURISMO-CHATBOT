@@ -439,13 +439,12 @@ const MessagingSection = ({ initialHostId, initialHostName }) => {
             {/* Input */}
             <form onSubmit={handleSendMessage} className="p-3 md:p-8 border-t border-slate-50 bg-white">
               <div className="bg-slate-50 p-1.5 md:p-2 rounded-[24px] md:rounded-[28px] flex items-center gap-2 border border-slate-100 focus-within:ring-4 focus-within:ring-primary/5 focus-within:border-primary transition-all">
-                <button type="button" className="p-2 md:p-3 text-slate-400 hover:text-primary transition-all hidden sm:block"><Paperclip className="w-5 h-5" /></button>
                 <input 
                   type="text" 
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   placeholder="Mensaje..." 
-                  className="flex-1 bg-transparent border-none outline-none text-sm p-2 md:p-2 font-medium ml-2 md:ml-0"
+                  className="flex-1 bg-transparent border-none outline-none text-sm px-4 font-medium"
                 />
                 <button 
                   type="submit"
