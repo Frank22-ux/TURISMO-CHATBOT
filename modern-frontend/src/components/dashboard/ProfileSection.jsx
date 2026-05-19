@@ -32,6 +32,7 @@ const ProfileSection = ({ isHost = false, onUpdateProfile }) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [previews, setPreviews] = useState({ avatar: null, cover: null });
+  const [documentFile, setDocumentFile] = useState(null);
   const [notification, setNotification] = useState(null);
   
   const [passwordData, setPasswordData] = useState({ currentPassword: '', newPassword: '' });
@@ -83,6 +84,18 @@ const ProfileSection = ({ isHost = false, onUpdateProfile }) => {
         setProfile(prev => ({ ...prev, [type === 'avatar' ? 'avatar' : 'cover_photo']: reader.result }));
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleDocumentChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.type === 'application/pdf') {
+        setDocumentFile(file);
+        // Note: For actual upload, this would need to be integrated with a backend endpoint
+      } else {
+        setNotification({ message: 'Por favor, selecciona únicamente un archivo PDF', type: 'error' });
+      }
     }
   };
 
@@ -388,24 +401,20 @@ const ProfileSection = ({ isHost = false, onUpdateProfile }) => {
             <Shield className="absolute -top-10 -right-10 w-40 h-40 opacity-10" />
             <h3 className="text-xl font-display font-black mb-6 relative z-10">{isHost ? 'Credenciales' : 'Verificación'}</h3>
             <div className="space-y-6 relative z-10">
-              <div className="p-6 bg-white/10 backdrop-blur-md rounded-3xl border border-white/10 flex flex-col items-center gap-4 group cursor-pointer hover:bg-white/20 transition-all">
-                <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center">
-                  <Shield className="w-6 h-6" />
+              <label className="p-8 bg-white/10 backdrop-blur-md rounded-3xl border border-white/10 flex flex-col items-center gap-4 group cursor-pointer hover:bg-white/20 transition-all w-full relative">
+                <input type="file" className="hidden" accept="application/pdf" onChange={handleDocumentChange} />
+                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-colors ${documentFile ? 'bg-green-500/80 text-white' : 'bg-white/20'}`}>
+                  {documentFile ? <Check className="w-8 h-8" /> : <Shield className="w-8 h-8" />}
                 </div>
                 <div className="text-center">
-                  <p className="font-black text-sm uppercase tracking-widest">{isHost ? 'Licencia Turística' : 'Documento Frontal'}</p>
-                  <p className="text-[10px] opacity-60">{isHost ? 'Frontal' : 'Cédula o Pasaporte'}</p>
+                  <p className="font-black text-sm uppercase tracking-widest">
+                    {documentFile ? 'Documento Cargado' : (isHost ? 'Subir Licencia (PDF)' : 'Subir Documento (PDF)')}
+                  </p>
+                  <p className="text-[10px] opacity-80 mt-2 max-w-[200px] truncate mx-auto">
+                    {documentFile ? documentFile.name : (isHost ? 'Certificado o Licencia Turística' : 'Cédula o Pasaporte escaneado')}
+                  </p>
                 </div>
-              </div>
-              <div className="p-6 bg-white/10 backdrop-blur-md rounded-3xl border border-white/10 flex flex-col items-center gap-4 group cursor-pointer hover:bg-white/20 transition-all">
-                <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center">
-                  <Shield className="w-6 h-6" />
-                </div>
-                <div className="text-center">
-                  <p className="font-black text-sm uppercase tracking-widest">Documento Posterior</p>
-                  <p className="text-[10px] opacity-60">Parte trasera</p>
-                </div>
-              </div>
+              </label>
             </div>
             <p className="text-[10px] text-center mt-8 opacity-40 uppercase font-black tracking-widest">
               Tu información está cifrada y segura
