@@ -258,6 +258,34 @@ const AdminDashboard = () => {
         XLSX.writeFile(wb, `Reporte_Catalogo_${new Date().toISOString().split('T')[0]}.xlsx`);
     };
 
+    const downloadReviewsReport = () => {
+        const wsData = [
+            ["SISTEMA CENTRAL DE TURISMO INTELIGENTE"],
+            ["REPORTE DE MODERACIÓN DE RESEÑAS"],
+            [`Fecha de Emisión: ${new Date().toLocaleDateString('es-ES', { dateStyle: 'long' })}`],
+            [],
+            ["ID Reseña", "Tipo", "Autor", "Destino", "Puntuación", "Comentario", "Visible", "Fecha"]
+        ];
+
+        allReviews.forEach(rev => {
+            wsData.push([
+                rev.id,
+                rev.tipo === 'ACTIVITY' ? 'Hacia Actividad' : 'Hacia Anfitrión',
+                rev.autor,
+                rev.destino,
+                rev.puntuacion,
+                rev.comentario,
+                rev.visible ? 'SÍ' : 'NO',
+                new Date(rev.fecha).toLocaleDateString()
+            ]);
+        });
+        const ws = XLSX.utils.aoa_to_sheet(wsData);
+        ws['!cols'] = [{ wch: 15 }, { wch: 18 }, { wch: 25 }, { wch: 25 }, { wch: 12 }, { wch: 50 }, { wch: 10 }, { wch: 15 }];
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Moderación");
+        XLSX.writeFile(wb, `Reporte_Moderacion_${new Date().toISOString().split('T')[0]}.xlsx`);
+    };
+
     const downloadOverviewReport = () => {
         const wb = XLSX.utils.book_new();
 
@@ -847,9 +875,17 @@ const AdminDashboard = () => {
                                 exit={{ opacity: 0, x: 20 }}
                                 className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden"
                             >
-                                <div className="p-8 border-b border-slate-50">
-                                    <h3 className="text-xl font-black text-slate-800">Moderación de Calificaciones</h3>
-                                    <p className="text-slate-400 text-[11px] font-black tracking-widest uppercase mt-1">Gestión de reseñas y reputación</p>
+                                <div className="p-8 border-b border-slate-50 flex justify-between items-center">
+                                    <div>
+                                        <h3 className="text-xl font-black text-slate-800">Moderación de Calificaciones</h3>
+                                        <p className="text-slate-400 text-[11px] font-black tracking-widest uppercase mt-1">Gestión de reseñas y reputación</p>
+                                    </div>
+                                    <button 
+                                        onClick={downloadReviewsReport}
+                                        className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-2xl text-[10px] font-black uppercase shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
+                                    >
+                                        <Download className="w-4 h-4" /> Exportar a EXCEL
+                                    </button>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-8">
                                     {Array.isArray(allReviews) && allReviews.length > 0 ? allReviews.map((rev) => (
