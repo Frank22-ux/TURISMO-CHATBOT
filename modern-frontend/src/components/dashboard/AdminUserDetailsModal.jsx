@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, User, MapPin, Calendar, Star, DollarSign, AlertTriangle, ShieldCheck, Clock, CheckCircle } from 'lucide-react';
+import { X, User, MapPin, Calendar, Star, DollarSign, AlertTriangle, ShieldCheck, Clock, CheckCircle, Search, QrCode } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { API_BASE } from '../../config/api';
 import axios from 'axios';
@@ -9,6 +9,7 @@ const AdminUserDetailsModal = ({ isOpen, userId, onClose }) => {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('reservations');
     const [error, setError] = useState('');
+    const [reservationSearchTerm, setReservationSearchTerm] = useState('');
 
     useEffect(() => {
         if (isOpen && userId) {
@@ -62,6 +63,17 @@ const AdminUserDetailsModal = ({ isOpen, userId, onClose }) => {
             alert('Error al intentar actualizar el estado del pago.');
         }
     };
+
+    const filteredReservations = details?.reservations?.filter(res => {
+        if (!reservationSearchTerm) return true;
+        const term = reservationSearchTerm.toLowerCase();
+        const matchesActivity = res.actividad_titulo?.toLowerCase().includes(term) || false;
+        const matchesTourist = res.turista?.toLowerCase().includes(term) || false;
+        const matchesHost = res.anfitrion?.toLowerCase().includes(term) || false;
+        const matchesQR = res.codigo_qr_turista?.toLowerCase().includes(term) || false;
+        
+        return matchesActivity || matchesTourist || matchesHost || matchesQR;
+    });
 
     if (!isOpen) return null;
 
@@ -167,54 +179,68 @@ const AdminUserDetailsModal = ({ isOpen, userId, onClose }) => {
                                 )}
 
                                 {activeTab === 'reservations' && details.reservations && (
-                                    <div className="grid grid-cols-1 gap-4">
-                                        {details.reservations.length === 0 ? <p className="text-slate-500 font-bold">No hay reservaciones registradas.</p> : null}
-                                        {details.reservations.map(res => {
-                                            const isFrozen = res.estado_pago === 'CONGELADO';
-                                            return (
-                                                <div key={res.id_reserva} className={`bg-white p-6 rounded-2xl border flex flex-col gap-4 shadow-sm transition-all ${isFrozen ? 'border-blue-300 bg-blue-50/30' : 'border-slate-100'}`}>
-                                                    <div className="flex justify-between items-start">
-                                                        <div>
-                                                            <div className="flex items-center gap-2 mb-1">
-                                                                <h4 className="font-black text-lg text-slate-800">{res.actividad_titulo}</h4>
-                                                                {isFrozen && <span className="px-2 py-0.5 bg-blue-100 text-blue-600 rounded text-[10px] font-black uppercase flex items-center gap-1"><AlertTriangle className="w-3 h-3"/> PAGO CONGELADO</span>}
-                                                            </div>
-                                                            <p className="text-sm font-bold text-slate-500">
-                                                                {details.user.rol === 'ANFITRION' ? `Turista: ${res.turista}` : `Anfitrión: ${res.anfitrion}`}
-                                                            </p>
-                                                        </div>
-                                                        <div className="text-right">
-                                                            <p className="text-xl font-black text-slate-800">${parseFloat(res.total).toFixed(2)}</p>
-                                                            <span className={`text-[10px] font-black uppercase ${res.estado === 'APROBADA' || res.estado === 'COMPLETADA' ? 'text-success' : 'text-warning'}`}>
-                                                                Reserva {res.estado}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                    
-                                                    <div className="flex justify-between items-center pt-4 border-t border-slate-50">
-                                                        <div className="flex gap-4 text-xs font-bold text-slate-400">
-                                                            <span className="flex items-center gap-1"><Calendar className="w-4 h-4"/> {new Date(res.fecha_experiencia).toLocaleDateString()}</span>
-                                                            <span className="flex items-center gap-1"><User className="w-4 h-4"/> {res.cantidad_personas} Pax</span>
-                                                        </div>
+                                    <div className="flex flex-col gap-4">
+                                        <div className="relative">
+                                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                                            <input 
+                                                type="text" 
+                                                placeholder="Buscar por código QR, nombre del turista, o actividad..." 
+                                                value={reservationSearchTerm}
+                                                onChange={(e) => setReservationSearchTerm(e.target.value)}
+                                                className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:ring-2 focus:ring-primary/20 shadow-sm transition-all"
+                                            />
+                                        </div>
 
-                                                        {/* Action to freeze payment only if it has an id_pago and user is host (admin viewing host's incoming reservations) or if admin wants to freeze it from tourist's view */}
-                                                        {res.id_pago && (
-                                                            <button 
-                                                                onClick={() => handleFreezePayment(res.id_pago, isFrozen)}
-                                                                className={`px-4 py-2 rounded-xl text-xs font-black uppercase transition-all flex items-center gap-2 ${
-                                                                    isFrozen 
-                                                                    ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                                                                    : 'bg-slate-100 text-slate-500 hover:bg-danger hover:text-white'
-                                                                }`}
-                                                            >
-                                                                {isFrozen ? <CheckCircle className="w-4 h-4"/> : <AlertTriangle className="w-4 h-4"/>}
-                                                                {isFrozen ? 'Descongelar Pago' : 'Congelar Pago'}
-                                                            </button>
-                                                        )}
+                                        <div className="grid grid-cols-1 gap-4">
+                                            {filteredReservations.length === 0 ? <p className="text-slate-500 font-bold mt-4">No se encontraron reservaciones que coincidan con la búsqueda.</p> : null}
+                                            {filteredReservations.map(res => {
+                                                const isFrozen = res.estado_pago === 'CONGELADO';
+                                                return (
+                                                    <div key={res.id_reserva} className={`bg-white p-6 rounded-2xl border flex flex-col gap-4 shadow-sm transition-all ${isFrozen ? 'border-blue-300 bg-blue-50/30' : 'border-slate-100'}`}>
+                                                        <div className="flex justify-between items-start">
+                                                            <div>
+                                                                <div className="flex items-center gap-2 mb-1">
+                                                                    <h4 className="font-black text-lg text-slate-800">{res.actividad_titulo}</h4>
+                                                                    {isFrozen && <span className="px-2 py-0.5 bg-blue-100 text-blue-600 rounded text-[10px] font-black uppercase flex items-center gap-1"><AlertTriangle className="w-3 h-3"/> PAGO CONGELADO</span>}
+                                                                </div>
+                                                                <p className="text-sm font-bold text-slate-500">
+                                                                    {details.user.rol === 'ANFITRION' ? `Turista: ${res.turista}` : `Anfitrión: ${res.anfitrion}`}
+                                                                </p>
+                                                            </div>
+                                                            <div className="text-right">
+                                                                <p className="text-xl font-black text-slate-800">${parseFloat(res.total).toFixed(2)}</p>
+                                                                <span className={`text-[10px] font-black uppercase ${res.estado === 'APROBADA' || res.estado === 'COMPLETADA' ? 'text-success' : 'text-warning'}`}>
+                                                                    Reserva {res.estado}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <div className="flex justify-between items-center pt-4 border-t border-slate-50">
+                                                            <div className="flex gap-4 text-xs font-bold text-slate-400">
+                                                                <span className="flex items-center gap-1"><Calendar className="w-4 h-4"/> {new Date(res.fecha_experiencia).toLocaleDateString()}</span>
+                                                                <span className="flex items-center gap-1"><User className="w-4 h-4"/> {res.cantidad_personas} Pax</span>
+                                                                {res.codigo_qr_turista && <span className="flex items-center gap-1 text-slate-500 bg-slate-100 px-2 py-1 rounded"><QrCode className="w-4 h-4"/> {res.codigo_qr_turista}</span>}
+                                                            </div>
+
+                                                            {/* Action to freeze payment only if it has an id_pago and user is host (admin viewing host's incoming reservations) or if admin wants to freeze it from tourist's view */}
+                                                            {res.id_pago && (
+                                                                <button 
+                                                                    onClick={() => handleFreezePayment(res.id_pago, isFrozen)}
+                                                                    className={`px-4 py-2 rounded-xl text-xs font-black uppercase transition-all flex items-center gap-2 ${
+                                                                        isFrozen 
+                                                                        ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                                                                        : 'bg-slate-100 text-slate-500 hover:bg-danger hover:text-white'
+                                                                    }`}
+                                                                >
+                                                                    {isFrozen ? <CheckCircle className="w-4 h-4"/> : <AlertTriangle className="w-4 h-4"/>}
+                                                                    {isFrozen ? 'Descongelar Pago' : 'Congelar Pago'}
+                                                                </button>
+                                                            )}
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            );
-                                        })}
+                                                );
+                                            })}
+                                        </div>
                                     </div>
                                 )}
 
