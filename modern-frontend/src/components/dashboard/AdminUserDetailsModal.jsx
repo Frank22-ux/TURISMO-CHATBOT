@@ -10,6 +10,12 @@ const AdminUserDetailsModal = ({ isOpen, userId, onClose }) => {
     const [activeTab, setActiveTab] = useState('reservations');
     const [error, setError] = useState('');
     const [reservationSearchTerm, setReservationSearchTerm] = useState('');
+    const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+
+    const showToast = (message, type = 'success') => {
+        setToast({ show: true, message, type });
+        setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
+    };
 
     useEffect(() => {
         if (isOpen && userId) {
@@ -57,10 +63,10 @@ const AdminUserDetailsModal = ({ isOpen, userId, onClose }) => {
                 )
             }));
             
-            alert(`Pago ${!currentIsFrozen ? 'Congelado' : 'Descongelado'} exitosamente.`);
+            showToast(`Pago ${!currentIsFrozen ? 'Congelado' : 'Descongelado'} exitosamente.`, 'success');
         } catch (err) {
             console.error(err);
-            alert('Error al intentar actualizar el estado del pago.');
+            showToast('Error al intentar actualizar el estado del pago.', 'error');
         }
     };
 
@@ -90,6 +96,20 @@ const AdminUserDetailsModal = ({ isOpen, userId, onClose }) => {
                     initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
                     className="bg-white rounded-[2rem] shadow-2xl w-full max-w-5xl h-[85vh] relative z-10 flex flex-col overflow-hidden"
                 >
+                    {/* Toast Notification */}
+                    <AnimatePresence>
+                        {toast.show && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                                className={`absolute top-6 left-1/2 -translate-x-1/2 z-[300] px-6 py-3 rounded-2xl shadow-xl flex items-center gap-3 font-black text-sm text-white ${toast.type === 'success' ? 'bg-success' : 'bg-danger'}`}
+                            >
+                                {toast.type === 'success' ? <CheckCircle className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
+                                {toast.message}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                     {loading ? (
                         <div className="flex-1 flex flex-col items-center justify-center p-12">
                             <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
