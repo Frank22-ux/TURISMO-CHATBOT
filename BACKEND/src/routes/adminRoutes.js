@@ -25,4 +25,7 @@ router.patch('/users/:id/verification', authMiddleware, isAdmin, adminController
 router.patch('/activities/:type/:id/status', authMiddleware, isAdmin, adminController.updateActivityStatus);
 router.patch('/reviews/:type/:id/visibility', authMiddleware, isAdmin, adminController.updateReviewVisibility);
 
+router.get('/users/:id/details', authMiddleware, isAdmin, adminController.getUserDetails);
+router.patch('/payments/:id/freeze', authMiddleware, isAdmin, adminController.freezePayment);
+
 module.exports = router;

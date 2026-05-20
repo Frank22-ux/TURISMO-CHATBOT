@@ -1,5 +1,5 @@
-require('dotenv').config({ path: './.env' });
-const db = require('./src/config/database');
+require('dotenv').config({ path: './BACKEND/.env' });
+const db = require('./BACKEND/src/config/database');
 
 async function updateDb() {
     try {

@@ -29,6 +29,7 @@ import MapboxMap, { Marker, Popup, NavigationControl, FullscreenControl } from '
 import 'mapbox-gl/dist/mapbox-gl.css';
 import * as XLSX from 'xlsx';
 import DocumentViewerModal from '../components/DocumentViewerModal';
+import AdminUserDetailsModal from '../components/dashboard/AdminUserDetailsModal';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 const Map = MAPBOX_TOKEN ? MapboxMap : ({ children, style, className }) => (
@@ -56,6 +57,8 @@ const AdminDashboard = () => {
         hostId: null,
         hostName: ''
     });
+
+    const [selectedUserDetailsId, setSelectedUserDetailsId] = useState(null);
 
     // Filtros de usuario
     const [userSearchTerm, setUserSearchTerm] = useState('');
@@ -625,7 +628,11 @@ const AdminDashboard = () => {
                                             {filteredUsers.length === 0 ? (
                                                 <tr><td colSpan="5" className="text-center py-8 text-slate-400 font-bold">No se encontraron usuarios</td></tr>
                                             ) : filteredUsers.map((u) => (
-                                                <tr key={u.id_usuario} className="hover:bg-slate-50/50 transition-colors group">
+                                                <tr 
+                                                    key={u.id_usuario} 
+                                                    className="hover:bg-slate-50/50 transition-colors group cursor-pointer"
+                                                    onClick={() => setSelectedUserDetailsId(u.id_usuario)}
+                                                >
                                                     <td className="px-8 py-5">
                                                         <div className="flex items-center gap-3">
                                                             <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-black">
@@ -652,7 +659,7 @@ const AdminDashboard = () => {
                                                                             <span className="text-[10px] font-black uppercase">Verificado</span>
                                                                         </div>
                                                                         <button 
-                                                                            onClick={() => toggleVerification(u.id_usuario, u.verificado)}
+                                                                            onClick={(e) => { e.stopPropagation(); toggleVerification(u.id_usuario, u.verificado); }}
                                                                             title="Quitar verificación"
                                                                             className="w-8 h-8 flex items-center justify-center bg-danger-light text-danger rounded-lg hover:bg-danger hover:text-white transition-colors"
                                                                         >
@@ -661,7 +668,7 @@ const AdminDashboard = () => {
                                                                     </div>
                                                                 ) : (
                                                                     <button 
-                                                                        onClick={() => openDocumentModal(u.id_usuario, u.nombre)}
+                                                                        onClick={(e) => { e.stopPropagation(); openDocumentModal(u.id_usuario, u.nombre); }}
                                                                         title="Ver Documentos para Verificar"
                                                                         className="w-auto px-3 py-1.5 rounded-lg flex items-center gap-2 transition-all bg-indigo-50 text-indigo-500 hover:bg-indigo-500 hover:text-white border border-indigo-200"
                                                                     >
@@ -675,6 +682,7 @@ const AdminDashboard = () => {
                                                                         href={u.url_documento_legal_frontal} 
                                                                         target="_blank" 
                                                                         rel="noopener noreferrer"
+                                                                        onClick={(e) => e.stopPropagation()}
                                                                         title="Ver Documento Legal"
                                                                         className="w-8 h-8 flex items-center justify-center bg-blue-50 text-blue-500 rounded-lg hover:bg-blue-500 hover:text-white transition-colors"
                                                                     >
@@ -968,6 +976,12 @@ const AdminDashboard = () => {
                 hostId={documentModal.hostId}
                 hostName={documentModal.hostName}
                 onVerify={handleVerifyFromModal}
+            />
+
+            <AdminUserDetailsModal 
+                isOpen={!!selectedUserDetailsId} 
+                userId={selectedUserDetailsId} 
+                onClose={() => setSelectedUserDetailsId(null)} 
             />
         </div>
     );

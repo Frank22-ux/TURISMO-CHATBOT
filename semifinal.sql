@@ -394,7 +394,7 @@ CREATE TABLE pagos (
     monto_reembolsado NUMERIC(10,2) DEFAULT 0,
 
     estado VARCHAR(20)
-        CHECK (estado IN ('PENDIENTE','CONFIRMADO','DEVUELTO'))
+        CHECK (estado IN ('PENDIENTE','CONFIRMADO','DEVUELTO','CONGELADO'))
         DEFAULT 'PENDIENTE',
 
     fecha_pago TIMESTAMP,

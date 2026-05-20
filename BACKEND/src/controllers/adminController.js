@@ -287,6 +287,103 @@ const getHostDocuments = async (req, res) => {
     }
 };
 
+const getUserDetails = async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        // Basic user info
+        const userQuery = `SELECT id_usuario, nombre, email, telefono, rol, estado, verificado, fecha_registro FROM usuarios WHERE id_usuario = $1`;
+        const userRes = await db.query(userQuery, [id]);
+        
+        if (userRes.rows.length === 0) {
+            return res.status(404).json({ message: 'Usuario no encontrado' });
+        }
+        
+        const user = userRes.rows[0];
+        let details = { user };
+
+        if (user.rol === 'TURISTA') {
+            // Turista: Reservations made, reviews given
+            const resQuery = `
+                SELECT r.*, p.estado as estado_pago, p.monto_total, 
+                       COALESCE(at.titulo, aa.titulo) as actividad_titulo, u.nombre as anfitrion
+                FROM reservas r
+                LEFT JOIN pagos p ON r.id_reserva = p.id_reserva
+                LEFT JOIN actividades_turisticas at ON r.id_actividad = at.id_actividad AND r.tipo_actividad = 'TURISTICA'
+                LEFT JOIN actividades_alimentarias aa ON r.id_actividad = aa.id_actividad AND r.tipo_actividad = 'ALIMENTARIA'
+                LEFT JOIN usuarios u ON COALESCE(at.id_anfitrion, aa.id_anfitrion) = u.id_usuario
+                WHERE r.id_turista = $1
+                ORDER BY r.fecha_solicitud DESC
+            `;
+            const reservations = await db.query(resQuery, [id]);
+            details.reservations = reservations.rows;
+
+            const reviewsQuery = `
+                SELECT v.id_valoracion as id, 'ACTIVITY' as tipo, v.puntuacion, v.comentario, v.fecha, COALESCE(at.titulo, aa.titulo) as destino
+                FROM valoraciones v
+                LEFT JOIN actividades_turisticas at ON v.id_actividad = at.id_actividad AND v.tipo_actividad = 'TURISTICA'
+                LEFT JOIN actividades_alimentarias aa ON v.id_actividad = aa.id_actividad AND v.tipo_actividad = 'ALIMENTARIA'
+                WHERE v.id_turista = $1
+                UNION ALL
+                SELECT r.id_resena as id, 'HOST' as tipo, r.puntuacion, r.comentario, r.fecha_creacion as fecha, u.nombre as destino
+                FROM resenas r
+                JOIN usuarios u ON r.receptor_id = u.id_usuario
+                WHERE r.autor_id = $1 AND r.rol_autor = 'TURISTA'
+            `;
+            const reviews = await db.query(reviewsQuery, [id]);
+            details.reviews = reviews.rows;
+
+        } else if (user.rol === 'ANFITRION') {
+            // Anfitrion: Activities, Reservations received
+            const actQuery = `
+                SELECT id_actividad, titulo, 'TURISTICA' as tipo, estado, vistas, precio, fecha_creacion FROM actividades_turisticas WHERE id_anfitrion = $1
+                UNION ALL
+                SELECT id_actividad, titulo, 'ALIMENTARIA' as tipo, estado, vistas, precio, fecha_creacion FROM actividades_alimentarias WHERE id_anfitrion = $1
+                ORDER BY fecha_creacion DESC
+            `;
+            const activities = await db.query(actQuery, [id]);
+            details.activities = activities.rows;
+
+            const resQuery = `
+                SELECT r.*, p.id_pago, p.estado as estado_pago, p.monto_total, p.monto_anfitrion,
+                       COALESCE(at.titulo, aa.titulo) as actividad_titulo, u.nombre as turista
+                FROM reservas r
+                JOIN pagos p ON r.id_reserva = p.id_reserva
+                JOIN usuarios u ON r.id_turista = u.id_usuario
+                LEFT JOIN actividades_turisticas at ON r.id_actividad = at.id_actividad AND r.tipo_actividad = 'TURISTICA'
+                LEFT JOIN actividades_alimentarias aa ON r.id_actividad = aa.id_actividad AND r.tipo_actividad = 'ALIMENTARIA'
+                WHERE at.id_anfitrion = $1 OR aa.id_anfitrion = $1
+                ORDER BY r.fecha_solicitud DESC
+            `;
+            const reservations = await db.query(resQuery, [id]);
+            details.reservations = reservations.rows;
+        }
+
+        res.status(200).json(details);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const freezePayment = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { freeze } = req.body; 
+        const newStatus = freeze ? 'CONGELADO' : 'CONFIRMADO';
+        
+        const query = 'UPDATE pagos SET estado = $1 WHERE id_pago = $2 RETURNING *';
+        const result = await db.query(query, [newStatus, id]);
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: 'Pago no encontrado' });
+        }
+        
+        res.status(200).json(result.rows[0]);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     getGlobalStats,
     getAllUsers,
@@ -298,5 +395,7 @@ module.exports = {
     getFinancialReport,
     getAllReviews,
     updateReviewVisibility,
-    getHostDocuments
+    getHostDocuments,
+    getUserDetails,
+    freezePayment
 };
