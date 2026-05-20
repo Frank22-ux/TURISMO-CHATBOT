@@ -288,9 +288,13 @@ const HostPaymentsSection = () => {
                   ) : (
                     payments.map(payment => {
                       const isRefunded = payment.estado === 'DEVUELTO';
+                      const isFrozen = payment.estado === 'CONGELADO';
                       let netEarnings = parseFloat(payment.monto_anfitrion);
                       if (isRefunded) {
                         netEarnings = Math.max(0, netEarnings - parseFloat(payment.monto_reembolsado));
+                      }
+                      if (isFrozen) {
+                        netEarnings = 0; // Frozen, not available yet
                       }
                       
                       return (
@@ -304,6 +308,7 @@ const HostPaymentsSection = () => {
                         <td className="py-4">
                            <p className="font-bold text-slate-700">{payment.actividad_titulo}</p>
                            {isRefunded && <p className="text-[10px] font-black text-orange-500 uppercase bg-orange-100 px-1 inline-block mt-1 rounded">Cancelación (Retención)</p>}
+                           {isFrozen && <p className="text-[10px] font-black text-blue-500 uppercase bg-blue-100 px-1 inline-block mt-1 rounded text-center">En Disputa<br/>(Congelado)</p>}
                         </td>
                         <td className="py-4 text-slate-500">{payment.turista_nombre}</td>
                         <td className="py-4 text-right text-slate-500">
@@ -317,7 +322,7 @@ const HostPaymentsSection = () => {
                            )}
                         </td>
                         <td className="py-4 text-right">
-                          <span className={`font-black font-display ${isRefunded ? 'text-orange-500' : 'text-emerald-600'}`}>${netEarnings.toFixed(2)}</span>
+                          <span className={`font-black font-display ${isRefunded ? 'text-orange-500' : isFrozen ? 'text-blue-500 line-through opacity-50' : 'text-emerald-600'}`}>${netEarnings.toFixed(2)}</span>
                         </td>
                       </tr>
                     )})

@@ -183,10 +183,53 @@ const sendNewMessageNotification = async (to, receiverName, senderName) => {
   }
 };
 
+/**
+ * Envía correo genérico de notificación por pago congelado (reclamo).
+ * @param {string} to - Email destino
+ * @param {string} name - Nombre del usuario (Turista o Anfitrión)
+ * @param {string} role - Rol ("Turista" o "Anfitrión") para contexto opcional
+ * @param {string} activityTitle - Título de la actividad
+ */
+const sendPaymentFrozenNotification = async (to, name, role, activityTitle) => {
+  try {
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px;">
+        <div style="text-align: center; margin-bottom: 20px;">
+          <h2 style="color: #ef4444; margin: 0;">Aviso Importante: Pago Suspendido</h2>
+        </div>
+        <p>Hola <strong>${name}</strong>,</p>
+        <p>Le informamos que debido a una queja registrada, el pago relacionado a la actividad <strong>"${activityTitle}"</strong> ha sido <strong>suspendido temporalmente</strong> hasta revisión.</p>
+        <p>En los próximos días, el equipo de administración se pondrá en contacto por esta vía para solicitarle que presente sus respectivas pruebas u observaciones sobre el caso.</p>
+        <p style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 10px; font-weight: bold;">
+          Nota: En caso de no presentar las pruebas solicitadas en el plazo que se indique posteriormente, se dará la razón a la parte contraria y el pago se resolverá a su favor de forma definitiva.
+        </p>
+        <p>Agradecemos su cooperación para resolver este inconveniente lo antes posible.</p>
+        <br/>
+        <p>Atentamente,<br/><strong>El equipo de Resolución de ISTPET Turismo</strong></p>
+      </div>
+    `;
+
+    const response = await resend.emails.send({
+      from: FROM_ADDRESS,
+      to,
+      reply_to: REPLY_TO,
+      subject: `Notificación de Disputa: Pago Congelado - ${activityTitle}`,
+      html,
+    });
+
+    if (response.error) throw new Error(response.error.message);
+    console.log(`[Email] Payment Frozen Notification → ${to} | ID: ${response.data?.id}`);
+    return response;
+  } catch (error) {
+    console.error(`[Email] Error sending payment frozen notification → ${to}:`, error.message);
+  }
+};
+
 module.exports = {
   sendWelcomeEmail,
   sendRecoveryEmail,
   sendReactivationEmail,
   sendHostReservationNotification,
   sendNewMessageNotification,
+  sendPaymentFrozenNotification,
 };

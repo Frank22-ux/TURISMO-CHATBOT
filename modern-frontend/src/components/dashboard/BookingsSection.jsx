@@ -152,7 +152,10 @@ const BookingsSection = ({ status: initialStatusFilter }) => {
     fetchBookings();
   }, []);
 
-  const getStatusBadge = (status) => {
+  const getStatusBadge = (status, estado_pago) => {
+    if (estado_pago === 'CONGELADO') {
+      return <div className="flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase border border-blue-100"><AlertCircle className="w-3 h-3" /> Pago Congelado</div>;
+    }
     switch(status) {
       case 'APROBADA': return <div className="flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-600 rounded-full text-[10px] font-black uppercase border border-green-100"><CheckCircle className="w-3 h-3" /> Aprobada</div>;
       case 'PENDIENTE': return <div className="flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-600 rounded-full text-[10px] font-black uppercase border border-amber-100"><Clock className="w-3 h-3" /> Pendiente</div>;
@@ -281,7 +284,7 @@ const BookingsSection = ({ status: initialStatusFilter }) => {
                       <p className="text-lg font-display font-black text-slate-800">${parseFloat(res.total).toFixed(2)}</p>
                     </td>
                     <td className="py-6 px-10">
-                      {getStatusBadge(res.estado)}
+                      {getStatusBadge(res.estado, res.estado_pago)}
                     </td>
                     <td className="py-6 px-10 text-right">
                       <div className="flex justify-end gap-2">

@@ -1,4 +1,5 @@
 const db = require('../config/database');
+const emailService = require('../services/emailService');
 
 const getGlobalStats = async (req, res) => {
     try {
@@ -376,6 +377,39 @@ const freezePayment = async (req, res) => {
         
         if (result.rows.length === 0) {
             return res.status(404).json({ message: 'Pago no encontrado' });
+        }
+
+        // Si se congela el pago, notificar a turista y anfitrión
+        if (newStatus === 'CONGELADO') {
+            try {
+                const pagoInfo = result.rows[0];
+                const resQuery = `
+                    SELECT r.id_reserva, u_turista.email as email_turista, u_turista.nombre as nombre_turista,
+                           u_anfitrion.email as email_anfitrion, u_anfitrion.nombre as nombre_anfitrion,
+                           COALESCE(at.titulo, aa.titulo) as actividad_titulo
+                    FROM reservas r
+                    JOIN usuarios u_turista ON r.id_turista = u_turista.id_usuario
+                    LEFT JOIN actividades_turisticas at ON r.id_actividad = at.id_actividad AND r.tipo_actividad = 'TURISTICA'
+                    LEFT JOIN actividades_alimentarias aa ON r.id_actividad = aa.id_actividad AND r.tipo_actividad = 'ALIMENTARIA'
+                    LEFT JOIN usuarios u_anfitrion ON COALESCE(at.id_anfitrion, aa.id_anfitrion) = u_anfitrion.id_usuario
+                    WHERE r.id_reserva = $1
+                `;
+                const resResult = await db.query(resQuery, [pagoInfo.id_reserva]);
+                
+                if (resResult.rows.length > 0) {
+                    const info = resResult.rows[0];
+                    // Notificar Turista
+                    if (info.email_turista) {
+                        emailService.sendPaymentFrozenNotification(info.email_turista, info.nombre_turista, 'Turista', info.actividad_titulo).catch(console.error);
+                    }
+                    // Notificar Anfitrión
+                    if (info.email_anfitrion) {
+                        emailService.sendPaymentFrozenNotification(info.email_anfitrion, info.nombre_anfitrion, 'Anfitrión', info.actividad_titulo).catch(console.error);
+                    }
+                }
+            } catch (emailErr) {
+                console.error("Error enviando notificaciones de pago congelado:", emailErr);
+            }
         }
         
         res.status(200).json(result.rows[0]);
