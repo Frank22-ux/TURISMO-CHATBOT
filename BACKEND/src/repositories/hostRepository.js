@@ -118,22 +118,21 @@ const getDashboardStats = async (id_anfitrion) => {
 
     // 3. Average rating
     const { rows: ratingRows } = await db.query(
-        `SELECT AVG(v.puntuacion) as avg_rating
-         FROM valoraciones v
-         LEFT JOIN actividades_turisticas at ON v.id_actividad = at.id_actividad AND v.tipo_actividad = 'TURISTICA'
-         LEFT JOIN actividades_alimentarias aa ON v.id_actividad = aa.id_actividad AND v.tipo_actividad = 'ALIMENTARIA'
-         WHERE (at.id_anfitrion = $1 OR aa.id_anfitrion = $1)`,
+        `SELECT AVG(puntuacion) as avg_rating
+         FROM resenas
+         WHERE receptor_id = $1 AND rol_autor = 'TURISTA'`,
         [id_anfitrion]
     );
 
-    // 4. New bookings (PENDIENTE)
+    // 4. New bookings (APROBADA this month)
     const { rows: bookingRows } = await db.query(
         `SELECT COUNT(*) as new_bookings
          FROM reservas r
          LEFT JOIN actividades_turisticas at ON r.id_actividad = at.id_actividad AND r.tipo_actividad = 'TURISTICA'
          LEFT JOIN actividades_alimentarias aa ON r.id_actividad = aa.id_actividad AND r.tipo_actividad = 'ALIMENTARIA'
          WHERE (at.id_anfitrion = $1 OR aa.id_anfitrion = $1)
-         AND r.estado = 'PENDIENTE'`,
+         AND r.estado = 'APROBADA'
+         AND date_trunc('month', r.fecha_solicitud) = date_trunc('month', CURRENT_DATE)`,
         [id_anfitrion]
     );
 
